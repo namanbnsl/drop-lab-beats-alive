@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Music, Play, Stop, Settings, Zap } from 'lucide-react';
+import { Music, Play, CircleStop, Settings, Zap } from 'lucide-react';
 
 // Import Magenta.js when available
 let mm: any = null;
@@ -192,7 +191,7 @@ const MagentaGenerator: React.FC<MagentaGeneratorProps> = ({ onMelodyGenerated }
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            {isPlaying ? <Stop className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            {isPlaying ? <CircleStop className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </motion.button>
         </div>
 
