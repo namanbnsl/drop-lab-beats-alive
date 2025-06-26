@@ -1,7 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { Music, Headphones, Zap, Settings, Disc3, Sliders, Grid3X3, Monitor, PlayCircle, Brain, BookOpen } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -151,14 +151,12 @@ const Index = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            <Link to="/producer">
-              <button className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 hover:scale-105">
-                <span className="relative z-10 flex items-center gap-2 justify-center">
-                  🎼 Start Producing
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-purple-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </button>
-            </Link>
+            <button className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 hover:scale-105">
+              <span className="relative z-10 flex items-center gap-2 justify-center">
+                🎼 Start Producing
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-purple-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </button>
 
             <button className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 hover:scale-105">
               <span className="relative z-10 flex items-center gap-2 justify-center">
@@ -327,16 +325,14 @@ const Index = () => {
         </h2>
         
         <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-          <Link to="/producer">
-            <motion.button
-              className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <span className="relative z-10">🎼 Start Producing</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-purple-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </motion.button>
-          </Link>
+          <motion.button
+            className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className="relative z-10">🎼 Start Producing</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-purple-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </motion.button>
 
           <motion.button
             className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25"
