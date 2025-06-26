@@ -101,3 +101,35 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom slider styles for the Producer mode */
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #a259ff;
+  cursor: pointer;
+  border: 2px solid #8000ff;
+  box-shadow: 0 0 10px rgba(162, 89, 255, 0.3);
+}
+
+.slider::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #a259ff;
+  cursor: pointer;
+  border: 2px solid #8000ff;
+  box-shadow: 0 0 10px rgba(162, 89, 255, 0.3);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Grid styles for the 16x16 grid */
+.grid-cols-16 {
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+}
