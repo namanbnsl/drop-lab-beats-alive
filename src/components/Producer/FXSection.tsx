@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { RotateCcw, Power } from 'lucide-react';
+import InfoTooltip from '../InfoTooltip';
 
 interface KnobProps {
   label: string;
@@ -83,6 +84,13 @@ const FXSection = () => {
 
   // TODO: Connect knobs to Tone.js FX nodes later
 
+  const fxTooltips = {
+    reverb: "Reverb creates space and depth—like placing your sound in a hall, tunnel, or cathedral.",
+    delay: "Delay adds echoes. Great for spatial effects and rhythmic bounce.",
+    distortion: "Distortion adds grit and edge. Perfect for punchy basslines or gritty leads.",
+    filter: "Filters sculpt your sound by removing low or high frequencies. Useful during transitions."
+  };
+
   return (
     <section id="fx" className="min-h-screen flex items-center justify-center px-4 py-20">
       <motion.div
@@ -110,7 +118,11 @@ const FXSection = () => {
             viewport={{ once: true }}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-purple-400">Delay</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-purple-400">Delay</h3>
+                {/* Tooltip: Delay FX */}
+                <InfoTooltip content={fxTooltips.delay} />
+              </div>
               <motion.button
                 onClick={() => setDelayBypass(!delayBypass)}
                 className={`p-2 rounded-full transition-colors ${
@@ -138,7 +150,11 @@ const FXSection = () => {
             viewport={{ once: true }}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-purple-400">Reverb</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-purple-400">Reverb</h3>
+                {/* Tooltip: Reverb FX */}
+                <InfoTooltip content={fxTooltips.reverb} />
+              </div>
               <motion.button
                 onClick={() => setReverbBypass(!reverbBypass)}
                 className={`p-2 rounded-full transition-colors ${
@@ -166,7 +182,11 @@ const FXSection = () => {
             viewport={{ once: true }}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-purple-400">Distortion</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-purple-400">Distortion</h3>
+                {/* Tooltip: Distortion FX */}
+                <InfoTooltip content={fxTooltips.distortion} />
+              </div>
               <motion.button
                 onClick={() => setDistortionBypass(!distortionBypass)}
                 className={`p-2 rounded-full transition-colors ${
@@ -194,7 +214,11 @@ const FXSection = () => {
             viewport={{ once: true }}
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-purple-400">Filter</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-purple-400">Filter</h3>
+                {/* Tooltip: Filter FX */}
+                <InfoTooltip content={fxTooltips.filter} />
+              </div>
               <motion.button
                 onClick={() => setFilterBypass(!filterBypass)}
                 className={`p-2 rounded-full transition-colors ${

@@ -1,9 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Music, Headphones, Zap, Settings, Disc3, Sliders, Grid3X3, Monitor, PlayCircle, Brain, BookOpen } from 'lucide-react';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const controls = useAnimation();
@@ -151,7 +152,11 @@ const Index = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            <button className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 hover:scale-105">
+            {/* Home Button → /producer */}
+            <button 
+              onClick={() => navigate('/producer')}
+              className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 hover:scale-105"
+            >
               <span className="relative z-10 flex items-center gap-2 justify-center">
                 🎼 Start Producing
               </span>
@@ -326,6 +331,7 @@ const Index = () => {
         
         <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
           <motion.button
+            onClick={() => navigate('/producer')}
             className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
