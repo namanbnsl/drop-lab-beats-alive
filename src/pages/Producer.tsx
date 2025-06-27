@@ -286,6 +286,7 @@ const Producer = () => {
         })),
         metadata: {
           duration: 8,
+          key: 'C', // Add missing key property
           tempo: 120,
           style: style
         }
