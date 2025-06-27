@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Music, Home, Volume2, Play, Pause, Download, Send } from 'lucide-react';
-import * as mm from '@magenta/music';
 import * as Tone from 'tone';
+import { LyriaAPI, type LyriaGenerationResponse } from '../lib/lyria';
 import ProducerNavbar from '../components/Producer/ProducerNavbar';
 import WelcomeSection from '../components/Producer/WelcomeSection';
 import MelodySection from '../components/Producer/MelodySection';
@@ -17,15 +17,14 @@ const Producer = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('welcome');
   
-  // MusicVAE: Model references for AI music generation
-  const melodyVAERef = useRef<mm.MusicVAE>();
-  const drumVAERef = useRef<mm.MusicVAE>();
-  const [modelsLoaded, setModelsLoaded] = useState(false);
-  const [isLoadingModels, setIsLoadingModels] = useState(true);
+  // Lyria API: Initialize with API key (should be from environment variables)
+  const lyriaAPI = useRef<LyriaAPI>();
+  const [apiReady, setApiReady] = useState(false);
+  const [isLoadingAPI, setIsLoadingAPI] = useState(true);
   
   // Generated sequences storage
-  const [melodySequence, setMelodySequence] = useState<mm.INoteSequence | null>(null);
-  const [drumSequence, setDrumSequence] = useState<mm.INoteSequence | null>(null);
+  const [melodyData, setMelodyData] = useState<LyriaGenerationResponse | null>(null);
+  const [drumData, setDrumData] = useState<LyriaGenerationResponse | null>(null);
 
   // Tone.js: Audio engine setup
   const melodyGainRef = useRef<Tone.Gain>();
@@ -52,36 +51,27 @@ const Producer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
 
-  // MusicVAE: Initialize AI models on component mount
+  // Lyria API: Initialize on component mount
   useEffect(() => {
-    const initializeModels = async () => {
+    const initializeLyria = async () => {
       try {
-        console.log('🎵 Initializing MusicVAE models...');
+        console.log('🎵 Initializing Lyria API...');
         
-        // MusicVAE: Initialize melody model
-        melodyVAERef.current = new mm.MusicVAE(
-          'https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/mel_2bar_small'
-        );
-        await melodyVAERef.current.initialize();
-        console.log('✅ MelodyVAE loaded successfully');
-
-        // MusicVAE: Initialize drum model
-        drumVAERef.current = new mm.MusicVAE(
-          'https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/drums_2bar_hikl_small'
-        );
-        await drumVAERef.current.initialize();
-        console.log('✅ DrumVAE loaded successfully');
-
-        setModelsLoaded(true);
-        setIsLoadingModels(false);
-        console.log('🚀 All MusicVAE models ready for generation!');
+        // In a real app, this should come from environment variables
+        // For demo purposes, we'll use a placeholder
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY || 'demo-key';
+        
+        lyriaAPI.current = new LyriaAPI(apiKey);
+        setApiReady(true);
+        setIsLoadingAPI(false);
+        console.log('✅ Lyria API ready for music generation!');
       } catch (error) {
-        console.error('❌ Error loading MusicVAE models:', error);
-        setIsLoadingModels(false);
+        console.error('❌ Error initializing Lyria API:', error);
+        setIsLoadingAPI(false);
       }
     };
 
-    initializeModels();
+    initializeLyria();
   }, []);
 
   // Tone.js: Initialize audio engine
@@ -140,111 +130,113 @@ const Producer = () => {
     };
   }, []);
 
-  // Tone.js: Update melody volume in real time
+  // Tone.js: Update volume controls in real time
   useEffect(() => {
     if (melodyGainRef.current) {
       melodyGainRef.current.gain.rampTo(melodyVolume / 100, 0.1);
     }
   }, [melodyVolume]);
 
-  // Tone.js: Update drums volume in real time
   useEffect(() => {
     if (drumsGainRef.current) {
       drumsGainRef.current.gain.rampTo(drumsVolume / 100, 0.1);
     }
   }, [drumsVolume]);
 
-  // Tone.js: Update FX volume in real time
   useEffect(() => {
     if (fxGainRef.current) {
       fxGainRef.current.gain.rampTo(fxVolume / 100, 0.1);
     }
   }, [fxVolume]);
 
-  // Tone.js: Update master volume in real time
   useEffect(() => {
     if (masterGainRef.current) {
       masterGainRef.current.gain.rampTo(masterVolume / 100, 0.1);
     }
   }, [masterVolume]);
 
-  // FX: Update reverb amount in real time
+  // FX: Update effects in real time
   useEffect(() => {
     if (reverbRef.current) {
       reverbRef.current.wet.rampTo(reverbAmount, 0.1);
     }
   }, [reverbAmount]);
 
-  // FX: Update delay amount in real time
   useEffect(() => {
     if (delayRef.current) {
       delayRef.current.wet.rampTo(delayAmount, 0.1);
     }
   }, [delayAmount]);
 
-  // Helper: Convert NoteSequence to Tone.js events
-  const convertNoteSequenceToToneEvents = (sequence: mm.INoteSequence | null) => {
-    if (!sequence || !sequence.notes) return [];
+  // Helper: Convert Lyria response to Tone.js events
+  const convertLyriaToToneEvents = (lyriaData: LyriaGenerationResponse | null) => {
+    if (!lyriaData || !lyriaData.midiData) return [];
     
-    return sequence.notes.map(note => ({
-      time: note.startTime || 0,
-      note: Tone.Frequency(note.pitch || 60, "midi").toNote(),
-      duration: (note.endTime || 0) - (note.startTime || 0),
-      velocity: note.velocity || 0.8
-    }));
+    try {
+      // Parse the mock MIDI data
+      const decoder = new TextDecoder();
+      const jsonString = decoder.decode(lyriaData.midiData);
+      const midiData = JSON.parse(jsonString);
+      
+      return midiData.notes.map((note: any) => ({
+        time: note.startTime,
+        note: Tone.Frequency(note.pitch, "midi").toNote(),
+        duration: note.endTime - note.startTime,
+        velocity: note.velocity
+      }));
+    } catch (error) {
+      console.error('Error parsing Lyria data:', error);
+      return [];
+    }
   };
 
-  // MusicVAE: Generate melody using AI
+  // Lyria API: Generate melody using AI
   const generateMelody = async (key: string, style: string, length: number) => {
-    if (!melodyVAERef.current || !modelsLoaded) {
-      console.warn('⚠️ MelodyVAE not ready yet');
+    if (!lyriaAPI.current || !apiReady) {
+      console.warn('⚠️ Lyria API not ready yet');
       return null;
     }
 
     try {
-      console.log(`🎼 Generating AI melody in ${key} (${style}, ${length} bars)...`);
+      console.log(`🎼 Generating AI melody with Lyria in ${key} (${style}, ${length} bars)...`);
       
-      // MusicVAE: Generate melody sequence
-      const result = await melodyVAERef.current.sample(1);
-      const sequence = result[0];
+      const result = await lyriaAPI.current.generateMelody({ key, style, length });
       
-      console.log('✅ Melody generated successfully:', sequence);
-      setMelodySequence(sequence);
+      console.log('✅ Melody generated successfully with Lyria:', result);
+      setMelodyData(result);
       
-      return sequence;
+      return result;
     } catch (error) {
-      console.error('❌ Error generating melody:', error);
+      console.error('❌ Error generating melody with Lyria:', error);
       return null;
     }
   };
 
-  // MusicVAE: Generate drums using AI
+  // Lyria API: Generate drums using AI
   const generateDrums = async (style: string, complexity: string) => {
-    if (!drumVAERef.current || !modelsLoaded) {
-      console.warn('⚠️ DrumVAE not ready yet');
+    if (!lyriaAPI.current || !apiReady) {
+      console.warn('⚠️ Lyria API not ready yet');
       return null;
     }
 
     try {
-      console.log(`🥁 Generating AI drums (${style}, ${complexity})...`);
+      console.log(`🥁 Generating AI drums with Lyria (${style}, ${complexity})...`);
       
-      // MusicVAE: Generate drum sequence
-      const result = await drumVAERef.current.sample(1);
-      const sequence = result[0];
+      const result = await lyriaAPI.current.generateDrums({ style, complexity });
       
-      console.log('✅ Drum pattern generated successfully:', sequence);
-      setDrumSequence(sequence);
+      console.log('✅ Drum pattern generated successfully with Lyria:', result);
+      setDrumData(result);
       
-      return sequence;
+      return result;
     } catch (error) {
-      console.error('❌ Error generating drums:', error);
+      console.error('❌ Error generating drums with Lyria:', error);
       return null;
     }
   };
 
   // Tone.js: Play full track with quantization
   const playFullTrack = async () => {
-    if (!melodySequence && !drumSequence) {
+    if (!melodyData && !drumData) {
       console.warn('⚠️ No sequences to play');
       return;
     }
@@ -256,16 +248,16 @@ const Producer = () => {
       Tone.Transport.cancel();
 
       // Play melody if available
-      if (melodySequence && melodySynthRef.current) {
-        const melodyEvents = convertNoteSequenceToToneEvents(melodySequence);
+      if (melodyData && melodySynthRef.current) {
+        const melodyEvents = convertLyriaToToneEvents(melodyData);
         const melodyPart = new Tone.Part((time, note) => {
           melodySynthRef.current?.triggerAttackRelease(note.note, note.duration, time, note.velocity);
         }, melodyEvents).start(0);
       }
 
       // Play drums if available
-      if (drumSequence && drumSamplerRef.current) {
-        const drumEvents = convertNoteSequenceToToneEvents(drumSequence);
+      if (drumData && drumSamplerRef.current) {
+        const drumEvents = convertLyriaToToneEvents(drumData);
         const drumPart = new Tone.Part((time, note) => {
           drumSamplerRef.current?.triggerAttack(note.note, time, note.velocity);
         }, drumEvents).start(0);
@@ -275,7 +267,7 @@ const Producer = () => {
       Tone.Transport.start();
       setIsPlaying(true);
 
-      console.log('▶️ Playing full track with AI-generated content');
+      console.log('▶️ Playing full track with Lyria-generated content');
     } catch (error) {
       console.error('❌ Error playing track:', error);
     }
@@ -287,36 +279,36 @@ const Producer = () => {
     console.log('⏹️ Playback stopped');
   };
 
-  // Export: Convert NoteSequence to MIDI
-  const exportToMidi = (sequence: mm.INoteSequence | null, filename: string) => {
-    if (!sequence) {
-      console.warn('⚠️ No sequence to export');
+  // Export: Convert Lyria data to MIDI
+  const exportToMidi = (lyriaData: LyriaGenerationResponse | null, filename: string) => {
+    if (!lyriaData || !lyriaData.midiData) {
+      console.warn('⚠️ No data to export');
       return;
     }
 
     try {
-      // Export: Convert NoteSequence to MIDI
-      const midi = mm.sequenceProtoToMidi(sequence);
-      const blob = new Blob([midi], { type: 'audio/midi' });
+      // For now, export the mock data as JSON
+      // In a real implementation, this would convert to proper MIDI format
+      const blob = new Blob([lyriaData.midiData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${filename}.mid`;
+      a.download = `${filename}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       
-      console.log(`✅ Exported ${filename}.mid`);
+      console.log(`✅ Exported ${filename}.json`);
     } catch (error) {
-      console.error('❌ Error exporting MIDI:', error);
+      console.error('❌ Error exporting data:', error);
     }
   };
 
   // Export: Record audio with Tone.js
   const exportToAudio = async () => {
-    if (!recorderRef.current || (!melodySequence && !drumSequence)) {
+    if (!recorderRef.current || (!melodyData && !drumData)) {
       console.warn('⚠️ No content to record');
       return;
     }
@@ -335,7 +327,7 @@ const Producer = () => {
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'droplab-track.wav';
+        a.download = 'droplab-lyria-track.wav';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -383,8 +375,8 @@ const Producer = () => {
       {/* Navigation */}
       <ProducerNavbar activeSection={activeSection} onNavigateHome={() => navigate('/')} />
 
-      {/* AI Models Loading Indicator */}
-      {isLoadingModels && (
+      {/* Lyria API Loading Indicator */}
+      {isLoadingAPI && (
         <motion.div
           className="fixed top-4 right-4 z-50 bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg"
           initial={{ opacity: 0, x: 100 }}
@@ -393,7 +385,23 @@ const Producer = () => {
         >
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-sm">Loading AI models...</span>
+            <span className="text-sm">Connecting to Lyria...</span>
+          </div>
+        </motion.div>
+      )}
+
+      {/* API Ready Indicator */}
+      {apiReady && !isLoadingAPI && (
+        <motion.div
+          className="fixed top-4 right-4 z-50 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg"
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 100 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-white rounded-full"></div>
+            <span className="text-sm">Lyria AI Ready</span>
           </div>
         </motion.div>
       )}
@@ -404,14 +412,14 @@ const Producer = () => {
         <MelodySection 
           onGenerateMelody={generateMelody}
           onPlayMelody={() => playFullTrack()}
-          melodySequence={melodySequence}
-          modelsLoaded={modelsLoaded}
+          melodySequence={melodyData}
+          modelsLoaded={apiReady}
         />
         <DrumSection 
           onGenerateDrums={generateDrums}
           onPlayDrums={() => playFullTrack()}
-          drumSequence={drumSequence}
-          modelsLoaded={modelsLoaded}
+          drumSequence={drumData}
+          modelsLoaded={apiReady}
         />
         <GridSection />
         <FXSection 
@@ -431,11 +439,11 @@ const Producer = () => {
           onMasterVolumeChange={setMasterVolume}
         />
         <ExportSection 
-          onExportMelody={() => exportToMidi(melodySequence, 'droplab-melody')}
-          onExportDrums={() => exportToMidi(drumSequence, 'droplab-drums')}
+          onExportMelody={() => exportToMidi(melodyData, 'droplab-lyria-melody')}
+          onExportDrums={() => exportToMidi(drumData, 'droplab-lyria-drums')}
           onExportAudio={exportToAudio}
           onPlayTrack={isPlaying ? stopPlayback : playFullTrack}
-          hasGeneratedContent={!!(melodySequence || drumSequence)}
+          hasGeneratedContent={!!(melodyData || drumData)}
           isPlaying={isPlaying}
           isRecording={isRecording}
         />
