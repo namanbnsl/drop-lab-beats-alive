@@ -5,13 +5,25 @@ import { Volume2, VolumeX } from 'lucide-react';
 import InfoTooltip from '../InfoTooltip';
 import VerticalFader from '../VerticalFader';
 
+interface MixerSectionProps {
+  melodyVolume: number;
+  drumsVolume: number;
+  fxVolume: number;
+  masterVolume: number;
+  onMelodyVolumeChange: (value: number) => void;
+  onDrumsVolumeChange: (value: number) => void;
+  onFxVolumeChange: (value: number) => void;
+  onMasterVolumeChange: (value: number) => void;
+}
+
 interface ChannelStripProps {
   label: string;
   color: string;
+  volume: number;
+  onVolumeChange: (value: number) => void;
 }
 
-const ChannelStrip: React.FC<ChannelStripProps> = ({ label, color }) => {
-  const [volume, setVolume] = useState(25); // Inverted: 0 = loud, 100 = silent
+const ChannelStrip: React.FC<ChannelStripProps> = ({ label, color, volume, onVolumeChange }) => {
   const [pan, setPan] = useState(50);
   const [isMuted, setIsMuted] = useState(false);
   const [isSolo, setIsSolo] = useState(false);
@@ -54,7 +66,7 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({ label, color }) => {
         <VerticalFader
           label=""
           value={volume}
-          onChange={setVolume}
+          onChange={onVolumeChange}
         />
       </div>
 
@@ -90,12 +102,16 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({ label, color }) => {
   );
 };
 
-const MixerSection = () => {
-  const [drumsLevel, setDrumsLevel] = useState(25);
-  const [melodyLevel, setMelodyLevel] = useState(25);
-  const [fxLevel, setFxLevel] = useState(25);
-  const [masterLevel, setMasterLevel] = useState(25);
-
+const MixerSection: React.FC<MixerSectionProps> = ({
+  melodyVolume,
+  drumsVolume,
+  fxVolume,
+  masterVolume,
+  onMelodyVolumeChange,
+  onDrumsVolumeChange,
+  onFxVolumeChange,
+  onMasterVolumeChange
+}) => {
   const balanceTooltips = {
     drums: "Controls the overall loudness of your drum tracks.",
     melody: "Adjusts the level of your generated or composed melodies.",
@@ -127,7 +143,12 @@ const MixerSection = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
           >
-            <ChannelStrip label="Drums" color="text-red-400" />
+            <ChannelStrip 
+              label="Drums" 
+              color="text-red-400"
+              volume={drumsVolume}
+              onVolumeChange={onDrumsVolumeChange}
+            />
           </motion.div>
 
           <motion.div
@@ -136,7 +157,12 @@ const MixerSection = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             viewport={{ once: true }}
           >
-            <ChannelStrip label="Melody" color="text-blue-400" />
+            <ChannelStrip 
+              label="Melody" 
+              color="text-blue-400"
+              volume={melodyVolume}
+              onVolumeChange={onMelodyVolumeChange}
+            />
           </motion.div>
 
           <motion.div
@@ -145,7 +171,12 @@ const MixerSection = () => {
             transition={{ duration: 0.5, delay: 0.3 }}
             viewport={{ once: true }}
           >
-            <ChannelStrip label="FX" color="text-green-400" />
+            <ChannelStrip 
+              label="FX" 
+              color="text-green-400"
+              volume={fxVolume}
+              onVolumeChange={onFxVolumeChange}
+            />
           </motion.div>
 
           <motion.div
@@ -154,7 +185,12 @@ const MixerSection = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
             viewport={{ once: true }}
           >
-            <ChannelStrip label="Master" color="text-purple-400" />
+            <ChannelStrip 
+              label="Master" 
+              color="text-purple-400"
+              volume={masterVolume}
+              onVolumeChange={onMasterVolumeChange}
+            />
           </motion.div>
         </div>
 
@@ -176,8 +212,8 @@ const MixerSection = () => {
               </div>
               <VerticalFader
                 label=""
-                value={drumsLevel}
-                onChange={setDrumsLevel}
+                value={drumsVolume}
+                onChange={onDrumsVolumeChange}
               />
             </div>
 
@@ -189,8 +225,8 @@ const MixerSection = () => {
               </div>
               <VerticalFader
                 label=""
-                value={melodyLevel}
-                onChange={setMelodyLevel}
+                value={melodyVolume}
+                onChange={onMelodyVolumeChange}
               />
             </div>
 
@@ -202,8 +238,8 @@ const MixerSection = () => {
               </div>
               <VerticalFader
                 label=""
-                value={fxLevel}
-                onChange={setFxLevel}
+                value={fxVolume}
+                onChange={onFxVolumeChange}
               />
             </div>
 
@@ -215,8 +251,8 @@ const MixerSection = () => {
               </div>
               <VerticalFader
                 label=""
-                value={masterLevel}
-                onChange={setMasterLevel}
+                value={masterVolume}
+                onChange={onMasterVolumeChange}
               />
             </div>
           </div>

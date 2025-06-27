@@ -1,7 +1,15 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { RotateCcw, Power } from 'lucide-react';
 import InfoTooltip from '../InfoTooltip';
+
+interface FXSectionProps {
+  reverbAmount: number;
+  delayAmount: number;
+  onReverbChange: (value: number) => void;
+  onDelayChange: (value: number) => void;
+}
 
 interface KnobProps {
   label: string;
@@ -61,28 +69,33 @@ const Knob: React.FC<KnobProps> = ({ label, value, onChange, min = 0, max = 100 
   );
 };
 
-const FXSection = () => {
-  // Delay FX
-  const [delayTime, setDelayTime] = useState(25);
-  const [delayFeedback, setDelayFeedback] = useState(30);
-  const [delayBypass, setDelayBypass] = useState(false);
-
-  // Reverb FX
-  const [reverbRoom, setReverbRoom] = useState(50);
-  const [reverbMix, setReverbMix] = useState(25);
-  const [reverbBypass, setReverbBypass] = useState(false);
-
-  // Distortion FX
+const FXSection: React.FC<FXSectionProps> = ({
+  reverbAmount,
+  delayAmount,
+  onReverbChange,
+  onDelayChange
+}) => {
+  // Local state for non-functional FX (Distortion & Filter)
   const [distortionDrive, setDistortionDrive] = useState(40);
   const [distortionTone, setDistortionTone] = useState(60);
   const [distortionBypass, setDistortionBypass] = useState(false);
 
-  // Filter FX
   const [filterCutoff, setFilterCutoff] = useState(70);
   const [filterResonance, setFilterResonance] = useState(20);
   const [filterBypass, setFilterBypass] = useState(false);
 
-  // TODO: Connect knobs to Tone.js FX nodes later
+  // FX bypass states for functional effects
+  const [delayBypass, setDelayBypass] = useState(false);
+  const [reverbBypass, setReverbBypass] = useState(false);
+
+  // Convert 0-100 range to 0-1 for Tone.js
+  const handleReverbChange = (value: number) => {
+    onReverbChange(value / 100);
+  };
+
+  const handleDelayChange = (value: number) => {
+    onDelayChange(value / 100);
+  };
 
   const fxTooltips = {
     reverb: "Reverb creates space and depth—like placing your sound in a hall, tunnel, or cathedral.",
@@ -109,7 +122,7 @@ const FXSection = () => {
         </p>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Delay */}
+          {/* Delay - Functional */}
           <motion.div
             className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -136,12 +149,16 @@ const FXSection = () => {
             </div>
             
             <div className="space-y-6">
-              <Knob label="Time" value={delayTime} onChange={setDelayTime} />
-              <Knob label="Feedback" value={delayFeedback} onChange={setDelayFeedback} />
+              <Knob 
+                label="Amount" 
+                value={Math.round(delayAmount * 100)} 
+                onChange={handleDelayChange} 
+              />
+              <Knob label="Feedback" value={40} onChange={() => {}} />
             </div>
           </motion.div>
 
-          {/* Reverb */}
+          {/* Reverb - Functional */}
           <motion.div
             className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -168,12 +185,16 @@ const FXSection = () => {
             </div>
             
             <div className="space-y-6">
-              <Knob label="Room Size" value={reverbRoom} onChange={setReverbRoom} />
-              <Knob label="Mix" value={reverbMix} onChange={setReverbMix} />
+              <Knob 
+                label="Amount" 
+                value={Math.round(reverbAmount * 100)} 
+                onChange={handleReverbChange} 
+              />
+              <Knob label="Size" value={50} onChange={() => {}} />
             </div>
           </motion.div>
 
-          {/* Distortion */}
+          {/* Distortion - Visual Only */}
           <motion.div
             className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -205,7 +226,7 @@ const FXSection = () => {
             </div>
           </motion.div>
 
-          {/* Filter */}
+          {/* Filter - Visual Only */}
           <motion.div
             className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
