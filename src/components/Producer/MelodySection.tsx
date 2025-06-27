@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, RefreshCw, Volume2 } from 'lucide-react';
-import * as mm from '@magenta/music';
+import { LyriaGenerationResponse } from '../../lib/lyria';
 
 interface MelodySectionProps {
-  onGenerateMelody: (key: string, style: string, length: number) => Promise<mm.INoteSequence | null>;
+  onGenerateMelody: (key: string, style: string, length: number) => Promise<LyriaGenerationResponse | null>;
   onPlayMelody: () => void;
-  melodySequence: mm.INoteSequence | null;
+  melodySequence: LyriaGenerationResponse | null;
   modelsLoaded: boolean;
 }
 
@@ -22,7 +22,7 @@ const MelodySection: React.FC<MelodySectionProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
 
   const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-  const styles = ['Simple', 'Complex', 'Interpolated'];
+  const styles = ['Simple', 'Complex', 'Ambient', 'Energetic'];
   const lengths = [4, 8, 16];
 
   const handleGenerateMelody = async () => {
@@ -30,16 +30,16 @@ const MelodySection: React.FC<MelodySectionProps> = ({
     
     setIsGenerating(true);
     try {
-      // Magenta: Generate Melody using MelodyRNN
+      // Lyria: Generate Melody using Google's AI
       await onGenerateMelody(key, style, length);
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // Convert NoteSequence to visual representation
+  // Convert Lyria response to visual representation
   const renderMelodyVisualization = () => {
-    if (!melodySequence || !melodySequence.notes) {
+    if (!melodySequence || !melodySequence.midiData) {
       return (
         <div className="text-gray-500">
           <div className="flex items-center gap-2 mb-2">
@@ -52,32 +52,49 @@ const MelodySection: React.FC<MelodySectionProps> = ({
             <div className="w-2 h-8 bg-purple-500/30 rounded"></div>
             <div className="w-2 h-12 bg-purple-500/50 rounded"></div>
           </div>
-          <p className="text-sm">Your generated melody will appear here</p>
+          <p className="text-sm">Your Lyria-generated melody will appear here</p>
         </div>
       );
     }
 
-    // Create visual bars based on note pitches
-    const notes = melodySequence.notes.slice(0, 16); // Show first 16 notes
-    return (
-      <div className="space-y-2">
-        <div className="flex items-end gap-1 h-16">
-          {notes.map((note, index) => {
-            const height = ((note.pitch || 60) - 48) * 2; // Scale pitch to height
-            return (
-              <div
-                key={index}
-                className="w-3 bg-purple-500 rounded-t animate-pulse"
-                style={{ height: `${Math.max(8, Math.min(height, 64))}px` }}
-              />
-            );
-          })}
+    try {
+      // Parse the Lyria MIDI data
+      const decoder = new TextDecoder();
+      const jsonString = decoder.decode(melodySequence.midiData);
+      const midiData = JSON.parse(jsonString);
+      const notes = midiData.notes.slice(0, 16); // Show first 16 notes
+
+      return (
+        <div className="space-y-2">
+          <div className="flex items-end gap-1 h-16">
+            {notes.map((note: any, index: number) => {
+              const height = ((note.pitch || 60) - 48) * 2; // Scale pitch to height
+              return (
+                <div
+                  key={index}
+                  className="w-3 bg-purple-500 rounded-t animate-pulse"
+                  style={{ height: `${Math.max(8, Math.min(height, 64))}px` }}
+                />
+              );
+            })}
+          </div>
+          <p className="text-sm text-purple-400">
+            Generated with Lyria AI: {notes.length} notes in {key} ({style})
+          </p>
+          {melodySequence.metadata && (
+            <p className="text-xs text-gray-400">
+              Duration: {melodySequence.metadata.duration}s | Tempo: {melodySequence.metadata.tempo} BPM
+            </p>
+          )}
         </div>
-        <p className="text-sm text-purple-400">
-          Generated melody with {melodySequence.notes.length} notes in {key} ({style})
-        </p>
-      </div>
-    );
+      );
+    } catch (error) {
+      return (
+        <div className="text-gray-500">
+          <p className="text-sm">Generated melody data available</p>
+        </div>
+      );
+    }
   };
 
   return (
@@ -93,8 +110,12 @@ const MelodySection: React.FC<MelodySectionProps> = ({
           🎼 Find Your Sound
         </h2>
         
-        <p className="text-xl text-gray-300 mb-12">
-          Let AI compose the perfect melody for your track
+        <p className="text-xl text-gray-300 mb-4">
+          Let Google's Lyria AI compose the perfect melody for your track
+        </p>
+        
+        <p className="text-sm text-purple-400 mb-12">
+          Powered by Google's advanced music generation technology
         </p>
 
         {/* Controls */}
@@ -155,12 +176,12 @@ const MelodySection: React.FC<MelodySectionProps> = ({
               {isGenerating ? (
                 <>
                   <RefreshCw className="w-5 h-5 animate-spin" />
-                  Generating...
+                  Lyria is composing...
                 </>
               ) : (
                 <>
                   <Play className="w-5 h-5" />
-                  Generate Melody
+                  Generate with Lyria
                 </>
               )}
             </span>
@@ -185,11 +206,11 @@ const MelodySection: React.FC<MelodySectionProps> = ({
           )}
         </div>
 
-        {/* AI Status */}
+        {/* API Status */}
         {!modelsLoaded && (
           <div className="mb-8 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
             <p className="text-yellow-400 text-sm">
-              🤖 AI models are loading... Please wait for melody generation to become available.
+              🤖 Connecting to Lyria AI... Please wait for melody generation to become available.
             </p>
           </div>
         )}
@@ -207,7 +228,7 @@ const MelodySection: React.FC<MelodySectionProps> = ({
             {isGenerating ? (
               <div className="flex items-center gap-2 text-purple-400">
                 <RefreshCw className="w-6 h-6 animate-spin" />
-                <span>AI is composing your melody...</span>
+                <span>Lyria AI is composing your melody...</span>
               </div>
             ) : (
               renderMelodyVisualization()

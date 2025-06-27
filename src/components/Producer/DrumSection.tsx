@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, RefreshCw, Volume2 } from 'lucide-react';
-import * as mm from '@magenta/music';
+import { LyriaGenerationResponse } from '../../lib/lyria';
 
 interface DrumSectionProps {
-  onGenerateDrums: (style: string, complexity: string) => Promise<mm.INoteSequence | null>;
+  onGenerateDrums: (style: string, complexity: string) => Promise<LyriaGenerationResponse | null>;
   onPlayDrums: () => void;
-  drumSequence: mm.INoteSequence | null;
+  drumSequence: LyriaGenerationResponse | null;
   modelsLoaded: boolean;
 }
 
@@ -20,15 +20,15 @@ const DrumSection: React.FC<DrumSectionProps> = ({
   const [complexity, setComplexity] = useState('Simple');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const styles = ['House', 'Trap', 'DnB'];
-  const complexities = ['Simple', 'Swing', 'Polyrhythm'];
+  const styles = ['House', 'Trap', 'DnB', 'Techno'];
+  const complexities = ['Simple', 'Swing', 'Polyrhythm', 'Complex'];
 
   const handleGenerateDrums = async () => {
     if (!modelsLoaded) return;
     
     setIsGenerating(true);
     try {
-      // Magenta: Generate Drum Beat using DrumsRNN
+      // Lyria: Generate Drum Beat using Google's AI
       await onGenerateDrums(style, complexity);
     } finally {
       setIsGenerating(false);
@@ -37,7 +37,7 @@ const DrumSection: React.FC<DrumSectionProps> = ({
 
   // Convert drum sequence to visual pattern
   const renderDrumPattern = () => {
-    if (!drumSequence || !drumSequence.notes) {
+    if (!drumSequence || !drumSequence.midiData) {
       return (
         <div className="text-gray-500">
           <div className="grid grid-cols-16 gap-1 mb-4">
@@ -72,71 +72,89 @@ const DrumSection: React.FC<DrumSectionProps> = ({
               />
             ))}
           </div>
-          <p className="text-sm">Your generated drum pattern will appear here</p>
+          <p className="text-sm">Your Lyria-generated drum pattern will appear here</p>
         </div>
       );
     }
 
-    // Create drum pattern visualization from generated sequence
-    const notes = drumSequence.notes;
-    const kickNotes = notes.filter(note => note.pitch === 36); // Kick drum
-    const snareNotes = notes.filter(note => note.pitch === 38); // Snare
-    const hihatNotes = notes.filter(note => note.pitch === 42); // Hi-hat
+    try {
+      // Parse the Lyria MIDI data
+      const decoder = new TextDecoder();
+      const jsonString = decoder.decode(drumSequence.midiData);
+      const midiData = JSON.parse(jsonString);
+      const notes = midiData.notes;
 
-    const createPattern = (drumNotes: any[], steps: number = 16) => {
-      const pattern = new Array(steps).fill(false);
-      drumNotes.forEach(note => {
-        const step = Math.floor((note.quantizedStartStep || 0) % steps);
-        pattern[step] = true;
-      });
-      return pattern;
-    };
+      // Create drum pattern visualization from generated sequence
+      const kickNotes = notes.filter((note: any) => note.pitch === 36); // Kick drum
+      const snareNotes = notes.filter((note: any) => note.pitch === 38); // Snare
+      const hihatNotes = notes.filter((note: any) => note.pitch === 42); // Hi-hat
 
-    const kickPattern = createPattern(kickNotes);
-    const snarePattern = createPattern(snareNotes);
-    const hihatPattern = createPattern(hihatNotes);
+      const createPattern = (drumNotes: any[], steps: number = 16) => {
+        const pattern = new Array(steps).fill(false);
+        drumNotes.forEach((note: any) => {
+          const step = Math.floor((note.startTime || 0) * 4) % steps; // Convert time to step
+          pattern[step] = true;
+        });
+        return pattern;
+      };
 
-    return (
-      <div className="space-y-2">
-        <div className="grid grid-cols-16 gap-1">
-          {/* Kick Pattern */}
-          <div className="text-xs text-gray-400 col-span-16 mb-1">Kick</div>
-          {kickPattern.map((active, i) => (
-            <div
-              key={`kick-${i}`}
-              className={`w-3 h-3 rounded transition-all ${
-                active ? 'bg-purple-500 shadow-lg shadow-purple-500/50' : 'bg-gray-700'
-              }`}
-            />
-          ))}
-          
-          {/* Snare Pattern */}
-          <div className="text-xs text-gray-400 col-span-16 mb-1 mt-2">Snare</div>
-          {snarePattern.map((active, i) => (
-            <div
-              key={`snare-${i}`}
-              className={`w-3 h-3 rounded transition-all ${
-                active ? 'bg-purple-400 shadow-lg shadow-purple-400/50' : 'bg-gray-700'
-              }`}
-            />
-          ))}
-          
-          {/* Hi-hat Pattern */}
-          <div className="text-xs text-gray-400 col-span-16 mb-1 mt-2">Hi-hat</div>
-          {hihatPattern.map((active, i) => (
-            <div
-              key={`hihat-${i}`}
-              className={`w-3 h-3 rounded transition-all ${
-                active ? 'bg-purple-300 shadow-lg shadow-purple-300/50' : 'bg-gray-700'
-              }`}
-            />
-          ))}
+      const kickPattern = createPattern(kickNotes);
+      const snarePattern = createPattern(snareNotes);
+      const hihatPattern = createPattern(hihatNotes);
+
+      return (
+        <div className="space-y-2">
+          <div className="grid grid-cols-16 gap-1">
+            {/* Kick Pattern */}
+            <div className="text-xs text-gray-400 col-span-16 mb-1">Kick</div>
+            {kickPattern.map((active, i) => (
+              <div
+                key={`kick-${i}`}
+                className={`w-3 h-3 rounded transition-all ${
+                  active ? 'bg-purple-500 shadow-lg shadow-purple-500/50' : 'bg-gray-700'
+                }`}
+              />
+            ))}
+            
+            {/* Snare Pattern */}
+            <div className="text-xs text-gray-400 col-span-16 mb-1 mt-2">Snare</div>
+            {snarePattern.map((active, i) => (
+              <div
+                key={`snare-${i}`}
+                className={`w-3 h-3 rounded transition-all ${
+                  active ? 'bg-purple-400 shadow-lg shadow-purple-400/50' : 'bg-gray-700'
+                }`}
+              />
+            ))}
+            
+            {/* Hi-hat Pattern */}
+            <div className="text-xs text-gray-400 col-span-16 mb-1 mt-2">Hi-hat</div>
+            {hihatPattern.map((active, i) => (
+              <div
+                key={`hihat-${i}`}
+                className={`w-3 h-3 rounded transition-all ${
+                  active ? 'bg-purple-300 shadow-lg shadow-purple-300/50' : 'bg-gray-700'
+                }`}
+              />
+            ))}
+          </div>
+          <p className="text-sm text-purple-400">
+            Generated with Lyria AI: {style} pattern ({complexity}) with {notes.length} hits
+          </p>
+          {drumSequence.metadata && (
+            <p className="text-xs text-gray-400">
+              Duration: {drumSequence.metadata.duration}s | Tempo: {drumSequence.metadata.tempo} BPM
+            </p>
+          )}
         </div>
-        <p className="text-sm text-purple-400">
-          Generated {style} pattern ({complexity}) with {notes.length} hits
-        </p>
-      </div>
-    );
+      );
+    } catch (error) {
+      return (
+        <div className="text-gray-500">
+          <p className="text-sm">Generated drum pattern data available</p>
+        </div>
+      );
+    }
   };
 
   return (
@@ -152,8 +170,12 @@ const DrumSection: React.FC<DrumSectionProps> = ({
           🥁 Lay Down the Groove
         </h2>
         
-        <p className="text-xl text-gray-300 mb-12">
-          Create the perfect rhythm foundation with AI-powered drum patterns
+        <p className="text-xl text-gray-300 mb-4">
+          Create the perfect rhythm foundation with Lyria AI-powered drum patterns
+        </p>
+        
+        <p className="text-sm text-purple-400 mb-12">
+          Powered by Google's advanced music generation technology
         </p>
 
         {/* Controls */}
@@ -200,12 +222,12 @@ const DrumSection: React.FC<DrumSectionProps> = ({
               {isGenerating ? (
                 <>
                   <RefreshCw className="w-5 h-5 animate-spin" />
-                  Generating...
+                  Lyria is creating...
                 </>
               ) : (
                 <>
                   <Play className="w-5 h-5" />
-                  Generate Drums
+                  Generate with Lyria
                 </>
               )}
             </span>
@@ -230,11 +252,11 @@ const DrumSection: React.FC<DrumSectionProps> = ({
           )}
         </div>
 
-        {/* AI Status */}
+        {/* API Status */}
         {!modelsLoaded && (
           <div className="mb-8 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
             <p className="text-yellow-400 text-sm">
-              🤖 AI models are loading... Please wait for drum generation to become available.
+              🤖 Connecting to Lyria AI... Please wait for drum generation to become available.
             </p>
           </div>
         )}
@@ -252,7 +274,7 @@ const DrumSection: React.FC<DrumSectionProps> = ({
             {isGenerating ? (
               <div className="flex items-center gap-2 text-purple-400">
                 <RefreshCw className="w-6 h-6 animate-spin" />
-                <span>AI is crafting your rhythm...</span>
+                <span>Lyria AI is crafting your rhythm...</span>
               </div>
             ) : (
               renderDrumPattern()
