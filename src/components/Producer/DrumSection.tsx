@@ -1,8 +1,21 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, RefreshCw } from 'lucide-react';
+import { Play, RefreshCw, Volume2 } from 'lucide-react';
+import * as mm from '@magenta/music';
 
-const DrumSection = () => {
+interface DrumSectionProps {
+  onGenerateDrums: (style: string, complexity: string) => Promise<mm.INoteSequence | null>;
+  onPlayDrums: () => void;
+  drumSequence: mm.INoteSequence | null;
+  modelsLoaded: boolean;
+}
+
+const DrumSection: React.FC<DrumSectionProps> = ({
+  onGenerateDrums,
+  onPlayDrums,
+  drumSequence,
+  modelsLoaded
+}) => {
   const [style, setStyle] = useState('House');
   const [complexity, setComplexity] = useState('Simple');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -10,12 +23,120 @@ const DrumSection = () => {
   const styles = ['House', 'Trap', 'DnB'];
   const complexities = ['Simple', 'Swing', 'Polyrhythm'];
 
-  const handleGenerateDrums = () => {
+  const handleGenerateDrums = async () => {
+    if (!modelsLoaded) return;
+    
     setIsGenerating(true);
-    // TODO: Integrate Magenta's DrumsRNN here
-    setTimeout(() => {
+    try {
+      // Magenta: Generate Drum Beat using DrumsRNN
+      await onGenerateDrums(style, complexity);
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
+  };
+
+  // Convert drum sequence to visual pattern
+  const renderDrumPattern = () => {
+    if (!drumSequence || !drumSequence.notes) {
+      return (
+        <div className="text-gray-500">
+          <div className="grid grid-cols-16 gap-1 mb-4">
+            {/* Kick Pattern */}
+            <div className="text-xs text-gray-400 col-span-16 mb-1">Kick</div>
+            {Array.from({ length: 16 }, (_, i) => (
+              <div
+                key={`kick-${i}`}
+                className={`w-3 h-3 rounded ${
+                  [0, 4, 8, 12].includes(i) ? 'bg-purple-500' : 'bg-gray-700'
+                }`}
+              />
+            ))}
+            {/* Snare Pattern */}
+            <div className="text-xs text-gray-400 col-span-16 mb-1 mt-2">Snare</div>
+            {Array.from({ length: 16 }, (_, i) => (
+              <div
+                key={`snare-${i}`}
+                className={`w-3 h-3 rounded ${
+                  [4, 12].includes(i) ? 'bg-purple-400' : 'bg-gray-700'
+                }`}
+              />
+            ))}
+            {/* Hi-hat Pattern */}
+            <div className="text-xs text-gray-400 col-span-16 mb-1 mt-2">Hi-hat</div>
+            {Array.from({ length: 16 }, (_, i) => (
+              <div
+                key={`hihat-${i}`}
+                className={`w-3 h-3 rounded ${
+                  i % 2 === 0 ? 'bg-purple-300' : 'bg-gray-700'
+                }`}
+              />
+            ))}
+          </div>
+          <p className="text-sm">Your generated drum pattern will appear here</p>
+        </div>
+      );
+    }
+
+    // Create drum pattern visualization from generated sequence
+    const notes = drumSequence.notes;
+    const kickNotes = notes.filter(note => note.pitch === 36); // Kick drum
+    const snareNotes = notes.filter(note => note.pitch === 38); // Snare
+    const hihatNotes = notes.filter(note => note.pitch === 42); // Hi-hat
+
+    const createPattern = (drumNotes: any[], steps: number = 16) => {
+      const pattern = new Array(steps).fill(false);
+      drumNotes.forEach(note => {
+        const step = Math.floor((note.quantizedStartStep || 0) % steps);
+        pattern[step] = true;
+      });
+      return pattern;
+    };
+
+    const kickPattern = createPattern(kickNotes);
+    const snarePattern = createPattern(snareNotes);
+    const hihatPattern = createPattern(hihatNotes);
+
+    return (
+      <div className="space-y-2">
+        <div className="grid grid-cols-16 gap-1">
+          {/* Kick Pattern */}
+          <div className="text-xs text-gray-400 col-span-16 mb-1">Kick</div>
+          {kickPattern.map((active, i) => (
+            <div
+              key={`kick-${i}`}
+              className={`w-3 h-3 rounded transition-all ${
+                active ? 'bg-purple-500 shadow-lg shadow-purple-500/50' : 'bg-gray-700'
+              }`}
+            />
+          ))}
+          
+          {/* Snare Pattern */}
+          <div className="text-xs text-gray-400 col-span-16 mb-1 mt-2">Snare</div>
+          {snarePattern.map((active, i) => (
+            <div
+              key={`snare-${i}`}
+              className={`w-3 h-3 rounded transition-all ${
+                active ? 'bg-purple-400 shadow-lg shadow-purple-400/50' : 'bg-gray-700'
+              }`}
+            />
+          ))}
+          
+          {/* Hi-hat Pattern */}
+          <div className="text-xs text-gray-400 col-span-16 mb-1 mt-2">Hi-hat</div>
+          {hihatPattern.map((active, i) => (
+            <div
+              key={`hihat-${i}`}
+              className={`w-3 h-3 rounded transition-all ${
+                active ? 'bg-purple-300 shadow-lg shadow-purple-300/50' : 'bg-gray-700'
+              }`}
+            />
+          ))}
+        </div>
+        <p className="text-sm text-purple-400">
+          Generated {style} pattern ({complexity}) with {notes.length} hits
+        </p>
+      </div>
+    );
   };
 
   return (
@@ -67,27 +188,56 @@ const DrumSection = () => {
         </div>
 
         {/* Generate Button */}
-        <motion.button
-          onClick={handleGenerateDrums}
-          disabled={isGenerating}
-          className="group relative px-8 py-4 bg-purple-600 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:bg-purple-500 hover:shadow-xl hover:shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed mb-12"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <span className="flex items-center gap-2 justify-center">
-            {isGenerating ? (
-              <>
-                <RefreshCw className="w-5 h-5 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Play className="w-5 h-5" />
-                Generate Drums
-              </>
-            )}
-          </span>
-        </motion.button>
+        <div className="flex gap-4 justify-center mb-12">
+          <motion.button
+            onClick={handleGenerateDrums}
+            disabled={isGenerating || !modelsLoaded}
+            className="group relative px-8 py-4 bg-purple-600 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:bg-purple-500 hover:shadow-xl hover:shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className="flex items-center gap-2 justify-center">
+              {isGenerating ? (
+                <>
+                  <RefreshCw className="w-5 h-5 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Play className="w-5 h-5" />
+                  Generate Drums
+                </>
+              )}
+            </span>
+          </motion.button>
+
+          {/* Play Button */}
+          {drumSequence && (
+            <motion.button
+              onClick={onPlayDrums}
+              className="group relative px-6 py-4 bg-gray-700 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:bg-gray-600 hover:shadow-xl hover:shadow-gray-500/25"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <span className="flex items-center gap-2 justify-center">
+                <Volume2 className="w-5 h-5" />
+                Play
+              </span>
+            </motion.button>
+          )}
+        </div>
+
+        {/* AI Status */}
+        {!modelsLoaded && (
+          <div className="mb-8 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+            <p className="text-yellow-400 text-sm">
+              🤖 AI models are loading... Please wait for drum generation to become available.
+            </p>
+          </div>
+        )}
 
         {/* Drum Pattern Preview */}
         <motion.div
@@ -105,41 +255,7 @@ const DrumSection = () => {
                 <span>AI is crafting your rhythm...</span>
               </div>
             ) : (
-              <div className="text-gray-500">
-                <div className="grid grid-cols-16 gap-1 mb-4">
-                  {/* Kick Pattern */}
-                  <div className="text-xs text-gray-400 col-span-16 mb-1">Kick</div>
-                  {Array.from({ length: 16 }, (_, i) => (
-                    <div
-                      key={`kick-${i}`}
-                      className={`w-3 h-3 rounded ${
-                        [0, 4, 8, 12].includes(i) ? 'bg-purple-500' : 'bg-gray-700'
-                      }`}
-                    />
-                  ))}
-                  {/* Snare Pattern */}
-                  <div className="text-xs text-gray-400 col-span-16 mb-1 mt-2">Snare</div>
-                  {Array.from({ length: 16 }, (_, i) => (
-                    <div
-                      key={`snare-${i}`}
-                      className={`w-3 h-3 rounded ${
-                        [4, 12].includes(i) ? 'bg-purple-400' : 'bg-gray-700'
-                      }`}
-                    />
-                  ))}
-                  {/* Hi-hat Pattern */}
-                  <div className="text-xs text-gray-400 col-span-16 mb-1 mt-2">Hi-hat</div>
-                  {Array.from({ length: 16 }, (_, i) => (
-                    <div
-                      key={`hihat-${i}`}
-                      className={`w-3 h-3 rounded ${
-                        i % 2 === 0 ? 'bg-purple-300' : 'bg-gray-700'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <p className="text-sm">Your generated drum pattern will appear here</p>
-              </div>
+              renderDrumPattern()
             )}
           </div>
         </motion.div>

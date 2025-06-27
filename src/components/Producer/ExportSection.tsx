@@ -3,24 +3,38 @@ import { motion } from 'framer-motion';
 import { Download, Send, FileAudio, Music } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const ExportSection = () => {
+interface ExportSectionProps {
+  onExportMelody: () => void;
+  onExportDrums: () => void;
+  hasGeneratedContent: boolean;
+}
+
+const ExportSection: React.FC<ExportSectionProps> = ({
+  onExportMelody,
+  onExportDrums,
+  hasGeneratedContent
+}) => {
   const navigate = useNavigate();
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExportWAV = () => {
     setIsExporting(true);
-    // TODO: Implement actual WAV export
+    // TODO: Implement actual WAV export with Tone.js
     setTimeout(() => {
       setIsExporting(false);
     }, 3000);
   };
 
-  const handleExportMIDI = () => {
-    setIsExporting(true);
-    // TODO: Implement actual MIDI export
-    setTimeout(() => {
-      setIsExporting(false);
-    }, 2000);
+  const handleExportMelodyMIDI = () => {
+    if (hasGeneratedContent) {
+      onExportMelody();
+    }
+  };
+
+  const handleExportDrumsMIDI = () => {
+    if (hasGeneratedContent) {
+      onExportDrums();
+    }
   };
 
   const handleSendToDJ = () => {
@@ -45,93 +59,130 @@ const ExportSection = () => {
         </p>
         
         <p className="text-lg text-gray-400 mb-12">
-          Export your masterpiece or take it straight to the DJ booth
+          Export your AI-generated masterpiece or take it straight to the DJ booth
         </p>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Export as WAV */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {/* Export Melody as MIDI */}
           <motion.div
-            className="bg-gray-900/50 rounded-xl p-8 border border-purple-500/30"
+            className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
           >
             <div className="mb-6">
-              <FileAudio className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Export as WAV</h3>
-              <p className="text-gray-400 text-sm">High-quality audio file ready for streaming or sharing</p>
+              <Music className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">Export Melody</h3>
+              <p className="text-gray-400 text-sm">Download your AI-generated melody as MIDI</p>
             </div>
             
             <motion.button
-              onClick={handleExportWAV}
-              disabled={isExporting}
-              className="w-full py-3 px-6 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleExportMelodyMIDI}
+              disabled={!hasGeneratedContent}
+              className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <span className="flex items-center gap-2 justify-center">
-                <Download className="w-5 h-5" />
-                {isExporting ? 'Exporting...' : 'Export WAV'}
+                <Download className="w-4 h-4" />
+                Melody MIDI
               </span>
             </motion.button>
           </motion.div>
 
-          {/* Export as MIDI */}
+          {/* Export Drums as MIDI */}
           <motion.div
-            className="bg-gray-900/50 rounded-xl p-8 border border-purple-500/30"
+            className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             viewport={{ once: true }}
           >
             <div className="mb-6">
-              <Music className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Export as MIDI</h3>
-              <p className="text-gray-400 text-sm">Musical data file for use in other DAWs and software</p>
+              <Music className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">Export Drums</h3>
+              <p className="text-gray-400 text-sm">Download your AI-generated drums as MIDI</p>
             </div>
             
             <motion.button
-              onClick={handleExportMIDI}
-              disabled={isExporting}
-              className="w-full py-3 px-6 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleExportDrumsMIDI}
+              disabled={!hasGeneratedContent}
+              className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <span className="flex items-center gap-2 justify-center">
-                <Download className="w-5 h-5" />
-                {isExporting ? 'Exporting...' : 'Export MIDI'}
+                <Download className="w-4 h-4" />
+                Drums MIDI
               </span>
             </motion.button>
           </motion.div>
 
-          {/* Send to DJ Mode */}
+          {/* Export as WAV */}
           <motion.div
-            className="bg-gray-900/50 rounded-xl p-8 border border-purple-500/30"
+            className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             viewport={{ once: true }}
           >
             <div className="mb-6">
-              <Send className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Send to DJ Mode</h3>
-              <p className="text-gray-400 text-sm">Take your track straight to the decks and start mixing</p>
+              <FileAudio className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">Export WAV</h3>
+              <p className="text-gray-400 text-sm">High-quality audio file ready for streaming</p>
             </div>
             
             <motion.button
-              onClick={handleSendToDJ}
-              className="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-purple-500 rounded-full font-semibold text-white hover:from-purple-500 hover:to-purple-400 transition-all duration-300 shadow-lg shadow-purple-500/25"
+              onClick={handleExportWAV}
+              disabled={isExporting || !hasGeneratedContent}
+              className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <span className="flex items-center gap-2 justify-center">
-                <Send className="w-5 h-5" />
+                <Download className="w-4 h-4" />
+                {isExporting ? 'Exporting...' : 'Export WAV'}
+              </span>
+            </motion.button>
+          </motion.div>
+
+          {/* Send to DJ Mode */}
+          <motion.div
+            className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30"
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            viewport={{ once: true }}
+          >
+            <div className="mb-6">
+              <Send className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">DJ Mode</h3>
+              <p className="text-gray-400 text-sm">Take your track straight to the decks</p>
+            </div>
+            
+            <motion.button
+              onClick={handleSendToDJ}
+              className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-purple-500 rounded-full font-semibold text-white hover:from-purple-500 hover:to-purple-400 transition-all duration-300 shadow-lg shadow-purple-500/25 text-sm"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="flex items-center gap-2 justify-center">
+                <Send className="w-4 h-4" />
                 Enter DJ Booth
               </span>
             </motion.button>
           </motion.div>
         </div>
+
+        {/* Content Status */}
+        {!hasGeneratedContent && (
+          <div className="mb-8 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+            <p className="text-blue-400 text-sm">
+              🎵 Generate some melodies or drums first to unlock export options!
+            </p>
+          </div>
+        )}
 
         {/* Progress Indicator */}
         {isExporting && (
@@ -143,7 +194,7 @@ const ExportSection = () => {
           >
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-purple-400 font-semibold">Processing your track...</span>
+              <span className="text-purple-400 font-semibold">Processing your AI-generated track...</span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2">
               <motion.div
@@ -165,7 +216,7 @@ const ExportSection = () => {
           viewport={{ once: true }}
         >
           <p className="text-gray-400 text-sm mb-4">
-            🎉 Congratulations! You've created your first DropLab track.
+            🎉 Congratulations! You've created your first AI-powered DropLab track.
           </p>
           <p className="text-gray-500 text-xs">
             Ready to take it to the next level? Try DJ Mode and mix with other tracks.

@@ -1,8 +1,21 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, RefreshCw } from 'lucide-react';
+import { Play, RefreshCw, Volume2 } from 'lucide-react';
+import * as mm from '@magenta/music';
 
-const MelodySection = () => {
+interface MelodySectionProps {
+  onGenerateMelody: (key: string, style: string, length: number) => Promise<mm.INoteSequence | null>;
+  onPlayMelody: () => void;
+  melodySequence: mm.INoteSequence | null;
+  modelsLoaded: boolean;
+}
+
+const MelodySection: React.FC<MelodySectionProps> = ({
+  onGenerateMelody,
+  onPlayMelody,
+  melodySequence,
+  modelsLoaded
+}) => {
   const [key, setKey] = useState('C');
   const [style, setStyle] = useState('Simple');
   const [length, setLength] = useState(8);
@@ -12,12 +25,59 @@ const MelodySection = () => {
   const styles = ['Simple', 'Complex', 'Interpolated'];
   const lengths = [4, 8, 16];
 
-  const handleGenerateMelody = () => {
+  const handleGenerateMelody = async () => {
+    if (!modelsLoaded) return;
+    
     setIsGenerating(true);
-    // TODO: Integrate Magenta's MelodyRNN or MusicVAE here
-    setTimeout(() => {
+    try {
+      // Magenta: Generate Melody using MelodyRNN
+      await onGenerateMelody(key, style, length);
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
+  };
+
+  // Convert NoteSequence to visual representation
+  const renderMelodyVisualization = () => {
+    if (!melodySequence || !melodySequence.notes) {
+      return (
+        <div className="text-gray-500">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-8 bg-purple-500/30 rounded"></div>
+            <div className="w-2 h-12 bg-purple-500/50 rounded"></div>
+            <div className="w-2 h-6 bg-purple-500/30 rounded"></div>
+            <div className="w-2 h-16 bg-purple-500/70 rounded"></div>
+            <div className="w-2 h-10 bg-purple-500/40 rounded"></div>
+            <div className="w-2 h-14 bg-purple-500/60 rounded"></div>
+            <div className="w-2 h-8 bg-purple-500/30 rounded"></div>
+            <div className="w-2 h-12 bg-purple-500/50 rounded"></div>
+          </div>
+          <p className="text-sm">Your generated melody will appear here</p>
+        </div>
+      );
+    }
+
+    // Create visual bars based on note pitches
+    const notes = melodySequence.notes.slice(0, 16); // Show first 16 notes
+    return (
+      <div className="space-y-2">
+        <div className="flex items-end gap-1 h-16">
+          {notes.map((note, index) => {
+            const height = ((note.pitch || 60) - 48) * 2; // Scale pitch to height
+            return (
+              <div
+                key={index}
+                className="w-3 bg-purple-500 rounded-t animate-pulse"
+                style={{ height: `${Math.max(8, Math.min(height, 64))}px` }}
+              />
+            );
+          })}
+        </div>
+        <p className="text-sm text-purple-400">
+          Generated melody with {melodySequence.notes.length} notes in {key} ({style})
+        </p>
+      </div>
+    );
   };
 
   return (
@@ -83,29 +143,58 @@ const MelodySection = () => {
         </div>
 
         {/* Generate Button */}
-        <motion.button
-          onClick={handleGenerateMelody}
-          disabled={isGenerating}
-          className="group relative px-8 py-4 bg-purple-600 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:bg-purple-500 hover:shadow-xl hover:shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed mb-12"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <span className="flex items-center gap-2 justify-center">
-            {isGenerating ? (
-              <>
-                <RefreshCw className="w-5 h-5 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Play className="w-5 h-5" />
-                Generate Melody
-              </>
-            )}
-          </span>
-        </motion.button>
+        <div className="flex gap-4 justify-center mb-12">
+          <motion.button
+            onClick={handleGenerateMelody}
+            disabled={isGenerating || !modelsLoaded}
+            className="group relative px-8 py-4 bg-purple-600 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:bg-purple-500 hover:shadow-xl hover:shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className="flex items-center gap-2 justify-center">
+              {isGenerating ? (
+                <>
+                  <RefreshCw className="w-5 h-5 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Play className="w-5 h-5" />
+                  Generate Melody
+                </>
+              )}
+            </span>
+          </motion.button>
 
-        {/* Melody Preview Placeholder */}
+          {/* Play Button */}
+          {melodySequence && (
+            <motion.button
+              onClick={onPlayMelody}
+              className="group relative px-6 py-4 bg-gray-700 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:bg-gray-600 hover:shadow-xl hover:shadow-gray-500/25"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <span className="flex items-center gap-2 justify-center">
+                <Volume2 className="w-5 h-5" />
+                Play
+              </span>
+            </motion.button>
+          )}
+        </div>
+
+        {/* AI Status */}
+        {!modelsLoaded && (
+          <div className="mb-8 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+            <p className="text-yellow-400 text-sm">
+              🤖 AI models are loading... Please wait for melody generation to become available.
+            </p>
+          </div>
+        )}
+
+        {/* Melody Preview */}
         <motion.div
           className="bg-gray-900/50 rounded-xl p-8 border border-purple-500/30"
           initial={{ opacity: 0, scale: 0.9 }}
@@ -121,19 +210,7 @@ const MelodySection = () => {
                 <span>AI is composing your melody...</span>
               </div>
             ) : (
-              <div className="text-gray-500">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2 h-8 bg-purple-500/30 rounded"></div>
-                  <div className="w-2 h-12 bg-purple-500/50 rounded"></div>
-                  <div className="w-2 h-6 bg-purple-500/30 rounded"></div>
-                  <div className="w-2 h-16 bg-purple-500/70 rounded"></div>
-                  <div className="w-2 h-10 bg-purple-500/40 rounded"></div>
-                  <div className="w-2 h-14 bg-purple-500/60 rounded"></div>
-                  <div className="w-2 h-8 bg-purple-500/30 rounded"></div>
-                  <div className="w-2 h-12 bg-purple-500/50 rounded"></div>
-                </div>
-                <p className="text-sm">Your generated melody will appear here</p>
-              </div>
+              renderMelodyVisualization()
             )}
           </div>
         </motion.div>
