@@ -120,8 +120,13 @@ const MixerPanel = () => {
               max="100"
               value={deckAVolume}
               onChange={(e) => setDeckAVolume(Number(e.target.value))}
-              className="h-32 w-6 appearance-none bg-transparent cursor-pointer vertical-slider"
-              orient="vertical"
+              className="h-32 w-6 appearance-none bg-transparent cursor-pointer transform -rotate-90 origin-center"
+              style={{ 
+                width: '128px',
+                height: '24px',
+                marginTop: '52px',
+                marginLeft: '-61px'
+              }}
             />
             <div 
               className="absolute w-6 h-6 bg-purple-500 rounded-full shadow-lg pointer-events-none"
@@ -144,8 +149,13 @@ const MixerPanel = () => {
               max="100"
               value={masterVolume}
               onChange={(e) => setMasterVolume(Number(e.target.value))}
-              className="h-32 w-6 appearance-none bg-transparent cursor-pointer vertical-slider"
-              orient="vertical"
+              className="h-32 w-6 appearance-none bg-transparent cursor-pointer transform -rotate-90 origin-center"
+              style={{ 
+                width: '128px',
+                height: '24px',
+                marginTop: '52px',
+                marginLeft: '-61px'
+              }}
             />
             <div 
               className="absolute w-6 h-6 bg-purple-500 rounded-full shadow-lg pointer-events-none"
@@ -168,8 +178,13 @@ const MixerPanel = () => {
               max="100"
               value={deckBVolume}
               onChange={(e) => setDeckBVolume(Number(e.target.value))}
-              className="h-32 w-6 appearance-none bg-transparent cursor-pointer vertical-slider"
-              orient="vertical"
+              className="h-32 w-6 appearance-none bg-transparent cursor-pointer transform -rotate-90 origin-center"
+              style={{ 
+                width: '128px',
+                height: '24px',
+                marginTop: '52px',
+                marginLeft: '-61px'
+              }}
             />
             <div 
               className="absolute w-6 h-6 bg-purple-500 rounded-full shadow-lg pointer-events-none"
