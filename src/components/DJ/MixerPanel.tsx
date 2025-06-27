@@ -121,7 +121,6 @@ const MixerPanel = () => {
               value={deckAVolume}
               onChange={(e) => setDeckAVolume(Number(e.target.value))}
               className="h-32 w-6 appearance-none bg-transparent cursor-pointer vertical-slider"
-              style={{ writingMode: 'bt-lr' }}
               orient="vertical"
             />
             <div 
@@ -146,7 +145,6 @@ const MixerPanel = () => {
               value={masterVolume}
               onChange={(e) => setMasterVolume(Number(e.target.value))}
               className="h-32 w-6 appearance-none bg-transparent cursor-pointer vertical-slider"
-              style={{ writingMode: 'bt-lr' }}
               orient="vertical"
             />
             <div 
@@ -171,7 +169,6 @@ const MixerPanel = () => {
               value={deckBVolume}
               onChange={(e) => setDeckBVolume(Number(e.target.value))}
               className="h-32 w-6 appearance-none bg-transparent cursor-pointer vertical-slider"
-              style={{ writingMode: 'bt-lr' }}
               orient="vertical"
             />
             <div 
