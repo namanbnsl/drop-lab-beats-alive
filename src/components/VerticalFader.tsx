@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 
 interface VerticalFaderProps {
@@ -48,18 +47,53 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  // Touch support for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setShowValue(true);
+    
+    const updateValue = (clientY: number) => {
+      if (!faderRef.current) return;
+      
+      const rect = faderRef.current.getBoundingClientRect();
+      const y = clientY - rect.top;
+      const percentage = Math.max(0, Math.min(100, (y / rect.height) * 100));
+      onChange(Math.round(percentage));
+    };
+
+    const touch = e.touches[0];
+    updateValue(touch.clientY);
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      updateValue(touch.clientY);
+    };
+
+    const handleTouchEnd = () => {
+      setIsDragging(false);
+      setShowValue(false);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+  };
+
   return (
     <div className={`flex flex-col items-center ${className}`}>
-      <label className="text-xs text-gray-300 mb-2">{label}</label>
+      {label && <label className="text-xs text-gray-300 mb-2">{label}</label>}
       
       <div className="relative">
         {/* Fader Rail */}
         <div
           ref={faderRef}
-          className={`relative h-36 w-4 bg-gray-800 rounded-full cursor-pointer transition-all duration-200 ${
+          className={`relative h-24 sm:h-36 w-3 sm:w-4 bg-gray-800 rounded-full cursor-pointer transition-all duration-200 touch-manipulation ${
             isDragging ? 'bg-gray-700' : 'hover:bg-gray-700'
           }`}
           onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
         >
           {/* Active Fill */}
           <div
@@ -69,7 +103,7 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
           
           {/* Fader Handle */}
           <div
-            className={`absolute w-6 h-3 bg-white rounded-sm border border-gray-600 transform -translate-x-1/2 transition-all duration-100 ${
+            className={`absolute w-5 h-2 sm:w-6 sm:h-3 bg-white rounded-sm border border-gray-600 transform -translate-x-1/2 transition-all duration-100 touch-manipulation ${
               isDragging ? 'shadow-lg shadow-purple-500/50 scale-110' : 'hover:shadow-md hover:shadow-purple-500/30'
             }`}
             style={{ 
@@ -82,7 +116,7 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
         
         {/* Value Display */}
         {showValue && (
-          <div className="absolute -right-8 top-1/2 transform -translate-y-1/2 bg-black border border-purple-500 text-white text-xs px-2 py-1 rounded">
+          <div className="absolute -right-6 sm:-right-8 top-1/2 transform -translate-y-1/2 bg-black border border-purple-500 text-white text-xs px-2 py-1 rounded z-10">
             {100 - value}%
           </div>
         )}

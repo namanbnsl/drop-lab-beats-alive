@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Volume2, VolumeX } from 'lucide-react';
@@ -35,19 +34,18 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({ label, color, volume, onVol
   };
 
   return (
-    <div className="bg-gray-900/50 rounded-xl p-4 border border-purple-500/30 w-full max-w-xs">
-      <h3 className={`text-lg font-semibold mb-4 text-center ${color}`}>{label}</h3>
+    <div className="bg-gray-900/50 rounded-xl p-3 sm:p-4 border border-purple-500/30 w-full max-w-xs mx-auto">
+      <h3 className={`text-base sm:text-lg font-semibold mb-4 text-center ${color}`}>{label}</h3>
       
       {/* Pan Knob */}
-      <div className="flex flex-col items-center mb-6">
+      <div className="flex flex-col items-center mb-4 sm:mb-6">
         <div className="flex items-center gap-1 mb-2">
           <label className="text-xs text-gray-300">Pan</label>
-          {/* Tooltip: Pan Knob */}
           <InfoTooltip content={mixerTooltips.pan} />
         </div>
-        <div className="relative w-12 h-12 bg-gray-800 rounded-full border-2 border-purple-500/30">
+        <div className="relative w-10 h-10 sm:w-12 sm:h-12 bg-gray-800 rounded-full border-2 border-purple-500/30 touch-manipulation">
           <div
-            className="absolute top-1 left-1/2 w-1 h-4 bg-purple-400 rounded-full transform -translate-x-1/2 origin-bottom"
+            className="absolute top-1 left-1/2 w-1 h-3 sm:h-4 bg-purple-400 rounded-full transform -translate-x-1/2 origin-bottom"
             style={{ transform: `translateX(-50%) rotate(${(pan - 50) * 2.7}deg)` }}
           />
           <div className="absolute inset-2 bg-gray-900 rounded-full flex items-center justify-center">
@@ -57,39 +55,38 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({ label, color, volume, onVol
       </div>
 
       {/* Volume Fader */}
-      <div className="flex flex-col items-center mb-6">
+      <div className="flex flex-col items-center mb-4 sm:mb-6">
         <div className="flex items-center gap-1 mb-2">
           <label className="text-xs text-gray-300">Volume</label>
-          {/* Tooltip: Volume Fader */}
           <InfoTooltip content={mixerTooltips.volume} />
         </div>
         <VerticalFader
           label=""
           value={volume}
           onChange={onVolumeChange}
+          className="scale-90 sm:scale-100"
         />
       </div>
 
       {/* Mute/Solo Buttons */}
-      <div className="flex gap-2">
-        <div className="flex items-center gap-1">
+      <div className="flex gap-1 sm:gap-2">
+        <div className="flex items-center gap-1 flex-1">
           <motion.button
             onClick={() => setIsMuted(!isMuted)}
-            className={`flex-1 py-2 px-3 rounded-lg font-semibold text-sm transition-colors ${
+            className={`flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation ${
               isMuted ? 'bg-red-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
             }`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            {isMuted ? <VolumeX className="w-4 h-4 mx-auto" /> : 'MUTE'}
+            {isMuted ? <VolumeX className="w-3 h-3 sm:w-4 sm:h-4 mx-auto" /> : 'MUTE'}
           </motion.button>
-          {/* Tooltip: Mute / Solo */}
           <InfoTooltip content={mixerTooltips.muteSolo} />
         </div>
         
         <motion.button
           onClick={() => setIsSolo(!isSolo)}
-          className={`flex-1 py-2 px-3 rounded-lg font-semibold text-sm transition-colors ${
+          className={`flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation ${
             isSolo ? 'bg-yellow-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
           }`}
           whileHover={{ scale: 1.05 }}
@@ -120,23 +117,23 @@ const MixerSection: React.FC<MixerSectionProps> = ({
   };
 
   return (
-    <section id="mixer" className="min-h-screen flex items-center justify-center px-4 py-20">
+    <section id="mixer" className="min-h-screen flex items-center justify-center px-4 py-8 sm:py-20">
       <motion.div
-        className="max-w-6xl mx-auto text-center"
+        className="max-w-6xl mx-auto text-center w-full"
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
           🎚 Balance the Mix
         </h2>
         
-        <p className="text-xl text-gray-300 mb-12">
+        <p className="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-12">
           Fine-tune your track levels and create the perfect balance
         </p>
 
-        <div className="flex flex-wrap justify-center gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 mb-8 sm:mb-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -196,63 +193,63 @@ const MixerSection: React.FC<MixerSectionProps> = ({
 
         {/* Balance Faders */}
         <motion.div
-          className="mt-12 bg-gray-900/50 rounded-xl p-6 border border-purple-500/30 max-w-4xl mx-auto"
+          className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30 max-w-4xl mx-auto"
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.5 }}
           viewport={{ once: true }}
         >
-          <h3 className="text-lg font-semibold text-purple-400 mb-6">Track Balance</h3>
-          <div className="flex justify-center gap-8">
+          <h3 className="text-base sm:text-lg font-semibold text-purple-400 mb-4 sm:mb-6">Track Balance</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8">
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-1 mb-2">
-                <span className="text-sm text-red-400 font-semibold">Drums</span>
-                {/* Tooltip: Drums Balance Fader */}
+                <span className="text-xs sm:text-sm text-red-400 font-semibold">Drums</span>
                 <InfoTooltip content={balanceTooltips.drums} />
               </div>
               <VerticalFader
                 label=""
                 value={drumsVolume}
                 onChange={onDrumsVolumeChange}
+                className="scale-75 sm:scale-100"
               />
             </div>
 
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-1 mb-2">
-                <span className="text-sm text-blue-400 font-semibold">Melody</span>
-                {/* Tooltip: Melody Balance Fader */}
+                <span className="text-xs sm:text-sm text-blue-400 font-semibold">Melody</span>
                 <InfoTooltip content={balanceTooltips.melody} />
               </div>
               <VerticalFader
                 label=""
                 value={melodyVolume}
                 onChange={onMelodyVolumeChange}
+                className="scale-75 sm:scale-100"
               />
             </div>
 
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-1 mb-2">
-                <span className="text-sm text-green-400 font-semibold">FX</span>
-                {/* Tooltip: FX Balance Fader */}
+                <span className="text-xs sm:text-sm text-green-400 font-semibold">FX</span>
                 <InfoTooltip content={balanceTooltips.fx} />
               </div>
               <VerticalFader
                 label=""
                 value={fxVolume}
                 onChange={onFxVolumeChange}
+                className="scale-75 sm:scale-100"
               />
             </div>
 
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-1 mb-2">
-                <span className="text-sm text-purple-400 font-semibold">Master</span>
-                {/* Tooltip: Master Balance Fader */}
+                <span className="text-xs sm:text-sm text-purple-400 font-semibold">Master</span>
                 <InfoTooltip content={balanceTooltips.master} />
               </div>
               <VerticalFader
                 label=""
                 value={masterVolume}
                 onChange={onMasterVolumeChange}
+                className="scale-75 sm:scale-100"
               />
             </div>
           </div>

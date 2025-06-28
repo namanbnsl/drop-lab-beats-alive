@@ -71,14 +71,14 @@ const Index = () => {
           transition={{ duration: 0.5 }}
         >
           <motion.div
-            className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-r from-purple-600 to-purple-400 flex items-center justify-center shadow-lg shadow-purple-500/25"
+            className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 rounded-full bg-gradient-to-r from-purple-600 to-purple-400 flex items-center justify-center shadow-lg shadow-purple-500/25"
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           >
-            <Disc3 className="w-12 h-12 text-white" />
+            <Disc3 className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
           </motion.div>
           <motion.p
-            className="text-white text-lg font-medium"
+            className="text-white text-base sm:text-lg font-medium"
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
@@ -129,7 +129,7 @@ const Index = () => {
       >
         <div className="text-center z-10">
           <motion.h1
-            className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 bg-clip-text text-transparent"
+            className="text-4xl sm:text-6xl md:text-8xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 bg-clip-text text-transparent"
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -138,7 +138,7 @@ const Index = () => {
           </motion.h1>
           
           <motion.p
-            className="text-xl md:text-2xl mb-12 text-gray-300"
+            className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-12 text-gray-300"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -147,7 +147,7 @@ const Index = () => {
           </motion.p>
 
           <motion.div
-            className="flex flex-col sm:flex-row gap-6 justify-center"
+            className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -155,7 +155,7 @@ const Index = () => {
             {/* Producer Button */}
             <button 
               onClick={() => navigate('/producer')}
-              className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 hover:scale-105"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-base sm:text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 hover:scale-105 touch-manipulation"
             >
               <span className="relative z-10 flex items-center gap-2 justify-center">
                 🎼 Start Producing
@@ -165,7 +165,7 @@ const Index = () => {
 
             <button 
               onClick={() => navigate('/dj')}
-              className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 hover:scale-105"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-base sm:text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 hover:scale-105 touch-manipulation"
             >
               <span className="relative z-10 flex items-center gap-2 justify-center">
                 🎧 Enter DJ Booth
@@ -177,7 +177,7 @@ const Index = () => {
       </motion.section>
 
       {/* Feature Breakdown */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-20 px-4">
         <motion.div
           className="max-w-6xl mx-auto"
           initial={{ opacity: 0 }}
@@ -185,11 +185,11 @@ const Index = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <div className="grid md:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
             {/* Producer Mode */}
             <div>
               <motion.h2
-                className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent"
+                className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -197,22 +197,22 @@ const Index = () => {
               >
                 Producer Mode
               </motion.h2>
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {producerFeatures.map((feature, index) => (
                   <motion.div
                     key={feature.title}
-                    className="group p-6 bg-black rounded-xl border border-purple-500/30 hover:border-purple-500 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10"
+                    className="group p-4 sm:p-6 bg-black rounded-xl border border-purple-500/30 hover:border-purple-500 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10"
                     variants={featureVariants}
                     initial="hidden"
                     whileInView="visible"
                     transition={{ delay: index * 0.1 }}
                     viewport={{ once: true }}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
-                        <feature.icon className="w-6 h-6 text-purple-400" />
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="p-2 sm:p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
+                        <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
                       </div>
-                      <h3 className="text-lg font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">{feature.title}</h3>
+                      <h3 className="text-base sm:text-lg font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">{feature.title}</h3>
                     </div>
                   </motion.div>
                 ))}
@@ -222,7 +222,7 @@ const Index = () => {
             {/* DJ Mode */}
             <div>
               <motion.h2
-                className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent"
+                className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -230,22 +230,22 @@ const Index = () => {
               >
                 DJ Mode
               </motion.h2>
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {djFeatures.map((feature, index) => (
                   <motion.div
                     key={feature.title}
-                    className="group p-6 bg-black rounded-xl border border-purple-500/30 hover:border-purple-500 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10"
+                    className="group p-4 sm:p-6 bg-black rounded-xl border border-purple-500/30 hover:border-purple-500 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10"
                     variants={featureVariants}
                     initial="hidden"
                     whileInView="visible"
                     transition={{ delay: index * 0.1 }}
                     viewport={{ once: true }}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
-                        <feature.icon className="w-6 h-6 text-purple-400" />
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="p-2 sm:p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
+                        <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
                       </div>
-                      <h3 className="text-lg font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">{feature.title}</h3>
+                      <h3 className="text-base sm:text-lg font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">{feature.title}</h3>
                     </div>
                   </motion.div>
                 ))}
@@ -256,7 +256,7 @@ const Index = () => {
       </section>
 
       {/* Education Focus */}
-      <section className="py-20 px-4 bg-gray-900/20">
+      <section className="py-12 sm:py-20 px-4 bg-gray-900/20">
         <motion.div
           className="max-w-4xl mx-auto text-center"
           initial={{ opacity: 0, y: 50 }}
@@ -264,10 +264,10 @@ const Index = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
             No gear? No problem. Learn as you mix.
           </h2>
-          <p className="text-xl text-gray-300 mb-12 leading-relaxed">
+          <p className="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-12 leading-relaxed">
             DropLab is built to teach as you play. With interactive tooltips and a step-by-step walkthrough, anyone can go from beginner to beat master.
           </p>
           
@@ -276,8 +276,8 @@ const Index = () => {
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="w-64 h-40 bg-black rounded-xl border border-purple-500/30 flex items-center justify-center relative overflow-hidden">
-              <BookOpen className="w-16 h-16 text-purple-400" />
+            <div className="w-48 h-32 sm:w-64 sm:h-40 bg-black rounded-xl border border-purple-500/30 flex items-center justify-center relative overflow-hidden">
+              <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 text-purple-400" />
               <div className="absolute top-2 right-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold animate-pulse">
                 Learn!
               </div>
@@ -290,7 +290,7 @@ const Index = () => {
       </section>
 
       {/* Tech Stack */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-20 px-4">
         <motion.div
           className="max-w-4xl mx-auto text-center"
           initial={{ opacity: 0 }}
@@ -298,15 +298,15 @@ const Index = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-3xl font-bold mb-12 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
             Built with ❤️ and powerful tech:
           </h2>
           
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
             {techStack.map((tech, index) => (
               <motion.span
                 key={tech}
-                className="px-6 py-3 bg-black rounded-full border border-purple-500/30 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 text-sm font-medium text-white"
+                className="px-4 sm:px-6 py-2 sm:py-3 bg-black rounded-full border border-purple-500/30 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 text-xs sm:text-sm font-medium text-white touch-manipulation"
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
@@ -322,20 +322,20 @@ const Index = () => {
 
       {/* Final CTA */}
       <motion.section
-        className="py-20 px-4 text-center"
+        className="py-12 sm:py-20 px-4 text-center"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        <h2 className="text-4xl md:text-5xl font-bold mb-12 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-12 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
           Ready to drop your first beat?
         </h2>
         
-        <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mb-8 sm:mb-12">
           <motion.button
             onClick={() => navigate('/producer')}
-            className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25"
+            className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-base sm:text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 touch-manipulation"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -345,7 +345,7 @@ const Index = () => {
 
           <motion.button
             onClick={() => navigate('/dj')}
-            className="group relative px-8 py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25"
+            className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-base sm:text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 touch-manipulation"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -354,8 +354,8 @@ const Index = () => {
           </motion.button>
         </div>
 
-        <p className="text-gray-400 text-sm">
-          © 2025 DropLab by Aarjav & Team 🚀 | Hackathon Edition
+        <p className="text-gray-400 text-xs sm:text-sm">
+          © 2025 DropLab by Aarjav & Naman 🚀 | Hackathon Edition
         </p>
       </motion.section>
     </div>

@@ -102,49 +102,83 @@
   }
 }
 
-/* Custom slider styles for the Producer mode */
+/* Responsive touch-friendly controls */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom slider styles for the Producer mode - Responsive */
 .slider::-webkit-slider-thumb {
   appearance: none;
-  height: 20px;
-  width: 20px;
+  height: 1rem;
+  width: 1rem;
   border-radius: 50%;
   background: #a259ff;
   cursor: pointer;
   border: 2px solid #8000ff;
-  box-shadow: 0 0 10px rgba(162, 89, 255, 0.3);
+  box-shadow: 0 0 0.625rem rgba(162, 89, 255, 0.3);
+}
+
+@media (min-width: 640px) {
+  .slider::-webkit-slider-thumb {
+    height: 1.25rem;
+    width: 1.25rem;
+  }
 }
 
 .slider::-moz-range-thumb {
-  height: 20px;
-  width: 20px;
+  height: 1rem;
+  width: 1rem;
   border-radius: 50%;
   background: #a259ff;
   cursor: pointer;
   border: 2px solid #8000ff;
-  box-shadow: 0 0 10px rgba(162, 89, 255, 0.3);
+  box-shadow: 0 0 0.625rem rgba(162, 89, 255, 0.3);
 }
 
-/* DJ Mode specific styles */
+@media (min-width: 640px) {
+  .slider::-moz-range-thumb {
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+}
+
+/* DJ Mode specific styles - Responsive */
 .pitch-slider::-webkit-slider-thumb {
   appearance: none;
-  height: 16px;
-  width: 16px;
+  height: 0.875rem;
+  width: 0.875rem;
   border-radius: 50%;
   background: #a259ff;
   cursor: pointer;
   border: 2px solid #8000ff;
-  box-shadow: 0 0 8px rgba(162, 89, 255, 0.3);
+  box-shadow: 0 0 0.5rem rgba(162, 89, 255, 0.3);
+}
+
+@media (min-width: 640px) {
+  .pitch-slider::-webkit-slider-thumb {
+    height: 1rem;
+    width: 1rem;
+  }
 }
 
 .crossfader::-webkit-slider-thumb {
   appearance: none;
-  height: 24px;
-  width: 12px;
-  border-radius: 6px;
+  height: 1.25rem;
+  width: 0.625rem;
+  border-radius: 0.375rem;
   background: #a259ff;
   cursor: pointer;
   border: 2px solid #8000ff;
-  box-shadow: 0 0 10px rgba(162, 89, 255, 0.3);
+  box-shadow: 0 0 0.625rem rgba(162, 89, 255, 0.3);
+}
+
+@media (min-width: 640px) {
+  .crossfader::-webkit-slider-thumb {
+    height: 1.5rem;
+    width: 0.75rem;
+  }
 }
 
 .vertical-slider {
@@ -154,19 +188,25 @@
   /* WebKit */
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Responsive */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 0.375rem;
+}
+
+@media (min-width: 640px) {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 0.375rem;
+  }
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
   background: #374151;
-  border-radius: 3px;
+  border-radius: 0.1875rem;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #a259ff;
-  border-radius: 3px;
+  border-radius: 0.1875rem;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
@@ -178,14 +218,20 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Grid styles for the 16x16 grid */
+/* Grid styles for the 16x16 grid - Responsive */
 .grid-cols-16 {
   grid-template-columns: repeat(16, minmax(0, 1fr));
 }
 
+@media (max-width: 639px) {
+  .grid-cols-8 {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
 /* Music Studio specific styles */
 .knob-glow {
-  filter: drop-shadow(0 0 10px currentColor);
+  filter: drop-shadow(0 0 0.625rem currentColor);
 }
 
 .gradient-bg {
@@ -239,17 +285,60 @@ html {
 
 /* Glow effects for active elements */
 .glow-purple {
-  box-shadow: 0 0 20px rgba(147, 51, 234, 0.5);
+  box-shadow: 0 0 1.25rem rgba(147, 51, 234, 0.5);
 }
 
 .glow-blue {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 1.25rem rgba(59, 130, 246, 0.5);
 }
 
 .glow-green {
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+  box-shadow: 0 0 1.25rem rgba(34, 197, 94, 0.5);
 }
 
 .glow-yellow {
-  box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
+  box-shadow: 0 0 1.25rem rgba(234, 179, 8, 0.5);
+}
+
+/* Responsive typography */
+@media (max-width: 639px) {
+  .text-responsive-sm {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+  
+  .text-responsive-base {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .text-responsive-lg {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+/* Touch-friendly minimum sizes */
+@media (max-width: 639px) {
+  .min-touch-target {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
+/* Improved focus states for accessibility */
+.focus-visible:focus-visible {
+  outline: 2px solid #a259ff;
+  outline-offset: 2px;
+}
+
+/* Better contrast for small text on mobile */
+@media (max-width: 639px) {
+  .text-gray-400 {
+    color: #d1d5db;
+  }
+  
+  .text-gray-500 {
+    color: #e5e7eb;
+  }
 }

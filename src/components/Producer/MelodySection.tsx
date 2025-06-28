@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, RefreshCw, Volume2, Save, Music } from 'lucide-react';
 import * as Tone from 'tone';
@@ -32,42 +32,10 @@ const MelodySection: React.FC<MelodySectionProps> = ({
   const [key, setKey] = useState('C');
   const [scale, setScale] = useState('major');
   const [octave, setOctave] = useState(4);
-  const [synth, setSynth] = useState<Tone.PolySynth | null>(null);
 
   const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const scales = ['major', 'minor', 'pentatonic', 'blues'];
   const octaves = [2, 3, 4, 5, 6];
-
-  useEffect(() => {
-    const polySynth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: 'triangle' },
-      envelope: { attack: 0.1, decay: 0.2, sustain: 0.3, release: 0.8 }
-    }).toDestination();
-
-    setSynth(polySynth);
-
-    return () => {
-      polySynth.dispose();
-    };
-  }, []);
-
-  // Play notes at current step
-  useEffect(() => {
-    if (isPlaying && synth) {
-      const step = currentStep % 16;
-      const stepTime = step * 0.25; // 16th note timing
-
-      // Find notes that should play at this step
-      const notesToPlay = notes.filter(note =>
-        Math.floor(note.startTime * 4) === step
-      );
-
-      notesToPlay.forEach(note => {
-        const noteName = Tone.Frequency(note.pitch, "midi").toNote();
-        synth.triggerAttackRelease(noteName, note.duration, undefined, note.velocity);
-      });
-    }
-  }, [currentStep, isPlaying, notes, synth]);
 
   const getScaleNotes = (rootKey: string, scaleType: string): number[] => {
     const noteToMidi = { 'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11 };
@@ -138,9 +106,16 @@ const MelodySection: React.FC<MelodySectionProps> = ({
   };
 
   const playMelody = () => {
-    if (synth && notes.length > 0) {
+    if (notes.length > 0) {
       onPlayMelody(notes);
     }
+  };
+
+  // Fixed beat display calculation
+  const getCurrentBeatDisplay = () => {
+    const bar = Math.floor(currentStep / 16) + 1;
+    const beat = (currentStep % 16) + 1; // Beat starts at 1, not 0
+    return `${bar}.${beat}`;
   };
 
   const renderPianoRoll = () => {
@@ -148,29 +123,48 @@ const MelodySection: React.FC<MelodySectionProps> = ({
     const gridSize = 16;
 
     return (
-      <div className="bg-gray-800 rounded-lg p-4">
-        <div className="grid grid-cols-16 gap-1">
-          {Array.from({ length: gridSize }, (_, time) => (
-            <div key={time} className="col-span-1">
-              {scaleNotes.map((pitch, pitchIndex) => {
-                const noteAtPosition = notes.find(note =>
-                  Math.floor(note.startTime * 4) === time &&
-                  note.pitch === pitch + (octave * 12)
-                );
+      <div className="bg-gray-800 rounded-lg p-2 sm:p-4 overflow-x-auto">
+        {/* Beat Numbers */}
+        <div className="flex items-center space-x-1 mb-2">
+          <div className="w-12 sm:w-16 flex-shrink-0"></div>
+          <div className="grid grid-cols-8 sm:grid-cols-16 gap-1 flex-1">
+            {Array.from({ length: 16 }, (_, i) => (
+              <div key={i} className="w-6 h-4 sm:w-8 sm:h-6 flex items-center justify-center text-xs text-gray-400">
+                {i + 1}
+              </div>
+            ))}
+          </div>
+        </div>
 
-                return (
-                  <button
-                    key={`${time}-${pitch}`}
-                    onClick={() => addNote(pitch, time * 0.25)}
-                    className={`w-full h-6 border border-gray-600 rounded ${noteAtPosition
-                        ? 'bg-purple-500 hover:bg-purple-600'
-                        : 'bg-gray-700 hover:bg-gray-600'
-                      } transition-colors ${currentStep % 16 === time ? 'ring-1 ring-yellow-400' : ''
+        <div className="grid grid-cols-1 gap-1">
+          {scaleNotes.map((pitch, pitchIndex) => (
+            <div key={pitch} className="flex items-center space-x-1">
+              <div className="w-12 sm:w-16 text-xs text-gray-300 flex-shrink-0">
+                {Tone.Frequency(pitch + (octave * 12), "midi").toNote()}
+              </div>
+              <div className="grid grid-cols-8 sm:grid-cols-16 gap-1 flex-1">
+                {Array.from({ length: gridSize }, (_, time) => {
+                  const noteAtPosition = notes.find(note =>
+                    Math.floor(note.startTime * 4) === time &&
+                    note.pitch === pitch + (octave * 12)
+                  );
+
+                  return (
+                    <button
+                      key={`${time}-${pitch}`}
+                      onClick={() => addNote(pitch, time * 0.25)}
+                      className={`w-6 h-4 sm:w-8 sm:h-6 border border-gray-600 rounded transition-all touch-manipulation ${
+                        noteAtPosition
+                          ? 'bg-purple-500 hover:bg-purple-600'
+                          : 'bg-gray-700 hover:bg-gray-600'
+                      } ${
+                        currentStep % 16 === time ? 'ring-1 ring-yellow-400' : ''
                       }`}
-                    title={`Add note ${pitch} at time ${time * 0.25}s`}
-                  />
-                );
-              })}
+                      title={`Add note ${pitch} at beat ${time + 1}`}
+                    />
+                  );
+                })}
+              </div>
             </div>
           ))}
         </div>
@@ -188,11 +182,11 @@ const MelodySection: React.FC<MelodySectionProps> = ({
           {notes.map((note, index) => (
             <div key={index} className="flex items-center justify-between bg-gray-700 rounded p-2">
               <span className="text-white text-sm">
-                Note {note.pitch} at {note.startTime.toFixed(1)}s
+                Note {note.pitch} at beat {Math.floor(note.startTime * 4) + 1}
               </span>
               <button
                 onClick={() => removeNote(index)}
-                className="text-red-400 hover:text-red-300 text-sm"
+                className="text-red-400 hover:text-red-300 text-sm touch-manipulation"
               >
                 ×
               </button>
@@ -204,34 +198,44 @@ const MelodySection: React.FC<MelodySectionProps> = ({
   );
 
   return (
-    <section id="melody" className="min-h-screen flex items-center justify-center px-4 py-20">
+    <section id="melody" className="min-h-screen flex items-center justify-center px-4 py-8 sm:py-20">
       <motion.div
-        className="max-w-6xl mx-auto text-center"
+        className="max-w-6xl mx-auto text-center w-full"
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
           🎼 Melody Composer
         </h2>
 
-        <p className="text-xl text-gray-300 mb-4">
+        <p className="text-lg sm:text-xl text-gray-300 mb-2 sm:mb-4">
           Create your own melodies with the piano roll interface
         </p>
 
-        <p className="text-sm text-purple-400 mb-12">
+        <p className="text-sm text-purple-400 mb-8 sm:mb-12">
           Click on the grid to add notes and build your melody
         </p>
 
+        {/* Beat Display */}
+        <div className="mb-6 p-4 bg-gray-900/50 rounded-xl border border-purple-500/30">
+          <div className="text-lg sm:text-xl font-mono text-purple-400">
+            Current Beat: {getCurrentBeatDisplay()}
+          </div>
+          <div className="text-sm text-gray-400 mt-1">
+            {isPlaying ? 'Playing' : 'Stopped'} • {tempo} BPM
+          </div>
+        </div>
+
         {/* Controls */}
-        <div className="grid md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6 sm:mb-8">
           <div className="bg-gray-900/50 rounded-xl p-4 border border-purple-500/30">
             <label className="block text-sm font-medium text-gray-300 mb-2">Key</label>
             <select
               value={key}
               onChange={(e) => setKey(e.target.value)}
-              className="w-full bg-black border border-purple-500/50 rounded-lg px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
+              className="w-full bg-black border border-purple-500/50 rounded-lg px-3 py-2 text-white focus:border-purple-500 focus:outline-none text-sm"
             >
               {keys.map((k) => (
                 <option key={k} value={k}>{k}</option>
@@ -244,7 +248,7 @@ const MelodySection: React.FC<MelodySectionProps> = ({
             <select
               value={scale}
               onChange={(e) => setScale(e.target.value)}
-              className="w-full bg-black border border-purple-500/50 rounded-lg px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
+              className="w-full bg-black border border-purple-500/50 rounded-lg px-3 py-2 text-white focus:border-purple-500 focus:outline-none text-sm"
             >
               {scales.map((s) => (
                 <option key={s} value={s}>{s}</option>
@@ -257,7 +261,7 @@ const MelodySection: React.FC<MelodySectionProps> = ({
             <select
               value={octave}
               onChange={(e) => setOctave(Number(e.target.value))}
-              className="w-full bg-black border border-purple-500/50 rounded-lg px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
+              className="w-full bg-black border border-purple-500/50 rounded-lg px-3 py-2 text-white focus:border-purple-500 focus:outline-none text-sm"
             >
               {octaves.map((o) => (
                 <option key={o} value={o}>{o}</option>
@@ -273,7 +277,7 @@ const MelodySection: React.FC<MelodySectionProps> = ({
               max="200"
               value={tempo}
               onChange={(e) => onTempoChange(Number(e.target.value))}
-              className="w-full"
+              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
             />
             <span className="text-sm text-purple-400">{tempo} BPM</span>
           </div>
@@ -282,7 +286,7 @@ const MelodySection: React.FC<MelodySectionProps> = ({
             <button
               onClick={playMelody}
               disabled={notes.length === 0}
-              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white px-4 py-3 rounded-lg transition-colors text-sm touch-manipulation"
             >
               {isPlaying ? '⏸️ Pause' : '▶️ Play'}
             </button>
@@ -290,45 +294,45 @@ const MelodySection: React.FC<MelodySectionProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-center space-x-4 mb-8">
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-6 sm:mb-8">
           <button
             onClick={randomizeMelody}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation"
           >
             🎲 Randomize
           </button>
           <button
             onClick={clearMelody}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation"
           >
             🗑️ Clear
           </button>
           <button
             onClick={saveMelody}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation"
           >
             💾 Save
           </button>
           <button
             onClick={loadMelody}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation"
           >
             📂 Load
           </button>
         </div>
 
         {/* Piano Roll */}
-        <div className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30 mb-8">
+        <div className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30 mb-6 sm:mb-8">
           <h3 className="text-lg font-semibold text-white mb-4">Piano Roll</h3>
           {renderPianoRoll()}
-          <div className="mt-4 text-sm text-gray-400">
+          <div className="mt-4 text-xs sm:text-sm text-gray-400">
             <p>Click on any cell to add a note. Purple cells indicate existing notes.</p>
             <p>Scale: {key} {scale} | Notes in scale: {getScaleNotes(key, scale).join(', ')}</p>
           </div>
         </div>
 
         {/* Notes List */}
-        <div className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30">
+        <div className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30">
           {renderNotesList()}
         </div>
       </motion.div>
