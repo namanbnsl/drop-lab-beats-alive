@@ -511,10 +511,6 @@ const Producer = () => {
           isPlaying={isPlaying}
           isRecording={isRecording}
         />
-        <section className="audio-status text-center mt-4">
-          {isPlaying && <span className="text-green-400">Music is playing from Lyria!</span>}
-          {!isPlaying && !isLoading && <span className="text-gray-400">Press Play to generate music.</span>}
-        </section>
       </main>
     </div>
   );
