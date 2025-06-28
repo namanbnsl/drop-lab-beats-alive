@@ -1,20 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import CDJDeck from '../components/DJ/CDJDeck';
 import MixerPanel from '../components/DJ/MixerPanel';
-import FXPanel from '../components/DJ/FXPanel';
 import TrackLibrary from '../components/DJ/TrackLibrary';
-import LibraryPanel from '../components/DJ/LibraryPanel';
 import FirstTimeOverlay from '../components/DJ/FirstTimeOverlay';
 import { Disc3 } from 'lucide-react';
 import { useDJStore } from '../stores/djStore';
 
 const DJ = () => {
   const navigate = useNavigate();
-  const [showFXPanel, setShowFXPanel] = useState(false);
-  const [showLibrary, setShowLibrary] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(true);
   const [showFirstTime, setShowFirstTime] = useState(false);
   const { cleanup } = useDJStore();
 
@@ -54,16 +50,6 @@ const DJ = () => {
         </h1>
         <div className="flex gap-2">
           <button
-            onClick={() => setShowFXPanel(!showFXPanel)}
-            className={`px-4 py-2 rounded-lg border transition-all ${
-              showFXPanel 
-                ? 'bg-purple-600 border-purple-400 text-white' 
-                : 'border-purple-500/30 hover:border-purple-500 text-purple-400'
-            }`}
-          >
-            FX
-          </button>
-          <button
             onClick={() => setShowLibrary(!showLibrary)}
             className={`px-4 py-2 rounded-lg border transition-all ${
               showLibrary 
@@ -85,38 +71,21 @@ const DJ = () => {
           <CDJDeck side="B" />
         </div>
 
-        {/* FX and Library Panels */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AnimatePresence>
-            {showFXPanel && (
-              <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 50 }}
-                transition={{ duration: 0.3 }}
-              >
-                <FXPanel />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {showLibrary && (
-              <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 50 }}
-                transition={{ duration: 0.3 }}
-              >
-                <TrackLibrary />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        {/* Track Library */}
+        <AnimatePresence>
+          {showLibrary && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              transition={{ duration: 0.3 }}
+              className="max-w-4xl mx-auto"
+            >
+              <TrackLibrary />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-
-      {/* New Library Panel */}
-      <LibraryPanel />
 
       {/* First Time Overlay */}
       <FirstTimeOverlay 

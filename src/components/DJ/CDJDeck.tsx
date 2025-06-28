@@ -1,9 +1,7 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, RotateCcw, Zap } from 'lucide-react';
+import { Play, Pause, RotateCcw, Zap, Sync } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
-import PerformancePads from './PerformancePads';
 
 interface CDJDeckProps {
   side: 'A' | 'B';
@@ -14,6 +12,8 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   const animationRef = useRef<number>();
   const rotationRef = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [lastMouseX, setLastMouseX] = useState(0);
+  const [scrubVelocity, setScrubVelocity] = useState(0);
   
   const {
     deckAState,
@@ -21,7 +21,9 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     playDeck,
     pauseDeck,
     setPitch,
-    setEQ,
+    syncDecks,
+    scrubTrack,
+    triggerBackspin,
     initializeAudio,
   } = useDJStore();
 
@@ -78,6 +80,15 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       ctx.fillStyle = isPlaying ? '#a259ff' : '#374151';
       ctx.fill();
 
+      // Scrub indicator
+      if (isDragging) {
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 85, 0, Math.PI * 2);
+        ctx.strokeStyle = '#ff6b6b';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
       animationRef.current = requestAnimationFrame(animate);
     };
 
@@ -103,17 +114,54 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     setPitch(side, value);
   };
 
-  const handleEQChange = (band: 'low' | 'mid' | 'high', value: number) => {
-    const newEQ = { ...deckState.eq, [band]: value };
-    setEQ(side, newEQ);
-  };
-
   const handlePlatterMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
+    setLastMouseX(e.clientX);
+    setScrubVelocity(0);
+  };
+
+  const handlePlatterMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+
+    const deltaX = e.clientX - lastMouseX;
+    const velocity = deltaX * 0.1; // Scale factor for scrubbing sensitivity
+    
+    setScrubVelocity(velocity);
+    setLastMouseX(e.clientX);
+
+    // Scrub the track
+    scrubTrack(side, velocity);
+
+    // Detect rapid counter-clockwise movement for backspin
+    if (velocity < -5) {
+      triggerBackspin(side);
+    }
+
+    // Update visual rotation
+    rotationRef.current += velocity * 0.01;
   };
 
   const handlePlatterMouseUp = () => {
     setIsDragging(false);
+    setScrubVelocity(0);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handlePlatterMouseMove);
+      document.addEventListener('mouseup', handlePlatterMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handlePlatterMouseMove);
+        document.removeEventListener('mouseup', handlePlatterMouseUp);
+      };
+    }
+  }, [isDragging, lastMouseX]);
+
+  const handleSync = () => {
+    if (side === 'B') {
+      syncDecks();
+    }
   };
 
   return (
@@ -131,10 +179,14 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             height={200}
             className="rounded-full bg-gray-800 shadow-lg cursor-pointer"
             onMouseDown={handlePlatterMouseDown}
-            onMouseUp={handlePlatterMouseUp}
           />
           {isPlaying && (
             <div className="absolute inset-0 rounded-full bg-purple-500/10 animate-pulse" />
+          )}
+          {isDragging && (
+            <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+              SCRUB
+            </div>
           )}
         </div>
       </div>
@@ -148,42 +200,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           <span>{deckState.track?.bpm || 0} BPM</span>
           <span>Key: {deckState.track?.key || '-'}</span>
         </div>
-      </div>
-
-      {/* EQ Section */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        {(['high', 'mid', 'low'] as const).map((band) => (
-          <div key={band} className="flex flex-col items-center space-y-1">
-            <div className="relative w-12 h-12">
-              <div 
-                className="w-12 h-12 rounded-full border-4 border-purple-500 bg-gray-800 relative cursor-pointer shadow-lg"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const centerX = rect.left + rect.width / 2;
-                  const centerY = rect.top + rect.height / 2;
-                  const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-                  const degrees = (angle * 180 / Math.PI + 90 + 360) % 360;
-                  const normalizedValue = Math.max(0, Math.min(100, (degrees / 270) * 100));
-                  handleEQChange(band, normalizedValue);
-                }}
-              >
-                <div 
-                  className="absolute w-1 h-4 bg-purple-400 top-1 left-1/2 transform -translate-x-1/2 origin-bottom rounded-full transition-transform"
-                  style={{ 
-                    transform: `translateX(-50%) rotate(${(deckState.eq[band] / 100) * 270 - 135}deg)` 
-                  }}
-                />
-              </div>
-            </div>
-            <div className="text-xs text-gray-400 text-center uppercase">{band}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Performance Pads */}
-      <div className="mb-4">
-        <div className="text-xs text-purple-400 text-center mb-2">PERFORMANCE PADS</div>
-        <PerformancePads side={side} />
       </div>
 
       {/* Controls */}
@@ -207,17 +223,22 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="p-3 rounded-full bg-gray-700 text-gray-300 hover:bg-gray-600 transition-all"
+            onClick={() => scrubTrack(side, 0)}
           >
             <RotateCcw className="w-6 h-6" />
           </motion.button>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-3 rounded-full bg-gray-700 text-gray-300 hover:bg-gray-600 transition-all"
-          >
-            <Zap className="w-6 h-6" />
-          </motion.button>
+          {side === 'B' && (
+            <motion.button
+              onClick={handleSync}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-3 rounded-full bg-blue-600 text-white hover:bg-blue-500 transition-all"
+              title="Sync to Deck A"
+            >
+              <Sync className="w-6 h-6" />
+            </motion.button>
+          )}
         </div>
 
         {/* Pitch Fader */}
@@ -236,6 +257,15 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             />
           </div>
         </div>
+
+        {/* Scrub Velocity Indicator */}
+        {isDragging && (
+          <div className="text-center">
+            <div className="text-xs text-gray-400">
+              Scrub: {scrubVelocity > 0 ? '→' : '←'} {Math.abs(scrubVelocity).toFixed(1)}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,89 +1,91 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Music } from 'lucide-react';
+import { Music, Play, Pause } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
+
+interface Track {
+  id: string;
+  name: string;
+  filename: string;
+  bpm: number;
+  key: string;
+  duration?: string;
+}
 
 const TrackLibrary = () => {
   const { loadTrack } = useDJStore();
+  const [previewTrack, setPreviewTrack] = useState<string | null>(null);
+  const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
   
-  // Sample tracks with placeholder URLs (you can replace with real audio files)
-  const tracks = [
-    { 
-      id: 1, 
-      name: "Astral Bounce", 
-      genre: "House", 
-      bpm: 126, 
-      key: "Am",
-      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
+  // Static track list based on files in public/songs/
+  const tracks: Track[] = [
+    {
+      id: '1',
+      name: 'Shimmer',
+      filename: 'THYKIER - Shimmer  Tech House  NCS - Copyright Free Music.mp3',
+      bpm: 128,
+      key: 'Am',
+      duration: '3:45'
     },
-    { 
-      id: 2, 
-      name: "Night Voltage", 
-      genre: "DnB", 
-      bpm: 174, 
-      key: "Dm",
-      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
-    },
-    { 
-      id: 3, 
-      name: "Neon Dreams", 
-      genre: "Synthwave", 
-      bpm: 110, 
-      key: "Em",
-      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
-    },
-    { 
-      id: 4, 
-      name: "Bass Drop City", 
-      genre: "Dubstep", 
-      bpm: 140, 
-      key: "Gm",
-      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
-    },
-    { 
-      id: 5, 
-      name: "Midnight Groove", 
-      genre: "Tech House", 
-      bpm: 128, 
-      key: "F#m",
-      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
-    },
-    { 
-      id: 6, 
-      name: "Crystal Waters", 
-      genre: "Ambient", 
-      bpm: 85, 
-      key: "Cm",
-      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
-    },
-    { 
-      id: 7, 
-      name: "Electric Pulse", 
-      genre: "Electro", 
-      bpm: 132, 
-      key: "Bm",
-      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
-    },
-    { 
-      id: 8, 
-      name: "Solar Flare", 
-      genre: "Trance", 
-      bpm: 138, 
-      key: "Am",
-      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
-    },
+    {
+      id: '2', 
+      name: 'Inferior',
+      filename: 'THYKIER - Inferior [NCS Remake].mp3',
+      bpm: 126,
+      key: 'Dm',
+      duration: '4:12'
+    }
   ];
 
-  const handleLoadTrack = async (track: typeof tracks[0], deck: 'A' | 'B') => {
+  const handleLoadTrack = async (track: Track, deck: 'A' | 'B') => {
     console.log(`Loading "${track.name}" to Deck ${deck}`);
+    const trackUrl = `/songs/${track.filename}`;
+    
     await loadTrack(deck, {
       name: track.name,
       bpm: track.bpm,
       key: track.key,
-      url: track.url,
+      url: trackUrl,
     });
   };
+
+  const handlePreview = (track: Track) => {
+    if (previewTrack === track.id) {
+      // Stop preview
+      if (previewAudio) {
+        previewAudio.pause();
+        previewAudio.currentTime = 0;
+      }
+      setPreviewTrack(null);
+    } else {
+      // Start new preview
+      if (previewAudio) {
+        previewAudio.pause();
+      }
+      
+      const audio = new Audio(`/songs/${track.filename}`);
+      audio.volume = 0.3;
+      audio.currentTime = 30; // Start 30 seconds in
+      audio.play();
+      
+      setPreviewAudio(audio);
+      setPreviewTrack(track.id);
+      
+      // Auto-stop after 15 seconds
+      setTimeout(() => {
+        audio.pause();
+        setPreviewTrack(null);
+      }, 15000);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (previewAudio) {
+        previewAudio.pause();
+      }
+    };
+  }, [previewAudio]);
 
   return (
     <div className="bg-gray-900 rounded-xl p-6 border border-purple-500/30">
@@ -103,15 +105,27 @@ const TrackLibrary = () => {
             transition={{ delay: index * 0.05 }}
             className="group bg-black rounded-lg p-4 border border-purple-500/20 hover:border-purple-500 transition-all hover:shadow-lg hover:shadow-purple-500/10"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-white group-hover:text-purple-300 transition-colors">
                     {track.name}
                   </h4>
-                  <span className="text-xs px-2 py-1 bg-purple-600/20 text-purple-400 rounded-full">
-                    {track.genre}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs px-2 py-1 bg-purple-600/20 text-purple-400 rounded-full">
+                      {track.duration}
+                    </span>
+                    <button
+                      onClick={() => handlePreview(track)}
+                      className="p-1 rounded-full bg-gray-700 hover:bg-purple-600 transition-colors"
+                    >
+                      {previewTrack === track.id ? (
+                        <Pause className="w-3 h-3 text-white" />
+                      ) : (
+                        <Play className="w-3 h-3 text-white" />
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div className="flex items-center justify-between text-sm text-gray-400">
                   <span>{track.bpm} BPM</span>
@@ -120,7 +134,7 @@ const TrackLibrary = () => {
               </div>
             </div>
             
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-2">
               <motion.button
                 onClick={() => handleLoadTrack(track, 'A')}
                 whileHover={{ scale: 1.02 }}
@@ -138,8 +152,18 @@ const TrackLibrary = () => {
                 Load to B
               </motion.button>
             </div>
+
+            {previewTrack === track.id && (
+              <div className="mt-2 text-xs text-purple-400 text-center animate-pulse">
+                🎵 Preview playing...
+              </div>
+            )}
           </motion.div>
         ))}
+      </div>
+
+      <div className="mt-4 text-xs text-gray-400 text-center">
+        {tracks.length} tracks available • Click play icon to preview
       </div>
     </div>
   );

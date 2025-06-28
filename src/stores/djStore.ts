@@ -16,13 +16,7 @@ interface DeckState {
   eq: { low: number; mid: number; high: number };
   volume: number;
   fx: { filter: number; reverb: number; delay: number };
-}
-
-interface FXState {
-  filter: number;
-  reverb: number;
-  delay: number;
-  assignedTo: 'A' | 'B' | 'BOTH';
+  isSyncing: boolean;
 }
 
 interface DJState {
@@ -36,10 +30,9 @@ interface DJState {
   
   // Mixer
   crossfader: number;
-  masterVolume: number;
   
-  // FX
-  fx: FXState;
+  // Transport for sync
+  isTransportRunning: boolean;
   
   // Actions
   initializeAudio: () => Promise<void>;
@@ -50,9 +43,10 @@ interface DJState {
   setEQ: (deck: 'A' | 'B', eq: { low: number; mid: number; high: number }) => void;
   setVolume: (deck: 'A' | 'B', value: number) => void;
   setCrossfader: (value: number) => void;
-  setMasterVolume: (value: number) => void;
-  setFX: (fx: Partial<FXState>) => void;
   setDeckFX: (deck: 'A' | 'B', fx: Partial<{ filter: number; reverb: number; delay: number }>) => void;
+  scrubTrack: (deck: 'A' | 'B', velocity: number) => void;
+  triggerBackspin: (deck: 'A' | 'B') => void;
+  syncDecks: () => void;
   cleanup: () => void;
 }
 
@@ -63,6 +57,7 @@ const defaultDeckState: DeckState = {
   eq: { low: 50, mid: 50, high: 50 },
   volume: 75,
   fx: { filter: 50, reverb: 0, delay: 0 },
+  isSyncing: false,
 };
 
 export const useDJStore = create<DJState>((set, get) => ({
@@ -73,14 +68,7 @@ export const useDJStore = create<DJState>((set, get) => ({
   deckBState: defaultDeckState,
   
   crossfader: 50,
-  masterVolume: 80,
-  
-  fx: {
-    filter: 50,
-    reverb: 0,
-    delay: 0,
-    assignedTo: 'BOTH',
-  },
+  isTransportRunning: false,
 
   initializeAudio: async () => {
     try {
@@ -89,9 +77,12 @@ export const useDJStore = create<DJState>((set, get) => ({
       const deckA = new DeckAudioEngine();
       const deckB = new DeckAudioEngine();
       
+      // Initialize transport for sync
+      Tone.Transport.bpm.value = 120;
+      
       set({ deckA, deckB });
       
-      console.log('Audio initialized');
+      console.log('🎧 DJ Audio System Initialized');
     } catch (error) {
       console.error('Failed to initialize audio:', error);
     }
@@ -104,6 +95,14 @@ export const useDJStore = create<DJState>((set, get) => ({
     
     if (engine && engine.isLoaded) {
       engine.play();
+      
+      // Start transport if this is deck A and not already running
+      if (deck === 'A' && !state.isTransportRunning) {
+        Tone.Transport.bpm.value = engine.getBPM();
+        Tone.Transport.start();
+        set({ isTransportRunning: true });
+      }
+      
       set({
         [deckState]: {
           ...state[deckState],
@@ -135,7 +134,7 @@ export const useDJStore = create<DJState>((set, get) => ({
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
     if (engine && track.url) {
-      const loaded = await engine.loadTrack(track.url);
+      const loaded = await engine.loadTrack(track.url, track.bpm);
       if (loaded) {
         set({
           [deckState]: {
@@ -144,6 +143,7 @@ export const useDJStore = create<DJState>((set, get) => ({
             isPlaying: false,
           },
         });
+        console.log(`🎵 Loaded "${track.name}" to Deck ${deck}`);
       }
     }
   },
@@ -198,7 +198,7 @@ export const useDJStore = create<DJState>((set, get) => ({
         finalVolume *= Math.cos((1 - crossfaderNormalized) * 0.5 * Math.PI);
       }
       
-      engine.setGain(finalVolume * (state.masterVolume / 100) * 100);
+      engine.setGain(finalVolume * 100);
       
       set({
         [deckState]: {
@@ -213,40 +213,9 @@ export const useDJStore = create<DJState>((set, get) => ({
     const state = get();
     set({ crossfader: value });
     
-    // Update both deck volumes to apply crossfader with cosine curve
+    // Update both deck volumes to apply crossfader
     get().setVolume('A', state.deckAState.volume);
     get().setVolume('B', state.deckBState.volume);
-  },
-
-  setMasterVolume: (value) => {
-    const state = get();
-    set({ masterVolume: value });
-    
-    // Update both deck volumes
-    get().setVolume('A', state.deckAState.volume);
-    get().setVolume('B', state.deckBState.volume);
-  },
-
-  setFX: (fx) => {
-    const state = get();
-    const newFX = { ...state.fx, ...fx };
-    set({ fx: newFX });
-    
-    // Apply FX to assigned decks
-    const applyToA = newFX.assignedTo === 'A' || newFX.assignedTo === 'BOTH';
-    const applyToB = newFX.assignedTo === 'B' || newFX.assignedTo === 'BOTH';
-    
-    if (applyToA && state.deckA) {
-      state.deckA.setFilter(newFX.filter);
-      state.deckA.setReverb(newFX.reverb);
-      state.deckA.setDelay(newFX.delay);
-    }
-    
-    if (applyToB && state.deckB) {
-      state.deckB.setFilter(newFX.filter);
-      state.deckB.setReverb(newFX.reverb);
-      state.deckB.setDelay(newFX.delay);
-    }
   },
 
   setDeckFX: (deck, fx) => {
@@ -271,9 +240,80 @@ export const useDJStore = create<DJState>((set, get) => ({
     }
   },
 
+  scrubTrack: (deck, velocity) => {
+    const state = get();
+    const engine = deck === 'A' ? state.deckA : state.deckB;
+    
+    if (engine && engine.isLoaded) {
+      const currentTime = engine.getCurrentTime();
+      const scrubAmount = velocity * 0.1; // Scale velocity to time
+      const newTime = Math.max(0, currentTime + scrubAmount);
+      
+      engine.seek(newTime);
+    }
+  },
+
+  triggerBackspin: (deck) => {
+    const state = get();
+    const engine = deck === 'A' ? state.deckA : state.deckB;
+    
+    if (engine) {
+      engine.triggerBackspin();
+      console.log(`🌀 Backspin triggered on Deck ${deck}`);
+    }
+  },
+
+  syncDecks: () => {
+    const state = get();
+    const { deckA, deckB, deckAState, deckBState } = state;
+    
+    if (deckA && deckB && deckAState.isPlaying && deckBState.track) {
+      // Set deck B to sync state
+      set({
+        deckBState: {
+          ...deckBState,
+          isSyncing: true,
+        },
+      });
+
+      // Set transport BPM to deck A's BPM
+      const deckABPM = deckA.getBPM();
+      Tone.Transport.bpm.value = deckABPM;
+      
+      if (!state.isTransportRunning) {
+        Tone.Transport.start();
+        set({ isTransportRunning: true });
+      }
+
+      // Calculate beats until next bar (4/4 time)
+      const currentPosition = Tone.Transport.position;
+      const [bars, beats] = currentPosition.split(':').map(Number);
+      const beatsUntilNextBar = 4 - (beats % 4);
+      
+      // Schedule deck B to start at the next bar
+      Tone.Transport.scheduleOnce(() => {
+        if (deckB.isLoaded) {
+          deckB.play();
+          set({
+            deckBState: {
+              ...get().deckBState,
+              isPlaying: true,
+              isSyncing: false,
+            },
+          });
+          console.log(`🎯 Deck B synced to Deck A at ${deckABPM} BPM`);
+        }
+      }, `+${beatsUntilNextBar}n`);
+
+      console.log(`⏱️ Deck B will sync in ${beatsUntilNextBar} beats`);
+    }
+  },
+
   cleanup: () => {
     const state = get();
     state.deckA?.dispose();
     state.deckB?.dispose();
+    Tone.Transport.stop();
+    Tone.Transport.cancel();
   },
 }));
