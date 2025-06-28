@@ -22,11 +22,6 @@ export default {
 			}
 		},
 		extend: {
-			fontFamily: {
-				'kalam': ['Kalam', 'cursive'],
-				'caveat': ['Caveat', 'cursive'],
-				'architects': ['Architects Daughter', 'cursive'],
-			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 			},
@@ -100,70 +95,25 @@ export default {
 						height: '0'
 					}
 				},
-				'pulse-glow': {
-					'0%, 100%': {
-						boxShadow: '0 0 5px currentColor'
+				'fadeIn': {
+					from: {
+						opacity: '0'
 					},
-					'50%': {
-						boxShadow: '0 0 20px currentColor, 0 0 30px currentColor'
+					to: {
+						opacity: '1'
 					}
 				},
-				'bounce-fun': {
-					'0%, 20%, 53%, 80%, 100%': {
-						transform: 'translate3d(0,0,0)'
-					},
-					'40%, 43%': {
-						transform: 'translate3d(0, -0.5rem, 0)'
-					},
-					'70%': {
-						transform: 'translate3d(0, -0.25rem, 0)'
-					},
-					'90%': {
-						transform: 'translate3d(0, -0.125rem, 0)'
-					}
-				},
-				'wiggle': {
-					'0%, 7%': {
-						transform: 'rotateZ(0)'
-					},
-					'15%': {
-						transform: 'rotateZ(-15deg)'
-					},
-					'20%': {
-						transform: 'rotateZ(10deg)'
-					},
-					'25%': {
-						transform: 'rotateZ(-10deg)'
-					},
-					'30%': {
-						transform: 'rotateZ(6deg)'
-					},
-					'35%': {
-						transform: 'rotateZ(-4deg)'
-					},
-					'40%, 100%': {
-						transform: 'rotateZ(0)'
-					}
-				},
-				'float': {
-					'0%': {
-						transform: 'translateY(0px)'
-					},
-					'50%': {
-						transform: 'translateY(-0.5rem)'
-					},
-					'100%': {
-						transform: 'translateY(0px)'
+				'spin': {
+					to: {
+						transform: 'rotate(360deg)'
 					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-				'bounce-fun': 'bounce-fun 1s ease-in-out',
-				'wiggle': 'wiggle 2s ease-in-out',
-				'float': 'float 3s ease-in-out infinite'
+				'fade-in': 'fadeIn 0.3s ease-in-out',
+				'spin': 'spin 1s linear infinite'
 			},
 			spacing: {
 				'18': '4.5rem',
