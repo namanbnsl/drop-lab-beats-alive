@@ -80,9 +80,9 @@ const Index = () => {
           <motion.div
             className="w-20 h-20 mx-auto mb-6 sketch-card flex items-center justify-center bounce-sketch"
           >
-            <Disc3 className="w-10 h-10 text-gray-800" />
+            <Disc3 className="w-10 h-10 text-white" />
           </motion.div>
-          <p className="handwritten-text text-gray-800">
+          <p className="handwritten-text text-white">
             Setting up the studio... ♪
           </p>
         </motion.div>
@@ -91,7 +91,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen landing-grid text-gray-800 overflow-x-hidden">
+    <div className="min-h-screen landing-grid text-white overflow-x-hidden">
       {/* Hero Section */}
       <motion.section
         className="min-h-screen flex items-center justify-center relative container mx-auto component-spacing"
@@ -101,7 +101,7 @@ const Index = () => {
       >
         <div className="text-center z-10 max-w-6xl mx-auto">
           <motion.h1
-            className="text-display-handwritten text-gray-800 font-bold mb-8 doodle-star"
+            className="text-display-handwritten text-white font-bold mb-8 doodle-star"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -110,7 +110,7 @@ const Index = () => {
           </motion.h1>
           
           <motion.p
-            className="text-heading-2-handwritten text-gray-600 mb-4 sketch-underline"
+            className="text-heading-2-handwritten text-gray-300 mb-4 sketch-underline"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -119,7 +119,7 @@ const Index = () => {
           </motion.p>
 
           <motion.p
-            className="handwritten-text text-gray-500 mb-12 marker-highlight"
+            className="handwritten-text text-gray-400 mb-12 marker-highlight"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.5 }}
@@ -159,10 +159,10 @@ const Index = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-heading-1-handwritten text-gray-800 mb-6 asterisk-decoration">
+          <h2 className="text-heading-1-handwritten text-white mb-6 asterisk-decoration">
             Everything You Need to Create Music
           </h2>
-          <p className="text-body-large-handwritten text-gray-600 max-w-3xl mx-auto highlight-mint">
+          <p className="text-body-large-handwritten text-gray-300 max-w-3xl mx-auto highlight-mint">
             Like a creative workspace where all your tools are within reach - explore our music creation ecosystem!
           </p>
         </motion.div>
@@ -214,7 +214,7 @@ const Index = () => {
             viewport={{ once: true }}
           >
             <div className="mindmap-node-sketch w-24 h-24 flex items-center justify-center pulse-sketch">
-              <Disc3 className="w-12 h-12 text-gray-800" />
+              <Disc3 className="w-12 h-12 text-white" />
             </div>
           </motion.div>
 
@@ -237,8 +237,8 @@ const Index = () => {
                 <feature.icon className="w-8 h-8 text-gray-800" />
               </div>
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 text-center">
-                <div className="handwritten-text text-gray-800 font-semibold">{feature.title}</div>
-                <div className="handwritten-small text-gray-600">{feature.description}</div>
+                <div className="handwritten-text text-white font-semibold">{feature.title}</div>
+                <div className="handwritten-small text-gray-300">{feature.description}</div>
               </div>
             </motion.div>
           ))}
@@ -262,7 +262,7 @@ const Index = () => {
                   <sub.icon className="w-5 h-5 text-gray-800" />
                 </div>
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 text-center">
-                  <div className="handwritten-small text-gray-600 whitespace-nowrap">{sub.title}</div>
+                  <div className="handwritten-small text-gray-300 whitespace-nowrap">{sub.title}</div>
                 </div>
               </motion.div>
             ))
@@ -279,7 +279,7 @@ const Index = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-heading-1-handwritten text-gray-800 mb-6 circle-decoration">
+          <h2 className="text-heading-1-handwritten text-white mb-6 circle-decoration">
             Why DropLab is Pretty Cool ★
           </h2>
         </motion.div>
@@ -302,13 +302,13 @@ const Index = () => {
               viewport={{ once: true }}
             >
               <div 
-                className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center border-2 border-gray-800"
+                className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center border-2 border-white"
                 style={{ backgroundColor: feature.color }}
               >
                 <feature.icon className="w-8 h-8 text-gray-800" />
               </div>
-              <h3 className="text-heading-3-handwritten text-gray-800 mb-4">{feature.title}</h3>
-              <p className="handwritten-text text-gray-600">{feature.description}</p>
+              <h3 className="text-heading-3-handwritten text-white mb-4">{feature.title}</h3>
+              <p className="handwritten-text text-gray-300">{feature.description}</p>
             </motion.div>
           ))}
         </div>
@@ -323,10 +323,10 @@ const Index = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-heading-1-handwritten text-gray-800 mb-6">
+          <h2 className="text-heading-1-handwritten text-white mb-6">
             Built with Modern Tech ⚡
           </h2>
-          <p className="handwritten-text text-gray-600 mb-8">
+          <p className="handwritten-text text-gray-300 mb-8">
             (The boring technical stuff that makes the magic happen)
           </p>
           
@@ -395,10 +395,10 @@ const Index = () => {
         </div>
 
         <div className="sketch-box p-4 max-w-md mx-auto">
-          <p className="handwritten-small text-gray-600">
+          <p className="handwritten-small text-gray-300">
             © 2025 DropLab by Aarjav & Naman
           </p>
-          <p className="handwritten-small text-gray-500 mt-1">
+          <p className="handwritten-small text-gray-400 mt-1">
             Built for creators, by creators ♡
           </p>
         </div>

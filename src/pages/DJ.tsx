@@ -36,9 +36,9 @@ const DJ = () => {
   };
 
   return (
-    <div className="min-h-screen dj-bg text-gray-800 overflow-hidden paper-texture">
+    <div className="min-h-screen dj-bg text-white overflow-hidden paper-texture">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b-2 border-gray-800" style={{ borderStyle: 'dashed' }}>
+      <div className="flex items-center justify-between p-4 border-b-2 border-white" style={{ borderStyle: 'dashed' }}>
         <button
           onClick={() => navigate('/')}
           className="sketch-card px-3 py-2 flex items-center gap-2 handwritten-text font-semibold"

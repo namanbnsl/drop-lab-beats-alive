@@ -480,7 +480,7 @@ const Producer = () => {
   };
 
   return (
-    <div className="min-h-screen producer-bg text-gray-800 paper-texture">
+    <div className="min-h-screen producer-bg text-white paper-texture">
       {/* Header */}
       <div className="absolute top-4 left-4 z-50">
         <button
@@ -522,7 +522,7 @@ const Producer = () => {
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 component-spacing">
         <div className="sketch-card p-3 flex flex-col sm:flex-row items-center gap-4 handwritten-text">
           <div className="flex items-center gap-2">
-            <span className="text-gray-800">Tempo:</span>
+            <span className="text-white">Tempo:</span>
             <input
               type="range"
               min="60"
@@ -531,7 +531,7 @@ const Producer = () => {
               onChange={(e) => setTempo(Number(e.target.value))}
               className="w-20 h-2 bg-gray-300 appearance-none cursor-pointer sketch-slider"
             />
-            <span className="text-gray-800 w-16 handwritten-small">{tempo} BPM</span>
+            <span className="text-white w-16 handwritten-small">{tempo} BPM</span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -558,8 +558,8 @@ const Producer = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-gray-800">Beat:</span>
-            <span className="text-gray-800 font-mono w-12 handwritten-small marker-highlight">
+            <span className="text-white">Beat:</span>
+            <span className="text-white font-mono w-12 handwritten-small marker-highlight">
               {getCurrentBeatDisplay()}
             </span>
           </div>

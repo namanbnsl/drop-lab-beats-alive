@@ -2,85 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Handwritten, cozy UI design system */
+/* Dark handwritten, cozy UI design system */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 5%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 83.9%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 95%;
     --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 15%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
@@ -93,23 +55,23 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Caveat', 'Architects Daughter', 'Kalam', cursive;
-    font-size: 16px;
-    line-height: 1.5;
-    background-color: #f8f9fa;
-    color: #2d3748;
+    font-size: 20px;
+    line-height: 1.6;
+    background-color: #000000;
+    color: #f8fafc;
   }
 }
 
-/* Paper-like background with grid */
+/* Dark paper-like background with grid */
 .paper-bg {
-  background-color: #f8f9fa;
+  background-color: #000000;
   background-image: 
-    linear-gradient(rgba(0,0,0,.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,.05) 1px, transparent 1px);
+    linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
-/* Paper texture overlay */
+/* Dark paper texture overlay */
 .paper-texture::before {
   content: '';
   position: fixed;
@@ -118,152 +80,170 @@
   width: 100%;
   height: 100%;
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(120, 119, 108, 0.02) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(120, 119, 108, 0.02) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(120, 119, 108, 0.02) 0%, transparent 50%);
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
   pointer-events: none;
   z-index: 1;
 }
 
-/* Handwritten typography */
+/* Handwritten typography - Larger sizes */
 .handwritten-text {
   font-family: 'Caveat', cursive;
   font-weight: 500;
-  font-size: 18px;
-  line-height: 1.4;
+  font-size: 22px;
+  line-height: 1.5;
   letter-spacing: 0.5px;
+  color: #f8fafc;
 }
 
 .handwritten-title {
   font-family: 'Architects Daughter', cursive;
   font-weight: 600;
-  font-size: 24px;
-  line-height: 1.3;
+  font-size: 28px;
+  line-height: 1.4;
   letter-spacing: 0.5px;
+  color: #f8fafc;
 }
 
 .handwritten-small {
   font-family: 'Caveat', cursive;
   font-weight: 400;
-  font-size: 16px;
-  line-height: 1.3;
+  font-size: 20px;
+  line-height: 1.4;
+  color: #e2e8f0;
 }
 
-/* Sketch-style cards */
+/* Dark sketch-style cards */
 .sketch-card {
-  background: #ffffff;
-  border: 2px solid #2d3748;
+  background: #1a1a1a;
+  border: 2px solid #f8fafc;
   border-radius: 15px 25px 20px 18px;
   box-shadow: 
-    3px 3px 0px rgba(0,0,0,0.1),
-    6px 6px 0px rgba(0,0,0,0.05);
+    3px 3px 0px rgba(255,255,255,0.1),
+    6px 6px 0px rgba(255,255,255,0.05);
   transform: rotate(-0.5deg);
   transition: all 0.3s ease;
   position: relative;
+  color: #f8fafc;
 }
 
 .sketch-card:hover {
   transform: rotate(0deg) translateY(-2px);
   box-shadow: 
-    5px 5px 0px rgba(0,0,0,0.15),
-    10px 10px 0px rgba(0,0,0,0.08);
+    5px 5px 0px rgba(255,255,255,0.15),
+    10px 10px 0px rgba(255,255,255,0.08);
+  background: #262626;
 }
 
-/* Sketch-style buttons */
+/* Dark sketch-style buttons */
 .btn-sketch {
-  background: #ffffff;
-  border: 2px solid #2d3748;
+  background: #1a1a1a;
+  border: 2px solid #f8fafc;
   border-radius: 12px 18px 15px 20px;
-  color: #2d3748;
+  color: #f8fafc;
   font-family: 'Caveat', cursive;
   font-weight: 600;
-  font-size: 16px;
-  padding: 12px 20px;
+  font-size: 20px;
+  padding: 14px 24px;
   transition: all 0.3s ease;
   transform: rotate(-0.3deg);
-  box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+  box-shadow: 2px 2px 0px rgba(255,255,255,0.1);
   min-height: 48px;
   min-width: 48px;
 }
 
 .btn-sketch:hover {
   transform: rotate(0deg) translateY(-1px);
-  box-shadow: 3px 3px 0px rgba(0,0,0,0.15);
-  background: #f7fafc;
+  box-shadow: 3px 3px 0px rgba(255,255,255,0.15);
+  background: #262626;
 }
 
 .btn-sketch:active {
   transform: rotate(0.2deg) translateY(0);
-  box-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+  box-shadow: 1px 1px 0px rgba(255,255,255,0.1);
 }
 
 .btn-sketch-primary {
   background: #A8D8EA;
-  border: 2px solid #2d3748;
+  border: 2px solid #f8fafc;
   border-radius: 12px 18px 15px 20px;
-  color: #2d3748;
+  color: #1a1a1a;
   font-family: 'Caveat', cursive;
   font-weight: 700;
-  font-size: 18px;
-  padding: 14px 24px;
+  font-size: 22px;
+  padding: 16px 28px;
   transition: all 0.3s ease;
   transform: rotate(0.3deg);
-  box-shadow: 3px 3px 0px rgba(0,0,0,0.15);
+  box-shadow: 3px 3px 0px rgba(255,255,255,0.15);
   min-height: 48px;
   min-width: 48px;
 }
 
 .btn-sketch-primary:hover {
   transform: rotate(0deg) translateY(-2px);
-  box-shadow: 5px 5px 0px rgba(0,0,0,0.2);
+  box-shadow: 5px 5px 0px rgba(255,255,255,0.2);
   background: #9ECAE1;
 }
 
 .btn-sketch-primary:active {
   transform: rotate(-0.2deg) translateY(0);
-  box-shadow: 2px 2px 0px rgba(0,0,0,0.15);
+  box-shadow: 2px 2px 0px rgba(255,255,255,0.15);
 }
 
-/* Highlight effects */
+/* Dark highlight effects */
 .highlight-yellow {
   background: linear-gradient(120deg, #FFF3B2 0%, #FFF3B2 100%);
-  background-size: 100% 0.2em;
+  background-size: 100% 0.3em;
   background-repeat: no-repeat;
   background-position: 0 88%;
+  color: #1a1a1a;
+  padding: 2px 4px;
+  border-radius: 3px;
 }
 
 .highlight-pink {
   background: linear-gradient(120deg, #FFD3D8 0%, #FFD3D8 100%);
-  background-size: 100% 0.2em;
+  background-size: 100% 0.3em;
   background-repeat: no-repeat;
   background-position: 0 88%;
+  color: #1a1a1a;
+  padding: 2px 4px;
+  border-radius: 3px;
 }
 
 .highlight-mint {
   background: linear-gradient(120deg, #C7E8CA 0%, #C7E8CA 100%);
-  background-size: 100% 0.2em;
+  background-size: 100% 0.3em;
   background-repeat: no-repeat;
   background-position: 0 88%;
+  color: #1a1a1a;
+  padding: 2px 4px;
+  border-radius: 3px;
 }
 
 .highlight-blue {
   background: linear-gradient(120deg, #A8D8EA 0%, #A8D8EA 100%);
-  background-size: 100% 0.2em;
+  background-size: 100% 0.3em;
   background-repeat: no-repeat;
   background-position: 0 88%;
+  color: #1a1a1a;
+  padding: 2px 4px;
+  border-radius: 3px;
 }
 
 /* Marker highlight for important text */
 .marker-highlight {
   background: linear-gradient(120deg, #FFF3B2 0%, #FFF3B2 100%);
-  background-size: 100% 0.3em;
+  background-size: 100% 0.4em;
   background-repeat: no-repeat;
   background-position: 0 85%;
-  padding: 2px 4px;
-  border-radius: 3px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: #1a1a1a;
 }
 
-/* Sketch underline */
+/* Dark sketch underline */
 .sketch-underline {
   position: relative;
 }
@@ -275,20 +255,20 @@
   left: 0;
   width: 100%;
   height: 3px;
-  background: #2d3748;
+  background: #f8fafc;
   border-radius: 2px;
   transform: rotate(-0.5deg);
 }
 
-/* Sketch-style inputs */
+/* Dark sketch-style inputs */
 .sketch-input {
-  background: #ffffff;
-  border: 2px solid #2d3748;
+  background: #1a1a1a;
+  border: 2px solid #f8fafc;
   border-radius: 8px 12px 10px 15px;
-  color: #2d3748;
-  padding: 12px 16px;
+  color: #f8fafc;
+  padding: 14px 18px;
   font-family: 'Caveat', cursive;
-  font-size: 16px;
+  font-size: 20px;
   transition: all 0.3s ease;
   transform: rotate(-0.2deg);
 }
@@ -300,111 +280,118 @@
   box-shadow: 0 0 0 3px rgba(168, 216, 234, 0.3);
 }
 
-/* Sketch-style sliders */
+/* Dark sketch-style sliders */
 .sketch-slider::-webkit-slider-thumb {
   appearance: none;
-  height: 20px;
-  width: 20px;
+  height: 24px;
+  width: 24px;
   border-radius: 50%;
   background: #A8D8EA;
   cursor: pointer;
-  border: 2px solid #2d3748;
-  box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+  border: 2px solid #f8fafc;
+  box-shadow: 2px 2px 0px rgba(255,255,255,0.1);
   transition: all 0.3s ease;
 }
 
 .sketch-slider::-webkit-slider-thumb:hover {
   background: #9ECAE1;
   transform: scale(1.1);
-  box-shadow: 3px 3px 0px rgba(0,0,0,0.15);
+  box-shadow: 3px 3px 0px rgba(255,255,255,0.15);
 }
 
 .sketch-slider::-webkit-slider-track {
-  height: 6px;
-  background: #e2e8f0;
-  border-radius: 3px;
-  border: 1px solid #2d3748;
+  height: 8px;
+  background: #404040;
+  border-radius: 4px;
+  border: 1px solid #f8fafc;
 }
 
 .sketch-slider::-moz-range-thumb {
-  height: 20px;
-  width: 20px;
+  height: 24px;
+  width: 24px;
   border-radius: 50%;
   background: #A8D8EA;
   cursor: pointer;
-  border: 2px solid #2d3748;
-  box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+  border: 2px solid #f8fafc;
+  box-shadow: 2px 2px 0px rgba(255,255,255,0.1);
   transition: all 0.3s ease;
 }
 
 .sketch-slider::-moz-range-thumb:hover {
   background: #9ECAE1;
   transform: scale(1.1);
-  box-shadow: 3px 3px 0px rgba(0,0,0,0.15);
+  box-shadow: 3px 3px 0px rgba(255,255,255,0.15);
 }
 
 .sketch-slider::-moz-range-track {
-  height: 6px;
-  background: #e2e8f0;
-  border-radius: 3px;
-  border: 1px solid #2d3748;
+  height: 8px;
+  background: #404040;
+  border-radius: 4px;
+  border: 1px solid #f8fafc;
 }
 
-/* Typography scale for handwritten style */
+/* Typography scale for handwritten style - Larger sizes */
 .text-display-handwritten {
   font-family: 'Architects Daughter', cursive;
-  font-size: 48px;
+  font-size: 56px;
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: 1px;
+  color: #f8fafc;
 }
 
 .text-heading-1-handwritten {
   font-family: 'Architects Daughter', cursive;
-  font-size: 36px;
+  font-size: 42px;
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.5px;
+  color: #f8fafc;
 }
 
 .text-heading-2-handwritten {
   font-family: 'Caveat', cursive;
-  font-size: 30px;
+  font-size: 36px;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.3;
   letter-spacing: 0.5px;
+  color: #f8fafc;
 }
 
 .text-heading-3-handwritten {
   font-family: 'Caveat', cursive;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: 0.3px;
+  color: #f8fafc;
 }
 
 .text-body-large-handwritten {
   font-family: 'Caveat', cursive;
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.5;
   letter-spacing: 0.3px;
+  color: #f8fafc;
 }
 
 .text-body-handwritten {
   font-family: 'Caveat', cursive;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.5;
   letter-spacing: 0.2px;
+  color: #f8fafc;
 }
 
 .text-body-small-handwritten {
   font-family: 'Caveat', cursive;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 400;
-  line-height: 1.3;
+  line-height: 1.4;
   letter-spacing: 0.2px;
+  color: #e2e8f0;
 }
 
 /* Responsive touch-friendly controls */
@@ -413,21 +400,21 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Handwritten scrollbar */
+/* Dark handwritten scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 12px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #1a1a1a;
   border-radius: 6px;
-  border: 1px solid #2d3748;
+  border: 1px solid #f8fafc;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #A8D8EA;
   border-radius: 6px;
-  border: 1px solid #2d3748;
+  border: 1px solid #f8fafc;
   transition: background 0.3s ease;
 }
 
@@ -451,38 +438,8 @@ html {
   }
 }
 
-/* Responsive typography */
+/* Responsive typography - Larger base sizes */
 @media (max-width: 768px) {
-  .text-display-handwritten {
-    font-size: 32px;
-  }
-  
-  .text-heading-1-handwritten {
-    font-size: 28px;
-  }
-  
-  .text-heading-2-handwritten {
-    font-size: 24px;
-  }
-  
-  .text-heading-3-handwritten {
-    font-size: 20px;
-  }
-  
-  .text-body-large-handwritten {
-    font-size: 18px;
-  }
-  
-  .handwritten-text {
-    font-size: 16px;
-  }
-  
-  .handwritten-title {
-    font-size: 20px;
-  }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
   .text-display-handwritten {
     font-size: 40px;
   }
@@ -490,15 +447,53 @@ html {
   .text-heading-1-handwritten {
     font-size: 32px;
   }
+  
+  .text-heading-2-handwritten {
+    font-size: 28px;
+  }
+  
+  .text-heading-3-handwritten {
+    font-size: 24px;
+  }
+  
+  .text-body-large-handwritten {
+    font-size: 22px;
+  }
+  
+  .handwritten-text {
+    font-size: 20px;
+  }
+  
+  .handwritten-title {
+    font-size: 24px;
+  }
+  
+  .handwritten-small {
+    font-size: 18px;
+  }
+  
+  body {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .text-display-handwritten {
+    font-size: 48px;
+  }
+  
+  .text-heading-1-handwritten {
+    font-size: 38px;
+  }
 }
 
 @media (min-width: 1025px) {
   .text-display-handwritten {
-    font-size: 56px;
+    font-size: 64px;
   }
   
   .text-heading-1-handwritten {
-    font-size: 42px;
+    font-size: 48px;
   }
 }
 
@@ -510,8 +505,8 @@ html {
   }
   
   .btn-sketch, .btn-sketch-primary {
-    padding: 16px 24px;
-    font-size: 16px;
+    padding: 18px 28px;
+    font-size: 18px;
   }
 }
 
@@ -567,11 +562,11 @@ html {
 @keyframes pulse-sketch {
   0%, 100% { 
     transform: scale(1) rotate(-0.2deg);
-    box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+    box-shadow: 2px 2px 0px rgba(255,255,255,0.1);
   }
   50% { 
     transform: scale(1.05) rotate(0.2deg);
-    box-shadow: 4px 4px 0px rgba(0,0,0,0.15);
+    box-shadow: 4px 4px 0px rgba(255,255,255,0.15);
   }
 }
 
@@ -594,7 +589,7 @@ html {
 /* Doodle-style decorative elements */
 .doodle-arrow::after {
   content: '→';
-  font-size: 24px;
+  font-size: 28px;
   color: #A8D8EA;
   transform: rotate(-5deg);
   display: inline-block;
@@ -603,21 +598,21 @@ html {
 
 .doodle-star::before {
   content: '★';
-  font-size: 16px;
+  font-size: 20px;
   color: #FFF3B2;
   margin-right: 6px;
 }
 
 .doodle-heart::after {
   content: '♡';
-  font-size: 18px;
+  font-size: 22px;
   color: #FFD3D8;
   margin-left: 6px;
 }
 
 /* Hand-drawn style borders */
 .border-sketch {
-  border: 2px solid #2d3748;
+  border: 2px solid #f8fafc;
   border-radius: 15px 25px 20px 18px;
   position: relative;
 }
@@ -629,7 +624,7 @@ html {
   left: -2px;
   right: -2px;
   bottom: -2px;
-  border: 1px solid rgba(45, 55, 72, 0.3);
+  border: 1px solid rgba(248, 250, 252, 0.3);
   border-radius: 16px 26px 21px 19px;
   transform: rotate(0.5deg);
   z-index: -1;
@@ -638,22 +633,23 @@ html {
 /* Notebook-style lines for text areas */
 .notebook-lines {
   background-image: 
-    linear-gradient(transparent 0px, transparent 19px, #e2e8f0 19px, #e2e8f0 21px, transparent 21px);
-  background-size: 100% 22px;
-  line-height: 22px;
-  padding: 22px 0;
+    linear-gradient(transparent 0px, transparent 21px, #404040 21px, #404040 23px, transparent 23px);
+  background-size: 100% 24px;
+  line-height: 24px;
+  padding: 24px 0;
 }
 
-/* Sticky note style */
+/* Dark sticky note style */
 .sticky-note {
   background: #FFF3B2;
   border: 1px solid #e2e8f0;
   border-radius: 0 0 15px 0;
   box-shadow: 
-    2px 2px 4px rgba(0,0,0,0.1),
+    2px 2px 4px rgba(0,0,0,0.3),
     inset 0 0 0 1px rgba(255,255,255,0.5);
   transform: rotate(-1deg);
   position: relative;
+  color: #1a1a1a;
 }
 
 .sticky-note::before {
@@ -667,90 +663,95 @@ html {
   border-bottom: 15px solid transparent;
 }
 
-/* Producer page specific styles */
+/* Producer page specific styles - Dark theme */
 .producer-bg {
-  background-color: #f8f9fa;
+  background-color: #000000;
   background-image: 
     linear-gradient(rgba(168, 216, 234, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(168, 216, 234, 0.1) 1px, transparent 1px),
-    radial-gradient(circle at 25% 25%, rgba(199, 232, 202, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(255, 243, 178, 0.1) 0%, transparent 50%);
+    radial-gradient(circle at 25% 25%, rgba(199, 232, 202, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(255, 243, 178, 0.08) 0%, transparent 50%);
   background-size: 20px 20px, 20px 20px, 100% 100%, 100% 100%;
 }
 
-/* DJ page specific styles with fresh color palette */
+/* DJ page specific styles with fresh color palette - Dark theme */
 .dj-bg {
-  background-color: #f8f9fa;
+  background-color: #000000;
   background-image: 
-    linear-gradient(rgba(16, 185, 129, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(16, 185, 129, 0.05) 1px, transparent 1px),
-    radial-gradient(circle at 20% 80%, rgba(245, 158, 11, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
+    linear-gradient(rgba(16, 185, 129, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 20% 80%, rgba(245, 158, 11, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
   background-size: 20px 20px, 20px 20px, 100% 100%, 100% 100%, 100% 100%;
 }
 
-/* Card-based design for DJ components */
+/* Card-based design for DJ components - Dark theme */
 .dj-card {
-  background: #ffffff;
-  border: 2px solid #2d3748;
+  background: #1a1a1a;
+  border: 2px solid #f8fafc;
   border-radius: 18px 25px 22px 20px;
   box-shadow: 
-    4px 4px 0px rgba(0,0,0,0.1),
-    8px 8px 0px rgba(0,0,0,0.05);
+    4px 4px 0px rgba(255,255,255,0.1),
+    8px 8px 0px rgba(255,255,255,0.05);
   transform: rotate(-0.3deg);
   transition: all 0.3s ease;
+  color: #f8fafc;
 }
 
 .dj-card:hover {
   transform: rotate(0deg) translateY(-3px);
   box-shadow: 
-    6px 6px 0px rgba(0,0,0,0.15),
-    12px 12px 0px rgba(0,0,0,0.08);
+    6px 6px 0px rgba(255,255,255,0.15),
+    12px 12px 0px rgba(255,255,255,0.08);
+  background: #262626;
 }
 
-/* Navigation improvements */
+/* Navigation improvements - Dark theme */
 .nav-sketch {
-  background: #ffffff;
-  border: 2px solid #2d3748;
+  background: #1a1a1a;
+  border: 2px solid #f8fafc;
   border-radius: 15px 25px 20px 18px;
-  box-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+  box-shadow: 3px 3px 0px rgba(255,255,255,0.1);
   transform: rotate(-0.2deg);
+  color: #f8fafc;
 }
 
-/* Interactive mindmap styles for landing page */
+/* Interactive mindmap styles for landing page - Dark theme */
 .mindmap-node-sketch {
-  background: #ffffff;
-  border: 3px solid #2d3748;
+  background: #1a1a1a;
+  border: 3px solid #f8fafc;
   border-radius: 50%;
   box-shadow: 
-    3px 3px 0px rgba(0,0,0,0.1),
-    6px 6px 0px rgba(0,0,0,0.05);
+    3px 3px 0px rgba(255,255,255,0.1),
+    6px 6px 0px rgba(255,255,255,0.05);
   transition: all 0.3s ease;
   cursor: pointer;
   transform: rotate(-2deg);
+  color: #f8fafc;
 }
 
 .mindmap-node-sketch:hover {
   transform: rotate(0deg) scale(1.1);
   box-shadow: 
-    5px 5px 0px rgba(0,0,0,0.15),
-    10px 10px 0px rgba(0,0,0,0.08);
+    5px 5px 0px rgba(255,255,255,0.15),
+    10px 10px 0px rgba(255,255,255,0.08);
+  background: #262626;
 }
 
 .mindmap-connection-sketch {
-  stroke: #2d3748;
+  stroke: #f8fafc;
   stroke-width: 2;
   stroke-dasharray: 8, 4;
   opacity: 0.6;
 }
 
-/* Landing page grid background */
+/* Landing page grid background - Dark theme */
 .landing-grid {
-  background-color: #f8f9fa;
+  background-color: #000000;
   background-image: 
-    linear-gradient(rgba(45, 55, 72, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(45, 55, 72, 0.1) 1px, transparent 1px);
+    linear-gradient(rgba(248, 250, 252, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(248, 250, 252, 0.1) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
@@ -758,6 +759,7 @@ html {
 .playful-font {
   font-family: 'Fredoka One', 'Quicksand', cursive;
   font-weight: 600;
+  color: #f8fafc;
 }
 
 /* Remove gray sections completely */
@@ -810,7 +812,7 @@ html {
 .asterisk-decoration::before {
   content: '*';
   color: #FFD3D8;
-  font-size: 20px;
+  font-size: 24px;
   margin-right: 8px;
   transform: rotate(15deg);
   display: inline-block;
@@ -833,16 +835,17 @@ html {
   z-index: -1;
 }
 
-/* Hand-drawn boxes */
+/* Hand-drawn boxes - Dark theme */
 .sketch-box {
-  border: 2px solid #2d3748;
+  border: 2px solid #f8fafc;
   border-radius: 12px 18px 15px 20px;
-  background: #ffffff;
+  background: #1a1a1a;
   box-shadow: 
-    2px 2px 0px rgba(0,0,0,0.1),
-    4px 4px 0px rgba(0,0,0,0.05);
+    2px 2px 0px rgba(255,255,255,0.1),
+    4px 4px 0px rgba(255,255,255,0.05);
   transform: rotate(-0.5deg);
   position: relative;
+  color: #f8fafc;
 }
 
 .sketch-box::before {
@@ -852,7 +855,7 @@ html {
   left: -1px;
   right: -1px;
   bottom: -1px;
-  border: 1px solid rgba(45, 55, 72, 0.2);
+  border: 1px solid rgba(248, 250, 252, 0.2);
   border-radius: 13px 19px 16px 21px;
   transform: rotate(1deg);
   z-index: -1;
@@ -876,17 +879,17 @@ html {
   }
 }
 
-/* Better contrast for readability */
+/* Better contrast for readability - Dark theme */
 .text-high-contrast {
-  color: #1a202c;
+  color: #f8fafc;
 }
 
 .text-medium-contrast {
-  color: #2d3748;
+  color: #e2e8f0;
 }
 
 .text-low-contrast {
-  color: #4a5568;
+  color: #cbd5e1;
 }
 
 /* Ensure proper spacing between components */
@@ -904,4 +907,155 @@ html {
   .component-spacing {
     margin: 32px;
   }
+}
+
+/* Custom slider styles for the Producer mode - Dark theme */
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #A8D8EA;
+  cursor: pointer;
+  border: 2px solid #f8fafc;
+  box-shadow: 0 0 10px rgba(168, 216, 234, 0.3);
+}
+
+@media (min-width: 640px) {
+  .slider::-webkit-slider-thumb {
+    height: 24px;
+    width: 24px;
+  }
+}
+
+.slider::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #A8D8EA;
+  cursor: pointer;
+  border: 2px solid #f8fafc;
+  box-shadow: 0 0 10px rgba(168, 216, 234, 0.3);
+}
+
+@media (min-width: 640px) {
+  .slider::-moz-range-thumb {
+    height: 24px;
+    width: 24px;
+  }
+}
+
+/* DJ Mode specific styles - Dark theme */
+.pitch-slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #A8D8EA;
+  cursor: pointer;
+  border: 2px solid #f8fafc;
+  box-shadow: 0 0 8px rgba(168, 216, 234, 0.3);
+}
+
+@media (min-width: 640px) {
+  .pitch-slider::-webkit-slider-thumb {
+    height: 20px;
+    width: 20px;
+  }
+}
+
+.crossfader::-webkit-slider-thumb {
+  appearance: none;
+  height: 24px;
+  width: 12px;
+  border-radius: 6px;
+  background: #A8D8EA;
+  cursor: pointer;
+  border: 2px solid #f8fafc;
+  box-shadow: 0 0 10px rgba(168, 216, 234, 0.3);
+}
+
+@media (min-width: 640px) {
+  .crossfader::-webkit-slider-thumb {
+    height: 28px;
+    width: 14px;
+  }
+}
+
+.vertical-slider {
+  writing-mode: bt-lr;
+  /* IE */
+  -webkit-appearance: slider-vertical;
+  /* WebKit */
+}
+
+/* Music Studio specific styles - Dark theme */
+.knob-glow {
+  filter: drop-shadow(0 0 10px currentColor);
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Animated gradient background - Dark theme */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-gradient {
+  background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+/* Knob rotation animation */
+.knob-rotate {
+  transition: transform 0.1s ease-out;
+}
+
+/* Step sequencer grid animations */
+.step-active {
+  animation: pulse-step 0.1s ease-in-out;
+}
+
+@keyframes pulse-step {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Glow effects for active elements - Dark theme */
+.glow-purple {
+  box-shadow: 0 0 20px rgba(147, 51, 234, 0.5);
+}
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+}
+
+.glow-yellow {
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
 }
