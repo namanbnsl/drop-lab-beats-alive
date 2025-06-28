@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Music, Headphones, Zap, Settings, Disc3, Sliders, Grid3X3, Monitor, PlayCircle, Brain, BookOpen } from 'lucide-react';
+import { Music, Headphones, Zap, Settings, Disc3, Sliders, Grid3X3, Monitor, PlayCircle, Brain, BookOpen, Sparkles, Waves, Mic, Volume2 } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -11,61 +11,79 @@ const Index = () => {
     // Simulate loading time
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, []);
 
-  const featureVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
-  };
-
-  const producerFeatures = [
-    { icon: Music, title: "Melody Generator", color: "highlight-blue" },
-    { icon: Zap, title: "Drum Pattern Builder", color: "highlight-pink" },
-    { icon: Grid3X3, title: "Synth Grid Composer", color: "highlight-mint" },
-    { icon: Settings, title: "Modular FX Playground", color: "highlight-yellow" }
-  ];
-
-  const djFeatures = [
-    { icon: Monitor, title: "Dual CDJs", color: "highlight-mint" },
-    { icon: Sliders, title: "3-Band EQ Mixer", color: "highlight-yellow" },
-    { icon: PlayCircle, title: "Launch Sim Mode", color: "highlight-blue" },
-    { icon: Brain, title: "Tutorial + Tooltips", color: "highlight-pink" }
-  ];
-
-  const techStack = [
-    { name: "React", color: "highlight-blue" },
-    { name: "Tailwind CSS", color: "highlight-pink" },
-    { name: "Tone.js", color: "highlight-mint" },
-    { name: "WebAudio API", color: "highlight-yellow" },
-    { name: "TypeScript", color: "highlight-blue" },
-    { name: "Vite", color: "highlight-pink" }
+  const mindmapFeatures = [
+    { 
+      id: 'producer', 
+      icon: Music, 
+      title: 'Producer Mode', 
+      description: 'Create beats and melodies',
+      x: 200, 
+      y: 150,
+      color: '#8B5CF6',
+      subFeatures: [
+        { icon: Zap, title: 'Drum Machine', x: 100, y: 80 },
+        { icon: Waves, title: 'Synthesizer', x: 300, y: 80 },
+        { icon: Settings, title: 'Effects', x: 150, y: 220 },
+        { icon: Grid3X3, title: 'Step Sequencer', x: 250, y: 220 }
+      ]
+    },
+    { 
+      id: 'dj', 
+      icon: Headphones, 
+      title: 'DJ Mode', 
+      description: 'Mix and perform live',
+      x: 600, 
+      y: 150,
+      color: '#10B981',
+      subFeatures: [
+        { icon: Monitor, title: 'CDJ Decks', x: 500, y: 80 },
+        { icon: Sliders, title: 'Mixer', x: 700, y: 80 },
+        { icon: PlayCircle, title: 'Auto-Sync', x: 550, y: 220 },
+        { icon: Volume2, title: 'Effects', x: 650, y: 220 }
+      ]
+    },
+    { 
+      id: 'learn', 
+      icon: Brain, 
+      title: 'Learn & Grow', 
+      description: 'Interactive tutorials',
+      x: 400, 
+      y: 300,
+      color: '#F59E0B',
+      subFeatures: [
+        { icon: BookOpen, title: 'Tutorials', x: 350, y: 380 },
+        { icon: Sparkles, title: 'Tips', x: 450, y: 380 }
+      ]
+    }
   ];
 
   if (isLoading) {
     return (
       <motion.div
-        className="fixed inset-0 paper-bg flex items-center justify-center z-50"
+        className="fixed inset-0 dark-bg flex items-center justify-center z-50"
         initial={{ opacity: 1 }}
         animate={{ opacity: isLoading ? 1 : 0 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.5 }}
       >
         <motion.div
           className="text-center"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.5 }}
         >
           <motion.div
-            className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sketch-card flex items-center justify-center spin-sketch"
+            className="w-20 h-20 mx-auto mb-6 modern-card flex items-center justify-center spin"
           >
-            <Disc3 className="w-8 h-8 sm:w-10 sm:h-10 text-gray-700" />
+            <Disc3 className="w-10 h-10 text-white" />
           </motion.div>
-          <p className="handwritten-text text-gray-700 text-lg sm:text-xl">
-            Getting ready...
+          <p className="text-white text-body-large">
+            Initializing studio...
           </p>
         </motion.div>
       </motion.div>
@@ -73,51 +91,49 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen paper-bg text-gray-800 overflow-x-hidden paper-texture">
+    <div className="min-h-screen dark-bg text-white overflow-x-hidden">
       {/* Hero Section */}
       <motion.section
-        className="min-h-screen flex items-center justify-center relative px-4 sm:px-6 lg:px-8"
+        className="min-h-screen flex items-center justify-center relative container mx-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.8 }}
       >
-        <div className="text-center z-10 max-w-6xl mx-auto">
+        <div className="text-center z-10 max-w-6xl mx-auto spacing-16">
           <motion.h1
-            className="handwritten-title text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-bold mb-6 sm:mb-8 md:mb-12 text-gray-800 sketch-underline"
+            className="text-display gradient-text font-bold mb-8"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
           >
-            DropLab ★
+            DropLab
           </motion.h1>
           
-          <motion.div
-            className="marker-highlight inline-block mb-8 sm:mb-12 md:mb-16"
+          <motion.p
+            className="text-heading-2 text-medium-contrast mb-12"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
           >
-            <p className="handwritten-text text-xl sm:text-2xl md:text-3xl lg:text-4xl text-gray-700">
-              From Studio to Stage, All in One Tab
-            </p>
-          </motion.div>
+            From Studio to Stage, All in One Tab
+          </motion.p>
 
           <motion.div
-            className="flex flex-col sm:flex-row gap-6 sm:gap-8 md:gap-12 justify-center items-center"
+            className="flex flex-col sm:flex-row gap-6 justify-center items-center"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
           >
             <button 
               onClick={() => navigate('/producer')}
-              className="btn-sketch-primary asterisk-decoration touch-manipulation min-touch-target"
+              className="btn-modern-primary interactive-element touch-manipulation min-touch-target"
             >
               🎼 Start Producing
             </button>
 
             <button 
               onClick={() => navigate('/dj')}
-              className="btn-sketch doodle-arrow touch-manipulation min-touch-target"
+              className="btn-modern interactive-element touch-manipulation min-touch-target"
             >
               🎧 Enter DJ Booth
             </button>
@@ -125,149 +141,190 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* Feature Breakdown */}
-      <section className="py-16 sm:py-20 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8">
+      {/* Interactive Mindmap Section */}
+      <section className="py-32 container mx-auto">
         <motion.div
-          className="max-w-7xl mx-auto"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          className="text-center mb-20"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16 md:gap-20">
-            {/* Producer Mode */}
-            <div>
-              <motion.h2
-                className="handwritten-title text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-8 sm:mb-12 text-center text-gray-800 sketch-circle"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                viewport={{ once: true }}
-              >
-                Producer Mode
-              </motion.h2>
-              <div className="space-y-6 sm:space-y-8">
-                {producerFeatures.map((feature, index) => (
-                  <motion.div
-                    key={feature.title}
-                    className="sketch-card p-6 sm:p-8"
-                    variants={featureVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    transition={{ delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    <div className="flex items-center gap-4 sm:gap-6">
-                      <div className={`p-3 sm:p-4 ${feature.color} doodle-star`}>
-                        <feature.icon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700" />
-                      </div>
-                      <h3 className="handwritten-text text-lg sm:text-xl md:text-2xl font-semibold text-gray-800">
-                        {feature.title}
-                      </h3>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+          <h2 className="text-heading-1 text-high-contrast mb-6">
+            Everything You Need to Create
+          </h2>
+          <p className="text-body-large text-medium-contrast max-w-3xl mx-auto">
+            Explore our comprehensive music creation ecosystem with interactive features designed for both beginners and professionals.
+          </p>
+        </motion.div>
 
-            {/* DJ Mode */}
-            <div>
-              <motion.h2
-                className="handwritten-title text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-8 sm:mb-12 text-center text-gray-800 sketch-circle"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
+        {/* Mindmap Visualization */}
+        <motion.div
+          className="relative w-full h-96 mb-20"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          viewport={{ once: true }}
+        >
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 800 400">
+            {/* Connection lines */}
+            {mindmapFeatures.map((feature, index) => (
+              <g key={`connections-${feature.id}`}>
+                {feature.subFeatures.map((sub, subIndex) => (
+                  <motion.line
+                    key={`line-${feature.id}-${subIndex}`}
+                    x1={feature.x}
+                    y1={feature.y}
+                    x2={sub.x}
+                    y2={sub.y}
+                    className="mindmap-connection"
+                    initial={{ pathLength: 0 }}
+                    whileInView={{ pathLength: 1 }}
+                    transition={{ duration: 1, delay: index * 0.2 + subIndex * 0.1 }}
+                    viewport={{ once: true }}
+                  />
+                ))}
+                {/* Central connections */}
+                <motion.line
+                  x1={400}
+                  y1={200}
+                  x2={feature.x}
+                  y2={feature.y}
+                  className="mindmap-connection"
+                  style={{ stroke: feature.color, strokeWidth: 3 }}
+                  initial={{ pathLength: 0 }}
+                  whileInView={{ pathLength: 1 }}
+                  transition={{ duration: 1, delay: index * 0.3 }}
+                  viewport={{ once: true }}
+                />
+              </g>
+            ))}
+          </svg>
+
+          {/* Central node */}
+          <motion.div
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            initial={{ scale: 0 }}
+            whileInView={{ scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            viewport={{ once: true }}
+          >
+            <div className="mindmap-node w-24 h-24 flex items-center justify-center pulse-glow">
+              <Disc3 className="w-12 h-12 text-white" />
+            </div>
+          </motion.div>
+
+          {/* Feature nodes */}
+          {mindmapFeatures.map((feature, index) => (
+            <motion.div
+              key={feature.id}
+              className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+              style={{ left: `${(feature.x / 800) * 100}%`, top: `${(feature.y / 400) * 100}%` }}
+              initial={{ scale: 0, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.6, delay: index * 0.2 + 0.8 }}
+              viewport={{ once: true }}
+              onClick={() => navigate(feature.id === 'producer' ? '/producer' : feature.id === 'dj' ? '/dj' : '/')}
+            >
+              <div 
+                className="mindmap-node w-20 h-20 flex items-center justify-center"
+                style={{ borderColor: feature.color }}
+              >
+                <feature.icon className="w-8 h-8 text-white" />
+              </div>
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 text-center">
+                <div className="text-body font-semibold text-high-contrast">{feature.title}</div>
+                <div className="text-body-small text-low-contrast">{feature.description}</div>
+              </div>
+            </motion.div>
+          ))}
+
+          {/* Sub-feature nodes */}
+          {mindmapFeatures.map((feature) =>
+            feature.subFeatures.map((sub, subIndex) => (
+              <motion.div
+                key={`${feature.id}-${subIndex}`}
+                className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${(sub.x / 800) * 100}%`, top: `${(sub.y / 400) * 100}%` }}
+                initial={{ scale: 0, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.4, delay: subIndex * 0.1 + 1.5 }}
                 viewport={{ once: true }}
               >
-                DJ Mode
-              </motion.h2>
-              <div className="space-y-6 sm:space-y-8">
-                {djFeatures.map((feature, index) => (
-                  <motion.div
-                    key={feature.title}
-                    className="sketch-card p-6 sm:p-8"
-                    variants={featureVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    transition={{ delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    <div className="flex items-center gap-4 sm:gap-6">
-                      <div className={`p-3 sm:p-4 ${feature.color} doodle-star`}>
-                        <feature.icon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700" />
-                      </div>
-                      <h3 className="handwritten-text text-lg sm:text-xl md:text-2xl font-semibold text-gray-800">
-                        {feature.title}
-                      </h3>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
+                <div className="mindmap-node w-12 h-12 flex items-center justify-center">
+                  <sub.icon className="w-5 h-5 text-white" />
+                </div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 text-center">
+                  <div className="text-body-small text-medium-contrast whitespace-nowrap">{sub.title}</div>
+                </div>
+              </motion.div>
+            ))
+          )}
         </motion.div>
       </section>
 
-      {/* Education Focus */}
-      <section className="py-16 sm:py-20 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="max-w-5xl mx-auto text-center"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="handwritten-title text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 md:mb-12 text-gray-800">
-            <span className="marker-highlight">No gear? No problem.</span><br />
-            <span className="sketch-underline">Learn as you mix.</span>
-          </h2>
-          <p className="handwritten-text text-xl sm:text-2xl md:text-3xl lg:text-4xl text-gray-700 mb-12 sm:mb-16 md:mb-20 leading-relaxed">
-            DropLab is built to teach as you play. With interactive tooltips and a step-by-step walkthrough, 
-            anyone can go from beginner to beat master.
-          </p>
-          
-          <motion.div
-            className="inline-block wiggle"
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="w-48 h-32 sm:w-64 sm:h-40 md:w-80 md:h-48 sketch-card flex items-center justify-center relative">
-              <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 text-gray-700" />
-              <div className="absolute top-2 right-2 highlight-yellow text-gray-800 handwritten-small px-2 py-1 font-semibold">
-                Learn!
+      {/* Feature Cards */}
+      <section className="py-20 container mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[
+            { icon: Music, title: 'Professional Tools', description: 'Industry-standard instruments and effects', color: '#8B5CF6' },
+            { icon: Brain, title: 'Learn as You Go', description: 'Interactive tutorials and real-time guidance', color: '#10B981' },
+            { icon: Sparkles, title: 'No Installation', description: 'Everything runs in your browser', color: '#F59E0B' },
+            { icon: Waves, title: 'Real-time Audio', description: 'Low-latency audio processing', color: '#3B82F6' },
+            { icon: Monitor, title: 'Professional UI', description: 'Intuitive interface designed for creators', color: '#EF4444' },
+            { icon: Mic, title: 'Export Ready', description: 'High-quality audio export options', color: '#8B5CF6' }
+          ].map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              className="modern-card p-8 text-center interactive-element"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              viewport={{ once: true }}
+            >
+              <div 
+                className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: `${feature.color}20`, border: `2px solid ${feature.color}` }}
+              >
+                <feature.icon className="w-8 h-8" style={{ color: feature.color }} />
               </div>
-              <div className="absolute bottom-2 left-2 highlight-mint text-gray-800 handwritten-small px-2 py-1 font-semibold">
-                Tip: Try this!
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
+              <h3 className="text-heading-3 text-high-contrast mb-4">{feature.title}</h3>
+              <p className="text-body text-medium-contrast">{feature.description}</p>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
       {/* Tech Stack */}
-      <section className="py-16 sm:py-20 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8">
+      <section className="py-20 container mx-auto">
         <motion.div
-          className="max-w-5xl mx-auto text-center"
+          className="text-center mb-16"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="handwritten-title text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-12 sm:mb-16 md:mb-20 text-gray-800 sketch-underline">
-            Built with powerful tech ⚡
+          <h2 className="text-heading-1 text-high-contrast mb-6">
+            Built with Modern Technology
           </h2>
           
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8">
-            {techStack.map((tech, index) => (
+          <div className="flex flex-wrap justify-center gap-4">
+            {[
+              { name: 'React', color: '#61DAFB' },
+              { name: 'TypeScript', color: '#3178C6' },
+              { name: 'Tone.js', color: '#8B5CF6' },
+              { name: 'WebAudio API', color: '#10B981' },
+              { name: 'Tailwind CSS', color: '#06B6D4' },
+              { name: 'Vite', color: '#646CFF' }
+            ].map((tech, index) => (
               <motion.span
                 key={tech.name}
-                className={`${tech.color} handwritten-text px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 font-semibold text-base sm:text-lg md:text-xl text-gray-800 transition-all duration-200 hover:scale-105 touch-manipulation min-touch-target border-2 border-gray-800`}
-                style={{ borderRadius: '15px 20px 18px 22px' }}
+                className="modern-card px-6 py-3 text-body font-medium text-high-contrast interactive-element touch-manipulation"
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1, duration: 0.3 }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
                 viewport={{ once: true }}
-                whileHover={{ scale: 1.05 }}
+                style={{ borderColor: tech.color }}
               >
                 {tech.name}
               </motion.span>
@@ -278,30 +335,34 @@ const Index = () => {
 
       {/* Final CTA */}
       <motion.section
-        className="py-16 sm:py-20 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8 text-center"
+        className="py-32 container mx-auto text-center"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        <h2 className="handwritten-title text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-12 sm:mb-16 md:mb-20 text-gray-800">
-          <span className="marker-highlight">Ready to drop</span><br />
-          <span className="sketch-underline asterisk-decoration">your first beat?</span>
+        <h2 className="text-display text-high-contrast mb-8">
+          Ready to Create?
         </h2>
         
-        <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 md:gap-12 justify-center mb-16 sm:mb-20 md:mb-24">
+        <p className="text-body-large text-medium-contrast mb-12 max-w-2xl mx-auto">
+          Join thousands of creators who are already making music with DropLab. 
+          No downloads, no setup - just pure creativity.
+        </p>
+        
+        <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
           <motion.button
             onClick={() => navigate('/producer')}
-            className="btn-sketch-primary bounce-sketch touch-manipulation min-touch-target"
+            className="btn-modern-primary interactive-element touch-manipulation min-touch-target float"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            🎼 Start Producing
+            🎼 Start Producing Now
           </motion.button>
 
           <motion.button
             onClick={() => navigate('/dj')}
-            className="btn-sketch doodle-arrow touch-manipulation min-touch-target"
+            className="btn-modern interactive-element touch-manipulation min-touch-target"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -309,8 +370,8 @@ const Index = () => {
           </motion.button>
         </div>
 
-        <p className="handwritten-small text-gray-600 text-sm sm:text-base">
-          © 2025 DropLab by Aarjav & Naman | Hackathon Edition
+        <p className="text-body-small text-low-contrast">
+          © 2025 DropLab by Aarjav & Naman | Built for creators, by creators
         </p>
       </motion.section>
     </div>
