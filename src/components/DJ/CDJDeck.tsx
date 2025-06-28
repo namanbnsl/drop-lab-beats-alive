@@ -12,12 +12,16 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   const animationRef = useRef<number>();
   const rotationRef = useRef(0);
   const lastAngleRef = useRef(0);
+  const lastClickRef = useRef(0);
+  const tempoBendTimeoutRef = useRef<NodeJS.Timeout>();
+  
   const [isDragging, setIsDragging] = useState(false);
   const [isJogPressed, setIsJogPressed] = useState(false);
   const [isCuePressed, setIsCuePressed] = useState(false);
   const [cuePoint, setCuePoint] = useState(0);
   const [backspinCooldown, setBackspinCooldown] = useState(false);
   const [scrubIndicator, setScrubIndicator] = useState({ active: false, direction: 0 });
+  const [tempoBend, setTempoBend] = useState({ active: false, direction: 0 });
   
   const {
     deckAState,
@@ -28,6 +32,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     syncDecks,
     scrubTrack,
     triggerBackspin,
+    bendTempo,
     initializeAudio,
   } = useDJStore();
 
@@ -65,7 +70,9 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       if (isDragging) {
         ctx.strokeStyle = '#ff6b6b'; // Red when scrubbing
       } else if (isPlaying) {
-        ctx.strokeStyle = '#a259ff'; // Purple when playing
+        ctx.strokeStyle = tempoBend.active 
+          ? (tempoBend.direction > 0 ? '#22c55e' : '#ef4444') // Green/Red when tempo bending
+          : '#a259ff'; // Purple when playing normally
       } else if (isCuePressed) {
         ctx.strokeStyle = '#22c55e'; // Green when cueing
       } else {
@@ -107,11 +114,24 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         ctx.restore();
       }
 
+      // Tempo bend indicator
+      if (tempoBend.active) {
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.beginPath();
+        ctx.arc(0, 0, 95, 0, Math.PI * 2);
+        ctx.strokeStyle = tempoBend.direction > 0 ? '#22c55e' : '#ef4444';
+        ctx.lineWidth = 4;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       // Cue point indicator
       if (cuePoint > 0) {
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate((cuePoint / 100) * Math.PI * 2); // Assuming cuePoint is 0-100
+        ctx.rotate((cuePoint / 100) * Math.PI * 2);
         ctx.beginPath();
         ctx.moveTo(85, 0);
         ctx.lineTo(95, 0);
@@ -131,7 +151,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying, isDragging, isCuePressed, scrubIndicator, cuePoint]);
+  }, [isPlaying, isDragging, isCuePressed, scrubIndicator, cuePoint, tempoBend]);
 
   const handlePlayPause = () => {
     if (isPlaying) {
@@ -154,6 +174,24 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     return Math.atan2(deltaY, deltaX);
   };
 
+  // Double-click detection for backspin
+  const handlePlatterClick = (e: React.MouseEvent) => {
+    const now = Date.now();
+    const timeSinceLastClick = now - lastClickRef.current;
+    
+    if (timeSinceLastClick < 300 && !backspinCooldown) {
+      // Double-click detected - trigger backspin
+      e.preventDefault();
+      triggerBackspin(side);
+      setBackspinCooldown(true);
+      setTimeout(() => setBackspinCooldown(false), 1000);
+      console.log(`🌀 Double-click backspin triggered on Deck ${side}`);
+    }
+    
+    lastClickRef.current = now;
+  };
+
+  // Drag to scrub functionality
   const handlePlatterMouseDown = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const angle = getMouseAngle(e, rect);
@@ -164,7 +202,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     
     // Set cue point if track is loaded and stopped
     if (deckState.track && !isPlaying) {
-      setCuePoint(50); // Set cue point at current position (simplified)
+      setCuePoint(50);
     }
   };
 
@@ -184,7 +222,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     if (angleDelta > Math.PI) angleDelta -= 2 * Math.PI;
     if (angleDelta < -Math.PI) angleDelta += 2 * Math.PI;
     
-    const velocity = angleDelta * 10; // Scale factor for scrubbing sensitivity
+    const velocity = angleDelta * 15; // Increased sensitivity for better scrubbing
     
     // Update visual rotation
     rotationRef.current += angleDelta;
@@ -193,17 +231,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     // Show scrub indicator
     setScrubIndicator({ active: true, direction: velocity });
     
-    // Only scrub if track is paused or we're in cue mode
+    // Scrub the track (works when paused or cueing)
     if (!isPlaying || isCuePressed) {
       scrubTrack(side, velocity);
     }
 
-    // Detect rapid counter-clockwise movement for backspin
-    if (velocity < -0.5 && !backspinCooldown) {
-      triggerBackspin(side);
-      setBackspinCooldown(true);
-      setTimeout(() => setBackspinCooldown(false), 1000); // 1 second cooldown
-    }
+    console.log(`🎛️ Scrubbing Deck ${side}: ${velocity > 0 ? 'Forward' : 'Rewind'} (${velocity.toFixed(3)})`);
   };
 
   const handlePlatterMouseUp = () => {
@@ -212,13 +245,34 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     setScrubIndicator({ active: false, direction: 0 });
   };
 
-  const handlePlatterClick = (e: React.MouseEvent) => {
-    // Only trigger backspin on click if not dragging
-    if (!isDragging && !backspinCooldown && isPlaying) {
-      triggerBackspin(side);
-      setBackspinCooldown(true);
-      setTimeout(() => setBackspinCooldown(false), 1000);
+  // Scroll to bend tempo functionality
+  const handlePlatterWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    
+    if (!isPlaying || !deckState.track) return;
+
+    const delta = e.deltaY;
+    const bendDirection = delta < 0 ? 1 : -1; // Up = speed up, Down = slow down
+    const bendAmount = bendDirection > 0 ? 1.05 : 0.95; // 5% tempo change
+    
+    // Apply tempo bend
+    bendTempo(side, bendAmount);
+    
+    // Show visual feedback
+    setTempoBend({ active: true, direction: bendDirection });
+    
+    // Clear any existing timeout
+    if (tempoBendTimeoutRef.current) {
+      clearTimeout(tempoBendTimeoutRef.current);
     }
+    
+    // Reset tempo after 500ms
+    tempoBendTimeoutRef.current = setTimeout(() => {
+      bendTempo(side, 1.0); // Reset to normal tempo
+      setTempoBend({ active: false, direction: 0 });
+    }, 500);
+
+    console.log(`⏩ Tempo bend Deck ${side}: ${bendDirection > 0 ? 'Speed Up' : 'Slow Down'} (${bendAmount}x)`);
   };
 
   // Cue button handlers
@@ -226,7 +280,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     if (deckState.track) {
       setIsCuePressed(true);
       if (!isPlaying) {
-        // Start playing from cue point
         playDeck(side);
       }
     }
@@ -236,9 +289,8 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     if (isCuePressed) {
       setIsCuePressed(false);
       if (isPlaying) {
-        // Stop and return to cue point
         pauseDeck(side);
-        scrubTrack(side, -cuePoint); // Return to cue point (simplified)
+        scrubTrack(side, -cuePoint);
       }
     }
   };
@@ -277,6 +329,8 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             className="rounded-full bg-gray-800 shadow-lg cursor-pointer select-none"
             onMouseDown={handlePlatterMouseDown}
             onClick={handlePlatterClick}
+            onWheel={handlePlatterWheel}
+            title="Double-click for backspin • Drag to scrub • Scroll to bend tempo"
           />
           
           {/* Status overlays */}
@@ -299,6 +353,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           {backspinCooldown && (
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full pointer-events-none">
               BACKSPIN
+            </div>
+          )}
+
+          {tempoBend.active && (
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full pointer-events-none">
+              {tempoBend.direction > 0 ? '⏩ FASTER' : '⏪ SLOWER'}
             </div>
           )}
         </div>
@@ -336,7 +396,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           <motion.button
             onMouseDown={handleCueMouseDown}
             onMouseUp={handleCueMouseUp}
-            onMouseLeave={handleCueMouseUp} // Handle mouse leave to prevent stuck state
+            onMouseLeave={handleCueMouseUp}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`p-3 rounded-full transition-all font-bold text-sm ${
@@ -405,6 +465,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             </div>
           )}
           
+          {tempoBend.active && (
+            <div className="text-xs text-blue-400">
+              Tempo: {tempoBend.direction > 0 ? '⏩ +5%' : '⏪ -5%'}
+            </div>
+          )}
+          
           {cuePoint > 0 && (
             <div className="text-xs text-green-400">
               Cue Point Set
@@ -416,6 +482,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
               Syncing to Deck A...
             </div>
           )}
+        </div>
+
+        {/* Instructions */}
+        <div className="text-xs text-gray-500 text-center space-y-1">
+          <div>Double-click jogwheel for backspin</div>
+          <div>Drag to scrub • Scroll to bend tempo</div>
         </div>
       </div>
     </div>

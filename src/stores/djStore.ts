@@ -46,6 +46,7 @@ interface DJState {
   setDeckFX: (deck: 'A' | 'B', fx: Partial<{ filter: number; reverb: number; delay: number }>) => void;
   scrubTrack: (deck: 'A' | 'B', velocity: number) => void;
   triggerBackspin: (deck: 'A' | 'B') => void;
+  bendTempo: (deck: 'A' | 'B', rate: number) => void;
   syncDecks: () => void;
   cleanup: () => void;
 }
@@ -256,6 +257,16 @@ export const useDJStore = create<DJState>((set, get) => ({
     if (engine) {
       engine.triggerBackspin();
       console.log(`🌀 Backspin triggered on Deck ${deck}`);
+    }
+  },
+
+  bendTempo: (deck, rate) => {
+    const state = get();
+    const engine = deck === 'A' ? state.deckA : state.deckB;
+    
+    if (engine && engine.isLoaded) {
+      engine.bendTempo(rate);
+      console.log(`⏩ Tempo bend Deck ${deck}: ${rate}x`);
     }
   },
 
