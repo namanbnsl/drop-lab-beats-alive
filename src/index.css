@@ -148,8 +148,10 @@
 }
 
 .vertical-slider {
-  writing-mode: bt-lr; /* IE */
-  -webkit-appearance: slider-vertical; /* WebKit */
+  writing-mode: bt-lr;
+  /* IE */
+  -webkit-appearance: slider-vertical;
+  /* WebKit */
 }
 
 /* Custom scrollbar */
@@ -181,7 +183,7 @@ html {
   grid-template-columns: repeat(16, minmax(0, 1fr));
 }
 
-/* AI Studio specific styles */
+/* Music Studio specific styles */
 .knob-glow {
   filter: drop-shadow(0 0 10px currentColor);
 }
@@ -192,9 +194,17 @@ html {
 
 /* Animated gradient background */
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .animated-gradient {
@@ -214,9 +224,17 @@ html {
 }
 
 @keyframes pulse-step {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Glow effects for active elements */
