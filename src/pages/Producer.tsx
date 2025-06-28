@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +18,7 @@ const Producer = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('welcome');
   
-  // Lyria API: Initialize with API key (should be from environment variables)
+  // Lyria API: Initialize with API key
   const lyriaAPI = useRef<LyriaAPI>();
   const [apiReady, setApiReady] = useState(false);
   const [isLoadingAPI, setIsLoadingAPI] = useState(true);
@@ -29,13 +30,14 @@ const Producer = () => {
   // Tone.js: Audio engine setup
   const melodyGainRef = useRef<Tone.Gain>();
   const drumsGainRef = useRef<Tone.Gain>();
-  const fxGainRef = useRef<Tone.Gain>();
+  const fxSendRef = useRef<Tone.Gain>();
   const masterGainRef = useRef<Tone.Gain>();
   const reverbRef = useRef<Tone.Reverb>();
   const delayRef = useRef<Tone.FeedbackDelay>();
   const melodySynthRef = useRef<Tone.Synth>();
-  const drumSamplerRef = useRef<Tone.Sampler>();
+  const drumSamplerRef = useRef<Tone.Players>();
   const recorderRef = useRef<Tone.Recorder>();
+  const drumPatternRef = useRef<Tone.Loop>();
 
   // Balance knob states
   const [melodyVolume, setMelodyVolume] = useState(100);
@@ -51,14 +53,15 @@ const Producer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
 
+  // Drum pattern state
+  const [drumStyle, setDrumStyle] = useState('house');
+
   // Lyria API: Initialize on component mount
   useEffect(() => {
     const initializeLyria = async () => {
       try {
         console.log('🎵 Initializing Lyria API...');
         
-        // In a real app, this should come from environment variables
-        // For demo purposes, we'll use a placeholder
         const apiKey = import.meta.env.VITE_GEMINI_API_KEY || 'demo-key';
         
         lyriaAPI.current = new LyriaAPI(apiKey);
@@ -74,46 +77,59 @@ const Producer = () => {
     initializeLyria();
   }, []);
 
-  // Tone.js: Initialize audio engine
+  // Tone.js: Initialize audio engine with FX chains
   useEffect(() => {
     const initializeAudio = async () => {
       try {
         console.log('🔊 Initializing Tone.js audio engine...');
 
-        // Tone.js: Create master gain chain
+        // Create master gain and recorder
         masterGainRef.current = new Tone.Gain(masterVolume / 100).toDestination();
+        recorderRef.current = new Tone.Recorder();
+        masterGainRef.current.connect(recorderRef.current);
         
-        // Tone.js: Create individual channel gains
-        melodyGainRef.current = new Tone.Gain(melodyVolume / 100).connect(masterGainRef.current);
-        drumsGainRef.current = new Tone.Gain(drumsVolume / 100).connect(masterGainRef.current);
-        fxGainRef.current = new Tone.Gain(fxVolume / 100);
-
-        // FX: Create reverb and delay sends
-        reverbRef.current = new Tone.Reverb(2).toDestination();
-        delayRef.current = new Tone.FeedbackDelay("8n", 0.4).toDestination();
+        // Create FX sends (parallel processing)
+        reverbRef.current = new Tone.Reverb(2);
+        delayRef.current = new Tone.FeedbackDelay("8n", 0.4);
+        fxSendRef.current = new Tone.Gain(fxVolume / 100);
         
         // Set initial FX amounts
         reverbRef.current.wet.value = reverbAmount;
         delayRef.current.wet.value = delayAmount;
 
-        // Tone.js: Route FX send to parallel processing
-        fxGainRef.current.fan(reverbRef.current, delayRef.current, masterGainRef.current);
+        // Connect FX in parallel to master
+        fxSendRef.current.fan(reverbRef.current, delayRef.current);
+        reverbRef.current.connect(masterGainRef.current);
+        delayRef.current.connect(masterGainRef.current);
 
-        // Tone.js: Create instruments
-        melodySynthRef.current = new Tone.Synth().connect(melodyGainRef.current);
-        drumSamplerRef.current = new Tone.Sampler({
-          urls: {
-            "C1": "kick.wav",
-            "D1": "snare.wav", 
-            "F#1": "hihat.wav",
-            "A1": "openhat.wav"
+        // Create individual channel gains with FX sends
+        melodyGainRef.current = new Tone.Gain(melodyVolume / 100);
+        drumsGainRef.current = new Tone.Gain(drumsVolume / 100);
+
+        // Connect channels to master and FX sends
+        melodyGainRef.current.fan(masterGainRef.current, fxSendRef.current);
+        drumsGainRef.current.fan(masterGainRef.current, fxSendRef.current);
+
+        // Create instruments
+        melodySynthRef.current = new Tone.Synth({
+          oscillator: {
+            type: "triangle"
           },
-          baseUrl: "https://tonejs.github.io/audio/drum-samples/CR78/"
-        }).connect(drumsGainRef.current);
+          envelope: {
+            attack: 0.1,
+            decay: 0.2,
+            sustain: 0.3,
+            release: 0.8
+          }
+        }).connect(melodyGainRef.current);
 
-        // Recorder setup for audio export
-        recorderRef.current = new Tone.Recorder();
-        masterGainRef.current.connect(recorderRef.current);
+        // Create drum sampler with fallback samples
+        drumSamplerRef.current = new Tone.Players({
+          kick: "https://tonejs.github.io/audio/drum-samples/CR78/kick.wav",
+          snare: "https://tonejs.github.io/audio/drum-samples/CR78/snare.wav",
+          hihat: "https://tonejs.github.io/audio/drum-samples/CR78/hihat.wav",
+          openhat: "https://tonejs.github.io/audio/drum-samples/CR78/openhat.wav"
+        }).connect(drumsGainRef.current);
 
         console.log('✅ Tone.js audio engine initialized');
       } catch (error) {
@@ -125,6 +141,10 @@ const Producer = () => {
 
     return () => {
       // Cleanup on unmount
+      if (drumPatternRef.current) {
+        drumPatternRef.current.stop();
+        drumPatternRef.current.dispose();
+      }
       Tone.Transport.stop();
       Tone.Transport.cancel();
     };
@@ -144,8 +164,8 @@ const Producer = () => {
   }, [drumsVolume]);
 
   useEffect(() => {
-    if (fxGainRef.current) {
-      fxGainRef.current.gain.rampTo(fxVolume / 100, 0.1);
+    if (fxSendRef.current) {
+      fxSendRef.current.gain.rampTo(fxVolume / 100, 0.1);
     }
   }, [fxVolume]);
 
@@ -168,12 +188,48 @@ const Producer = () => {
     }
   }, [delayAmount]);
 
+  // Drum Patterns: Different styles
+  const getDrumPattern = (style: string) => {
+    const patterns = {
+      house: [
+        { time: "0:0:0", sample: "kick" },
+        { time: "0:1:0", sample: "hihat" },
+        { time: "0:2:0", sample: "kick" },
+        { time: "0:3:0", sample: "hihat" },
+        { time: "1:0:0", sample: "kick" },
+        { time: "1:1:0", sample: "hihat" },
+        { time: "1:2:0", sample: "snare" },
+        { time: "1:3:0", sample: "hihat" }
+      ],
+      trap: [
+        { time: "0:0:0", sample: "kick" },
+        { time: "0:0:2", sample: "kick" },
+        { time: "0:2:0", sample: "snare" },
+        { time: "0:3:2", sample: "hihat" },
+        { time: "1:0:0", sample: "kick" },
+        { time: "1:1:2", sample: "hihat" },
+        { time: "1:2:0", sample: "snare" },
+        { time: "1:3:0", sample: "hihat" }
+      ],
+      dnb: [
+        { time: "0:0:0", sample: "kick" },
+        { time: "0:2:0", sample: "snare" },
+        { time: "1:0:0", sample: "kick" },
+        { time: "1:2:0", sample: "snare" },
+        { time: "0:1:0", sample: "hihat" },
+        { time: "0:3:0", sample: "hihat" },
+        { time: "1:1:0", sample: "hihat" },
+        { time: "1:3:0", sample: "hihat" }
+      ]
+    };
+    return patterns[style as keyof typeof patterns] || patterns.house;
+  };
+
   // Helper: Convert Lyria response to Tone.js events
   const convertLyriaToToneEvents = (lyriaData: LyriaGenerationResponse | null) => {
     if (!lyriaData || !lyriaData.midiData) return [];
     
     try {
-      // Parse the mock MIDI data
       const decoder = new TextDecoder();
       const jsonString = decoder.decode(lyriaData.midiData);
       const midiData = JSON.parse(jsonString);
@@ -212,29 +268,42 @@ const Producer = () => {
     }
   };
 
-  // Lyria API: Generate drums using AI
+  // Drums: Generate pattern using Tone.js
   const generateDrums = async (style: string, complexity: string) => {
-    if (!lyriaAPI.current || !apiReady) {
-      console.warn('⚠️ Lyria API not ready yet');
-      return null;
-    }
-
     try {
-      console.log(`🥁 Generating AI drums with Lyria (${style}, ${complexity})...`);
+      console.log(`🥁 Generating drums with Tone.js (${style}, ${complexity})...`);
       
-      const result = await lyriaAPI.current.generateDrums({ style, complexity });
+      // Create mock drum data for consistency with export system
+      const pattern = getDrumPattern(style.toLowerCase());
+      const mockDrumData = {
+        midiData: new TextEncoder().encode(JSON.stringify({
+          notes: pattern.map((hit, index) => ({
+            pitch: hit.sample === 'kick' ? 36 : hit.sample === 'snare' ? 38 : 42,
+            startTime: parseFloat(hit.time.replace(':', '.')),
+            endTime: parseFloat(hit.time.replace(':', '.')) + 0.1,
+            velocity: 0.8
+          }))
+        })),
+        metadata: {
+          duration: 8,
+          key: 'C', // Add missing key property
+          tempo: 120,
+          style: style
+        }
+      };
       
-      console.log('✅ Drum pattern generated successfully with Lyria:', result);
-      setDrumData(result);
+      setDrumData(mockDrumData);
+      setDrumStyle(style.toLowerCase());
       
-      return result;
+      console.log('✅ Drum pattern generated successfully');
+      return mockDrumData;
     } catch (error) {
-      console.error('❌ Error generating drums with Lyria:', error);
+      console.error('❌ Error generating drums:', error);
       return null;
     }
   };
 
-  // Tone.js: Play full track with quantization
+  // Unified Playback: Play full track with quantization
   const playFullTrack = async () => {
     if (!melodyData && !drumData) {
       console.warn('⚠️ No sequences to play');
@@ -244,30 +313,41 @@ const Producer = () => {
     try {
       await Tone.start();
       
+      // Stop any existing playback
       Tone.Transport.stop();
       Tone.Transport.cancel();
+      if (drumPatternRef.current) {
+        drumPatternRef.current.stop();
+        drumPatternRef.current.dispose();
+      }
 
       // Play melody if available
       if (melodyData && melodySynthRef.current) {
         const melodyEvents = convertLyriaToToneEvents(melodyData);
-        const melodyPart = new Tone.Part((time, note) => {
-          melodySynthRef.current?.triggerAttackRelease(note.note, note.duration, time, note.velocity);
-        }, melodyEvents).start(0);
+        if (melodyEvents.length > 0) {
+          const melodyPart = new Tone.Part((time, note) => {
+            melodySynthRef.current?.triggerAttackRelease(note.note, note.duration, time, note.velocity);
+          }, melodyEvents).start(0);
+        }
       }
 
       // Play drums if available
       if (drumData && drumSamplerRef.current) {
-        const drumEvents = convertLyriaToToneEvents(drumData);
-        const drumPart = new Tone.Part((time, note) => {
-          drumSamplerRef.current?.triggerAttack(note.note, time, note.velocity);
-        }, drumEvents).start(0);
+        const pattern = getDrumPattern(drumStyle);
+        
+        drumPatternRef.current = new Tone.Loop((time) => {
+          pattern.forEach((hit) => {
+            const hitTime = Tone.Time(hit.time).toSeconds();
+            drumSamplerRef.current?.player(hit.sample).start(time + hitTime);
+          });
+        }, "2m").start(0);
       }
 
       Tone.Transport.bpm.value = 120;
       Tone.Transport.start();
       setIsPlaying(true);
 
-      console.log('▶️ Playing full track with Lyria-generated content');
+      console.log('▶️ Playing full track with Lyria melody + Tone.js drums');
     } catch (error) {
       console.error('❌ Error playing track:', error);
     }
@@ -275,21 +355,22 @@ const Producer = () => {
 
   const stopPlayback = () => {
     Tone.Transport.stop();
+    if (drumPatternRef.current) {
+      drumPatternRef.current.stop();
+    }
     setIsPlaying(false);
     console.log('⏹️ Playback stopped');
   };
 
-  // Export: Convert Lyria data to MIDI
-  const exportToMidi = (lyriaData: LyriaGenerationResponse | null, filename: string) => {
-    if (!lyriaData || !lyriaData.midiData) {
+  // Export: Convert data to MIDI
+  const exportToMidi = (data: LyriaGenerationResponse | null, filename: string) => {
+    if (!data || !data.midiData) {
       console.warn('⚠️ No data to export');
       return;
     }
 
     try {
-      // For now, export the mock data as JSON
-      // In a real implementation, this would convert to proper MIDI format
-      const blob = new Blob([lyriaData.midiData], { type: 'application/json' });
+      const blob = new Blob([data.midiData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       
       const a = document.createElement('a');
@@ -306,7 +387,7 @@ const Producer = () => {
     }
   };
 
-  // Export: Record audio with Tone.js
+  // Export: Record full track with FX
   const exportToAudio = async () => {
     if (!recorderRef.current || (!melodyData && !drumData)) {
       console.warn('⚠️ No content to record');
@@ -320,7 +401,7 @@ const Producer = () => {
       await recorderRef.current.start();
       await playFullTrack();
 
-      // Record for 8 seconds (adjust based on sequence length)
+      // Record for 8 seconds (2 bar loop * 4 repetitions)
       setTimeout(async () => {
         const recording = await recorderRef.current!.stop();
         const url = URL.createObjectURL(recording);
@@ -333,6 +414,7 @@ const Producer = () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
+        stopPlayback();
         setIsRecording(false);
         console.log('✅ Audio export completed');
       }, 8000);
@@ -419,7 +501,7 @@ const Producer = () => {
           onGenerateDrums={generateDrums}
           onPlayDrums={() => playFullTrack()}
           drumSequence={drumData}
-          modelsLoaded={apiReady}
+          modelsLoaded={true} // Tone.js drums are always ready
         />
         <GridSection />
         <FXSection 

@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -122,6 +123,53 @@
   cursor: pointer;
   border: 2px solid #8000ff;
   box-shadow: 0 0 10px rgba(162, 89, 255, 0.3);
+}
+
+/* DJ Mode specific styles */
+.pitch-slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: #a259ff;
+  cursor: pointer;
+  border: 2px solid #8000ff;
+  box-shadow: 0 0 8px rgba(162, 89, 255, 0.3);
+}
+
+.crossfader::-webkit-slider-thumb {
+  appearance: none;
+  height: 24px;
+  width: 12px;
+  border-radius: 6px;
+  background: #a259ff;
+  cursor: pointer;
+  border: 2px solid #8000ff;
+  box-shadow: 0 0 10px rgba(162, 89, 255, 0.3);
+}
+
+.vertical-slider {
+  writing-mode: bt-lr; /* IE */
+  -webkit-appearance: slider-vertical; /* WebKit */
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #374151;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #a259ff;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #8b5cf6;
 }
 
 /* Smooth scrolling */
