@@ -36,26 +36,26 @@ const DJ = () => {
   };
 
   return (
-    <div className="min-h-screen pure-black text-white overflow-hidden">
+    <div className="min-h-screen paper-bg text-gray-800 overflow-hidden paper-texture">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
+      <div className="flex items-center justify-between p-4 border-b-2 border-gray-800" style={{ borderStyle: 'dashed' }}>
         <button
           onClick={() => navigate('/')}
-          className="clean-card px-3 py-2 flex items-center gap-2 font-semibold"
+          className="sketch-card px-3 py-2 flex items-center gap-2 handwritten-text font-semibold"
         >
           <Disc3 className="w-8 h-8" />
           <span className="text-xl">DropLab</span>
         </button>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-          DJ Mode - Auto-Sync
+        <h1 className="handwritten-title text-xl sm:text-2xl md:text-3xl font-bold sketch-underline">
+          DJ Mode - Auto-Sync ★
         </h1>
         <div className="flex gap-2">
           <button
             onClick={() => setShowLibrary(!showLibrary)}
-            className={`px-4 py-2 transition-all duration-200 min-touch-target ${
+            className={`px-4 py-2 transition-all duration-200 min-touch-target handwritten-text ${
               showLibrary 
-                ? 'btn-minimal-primary' 
-                : 'btn-minimal'
+                ? 'btn-sketch-primary' 
+                : 'btn-sketch'
             }`}
           >
             <Music2 className="w-4 h-4 sm:hidden" />

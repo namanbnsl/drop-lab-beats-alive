@@ -22,8 +22,14 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'handwritten': ['Caveat', 'Architects Daughter', 'cursive'],
+				'sketch': ['Architects Daughter', 'cursive'],
+				'casual': ['Kalam', 'cursive'],
+			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+				'paper-grid': 'linear-gradient(rgba(0,0,0,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,.05) 1px, transparent 1px)',
 			},
 			gridTemplateColumns: {
 				'16': 'repeat(16, minmax(0, 1fr))',
@@ -71,12 +77,21 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Pastel color palette
+				'pastel-blue': '#A8D8EA',
+				'pastel-pink': '#FFD3D8',
+				'pastel-mint': '#C7E8CA',
+				'pastel-yellow': '#FFF3B2',
+				'pastel-purple': '#E1BEE7',
+				'pastel-orange': '#FFD4A3',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				'sketch': '15px 25px 20px 18px',
+				'sketch-alt': '20px 15px 25px 18px',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -95,25 +110,25 @@ export default {
 						height: '0'
 					}
 				},
-				'fadeIn': {
-					from: {
-						opacity: '0'
-					},
-					to: {
-						opacity: '1'
-					}
+				'wiggle': {
+					'0%, 100%': { transform: 'rotate(-0.5deg)' },
+					'50%': { transform: 'rotate(0.5deg)' }
 				},
-				'spin': {
-					to: {
-						transform: 'rotate(360deg)'
-					}
+				'bounce-sketch': {
+					'0%, 100%': { transform: 'translateY(0) rotate(-0.2deg)' },
+					'50%': { transform: 'translateY(-5px) rotate(0.2deg)' }
+				},
+				'spin-sketch': {
+					'0%': { transform: 'rotate(0deg)' },
+					'100%': { transform: 'rotate(360deg)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'fade-in': 'fadeIn 0.3s ease-in-out',
-				'spin': 'spin 1s linear infinite'
+				'wiggle': 'wiggle 2s ease-in-out infinite',
+				'bounce-sketch': 'bounce-sketch 1s ease-in-out infinite',
+				'spin-sketch': 'spin-sketch 1.5s ease-in-out infinite'
 			},
 			spacing: {
 				'18': '4.5rem',
@@ -124,6 +139,9 @@ export default {
 			},
 			screens: {
 				'xs': '475px',
+			},
+			backgroundSize: {
+				'grid': '20px 20px',
 			}
 		}
 	},

@@ -480,12 +480,12 @@ const Producer = () => {
   };
 
   return (
-    <div className="min-h-screen pure-black text-white">
+    <div className="min-h-screen paper-bg text-gray-800 paper-texture">
       {/* Header */}
       <div className="absolute top-4 left-4 z-50">
         <button
           onClick={() => navigate('/')}
-          className="clean-card px-4 py-2 text-sm sm:text-base touch-manipulation min-touch-target flex items-center gap-2"
+          className="sketch-card px-4 py-2 text-sm sm:text-base touch-manipulation min-touch-target flex items-center gap-2 handwritten-text"
         >
           <Disc3 className="w-5 h-5 sm:w-6 sm:h-6" />
           <span className="font-semibold">DropLab</span>
@@ -495,9 +495,9 @@ const Producer = () => {
       {/* Audio Status Notifications */}
       {!audioUnlocked && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4">
-          <div className="clean-card p-4 max-w-sm">
-            <p className="text-white text-sm text-center">
-              Click anywhere or press any key to unlock audio
+          <div className="sketch-card p-4 max-w-sm highlight-yellow">
+            <p className="handwritten-text text-gray-800 text-sm text-center">
+              ✋ Click anywhere or press any key to unlock audio
             </p>
           </div>
         </div>
@@ -505,14 +505,14 @@ const Producer = () => {
 
       {audioError && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4">
-          <div className="clean-card p-4 max-w-md">
+          <div className="sketch-card p-4 max-w-md highlight-pink">
             <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="w-4 h-4 text-red-400" />
-              <p className="text-red-400 text-sm font-medium">Audio Error</p>
+              <AlertCircle className="w-4 h-4 text-red-600" />
+              <p className="handwritten-text text-red-600 text-sm font-medium">Audio Error</p>
             </div>
-            <p className="text-red-400 text-sm">{audioError}</p>
+            <p className="handwritten-small text-red-600 text-sm">{audioError}</p>
             {isRecovering && (
-              <p className="text-yellow-400 text-xs mt-2">Recovering...</p>
+              <p className="handwritten-small text-orange-600 text-xs mt-2">Recovering...</p>
             )}
           </div>
         </div>
@@ -520,18 +520,18 @@ const Producer = () => {
 
       {/* Master Transport Controls */}
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4">
-        <div className="clean-card p-3 flex flex-col sm:flex-row items-center gap-4 text-sm">
+        <div className="sketch-card p-3 flex flex-col sm:flex-row items-center gap-4 handwritten-text text-sm">
           <div className="flex items-center gap-2">
-            <span className="text-white">Tempo:</span>
+            <span className="text-gray-800">Tempo:</span>
             <input
               type="range"
               min="60"
               max="200"
               value={tempo}
               onChange={(e) => setTempo(Number(e.target.value))}
-              className="w-20 h-2 bg-gray-700 appearance-none cursor-pointer slider"
+              className="w-20 h-2 bg-gray-300 appearance-none cursor-pointer sketch-slider"
             />
-            <span className="text-white w-16">{tempo} BPM</span>
+            <span className="text-gray-800 w-16 handwritten-small">{tempo} BPM</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -539,8 +539,8 @@ const Producer = () => {
               onClick={handleMasterPlayPause}
               disabled={!audioUnlocked || isRecovering}
               className={`p-2 transition-all duration-200 touch-manipulation min-touch-target ${audioUnlocked && !isRecovering
-                ? 'btn-minimal-primary'
-                : 'btn-minimal opacity-50 cursor-not-allowed'
+                ? 'btn-sketch-primary'
+                : 'btn-sketch opacity-50 cursor-not-allowed'
                 }`}
             >
               {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -549,8 +549,8 @@ const Producer = () => {
               onClick={handleMasterStop}
               disabled={!audioUnlocked || isRecovering}
               className={`p-2 transition-all duration-200 touch-manipulation min-touch-target ${audioUnlocked && !isRecovering
-                ? 'btn-minimal'
-                : 'btn-minimal opacity-50 cursor-not-allowed'
+                ? 'btn-sketch'
+                : 'btn-sketch opacity-50 cursor-not-allowed'
                 }`}
             >
               <Square className="w-4 h-4" />
@@ -558,8 +558,8 @@ const Producer = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-white">Beat:</span>
-            <span className="text-white font-mono w-12">
+            <span className="text-gray-800">Beat:</span>
+            <span className="text-gray-800 font-mono w-12 handwritten-small marker-highlight">
               {getCurrentBeatDisplay()}
             </span>
           </div>
@@ -568,15 +568,15 @@ const Producer = () => {
 
       {/* Navigation */}
       <div className="fixed top-4 right-4 z-50">
-        <div className="clean-card p-2">
+        <div className="sketch-card p-2">
           <div className="flex flex-col sm:flex-row gap-1">
             {sections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => setCurrentSection(section.id)}
-                className={`px-3 py-2 text-sm font-medium transition-all duration-200 touch-manipulation min-touch-target ${currentSection === section.id
-                  ? 'btn-minimal-primary'
-                  : 'btn-minimal'
+                className={`px-3 py-2 handwritten-text text-sm font-medium transition-all duration-200 touch-manipulation min-touch-target ${currentSection === section.id
+                  ? 'btn-sketch-primary'
+                  : 'btn-sketch'
                   }`}
               >
                 <span className="mr-2">{section.icon}</span>
