@@ -54,11 +54,11 @@ const Producer = () => {
   const lastAudioTimeRef = useRef<number>(0);
 
   const sections = [
-    { id: 'drums', name: 'Drums', icon: '🥁' },
-    { id: 'melody', name: 'Melody', icon: '🎼' },
-    { id: 'mixer', name: 'Mixer', icon: '🎚️' },
-    { id: 'fx', name: 'Effects', icon: '🎛️' },
-    { id: 'export', name: 'Export', icon: '💾' }
+    { id: 'drums', name: 'Drums', icon: '🥁', color: 'text-pink-400' },
+    { id: 'melody', name: 'Melody', icon: '🎼', color: 'text-cyan-400' },
+    { id: 'mixer', name: 'Mixer', icon: '🎚️', color: 'text-yellow-400' },
+    { id: 'fx', name: 'Effects', icon: '🎛️', color: 'text-green-400' },
+    { id: 'export', name: 'Export', icon: '💾', color: 'text-purple-400' }
   ];
 
   // Check if content has been generated
@@ -480,86 +480,86 @@ const Producer = () => {
   };
 
   return (
-    <div className="min-h-screen producer-bg text-white paper-texture">
+    <div className="min-h-screen dark-paper handwritten">
       {/* Header */}
-      <div className="absolute top-4 left-4 z-50">
+      <div className="absolute top-2 sm:top-4 left-2 sm:left-4 z-50">
         <button
           onClick={() => navigate('/')}
-          className="sketch-card px-4 py-2 touch-manipulation min-touch-target flex items-center gap-2 handwritten-text"
+          className="flex items-center gap-2 text-white/80 hover:text-white transition-colors card-fun px-3 sm:px-4 py-2 text-sm sm:text-base touch-manipulation handwritten-bold min-touch-target"
         >
-          <Disc3 className="w-5 h-5" />
-          <span className="font-semibold">DropLab</span>
+          <Disc3 className="w-5 h-5 sm:w-6 sm:h-6" />
+          <span className="font-bold highlight-pink">DropLab</span>
         </button>
       </div>
 
       {/* Audio Status Notifications */}
       {!audioUnlocked && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 component-spacing">
-          <div className="sketch-card p-4 max-w-sm highlight-yellow">
-            <p className="handwritten-text text-gray-800 text-center">
-              ✋ Click anywhere or press any key to unlock audio
+        <div className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 px-4">
+          <div className="card-fun glow-yellow p-3 sm:p-4 max-w-sm">
+            <p className="text-yellow-200 text-xs sm:text-sm text-center handwritten-bold">
+              🔊 <span className="highlight-yellow">Click anywhere</span> or press any key to unlock audio
             </p>
           </div>
         </div>
       )}
 
       {audioError && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 component-spacing">
-          <div className="sketch-card p-4 max-w-md highlight-pink">
+        <div className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 px-4">
+          <div className="card-fun glow-pink p-3 sm:p-4 max-w-md">
             <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="w-4 h-4 text-red-600" />
-              <p className="handwritten-text text-red-600 font-medium">Audio Error</p>
+              <AlertCircle className="w-4 h-4 text-red-300" />
+              <p className="text-red-200 text-xs sm:text-sm font-medium handwritten-bold">Audio Error</p>
             </div>
-            <p className="handwritten-small text-red-600">{audioError}</p>
+            <p className="text-red-200 text-xs sm:text-sm handwritten">{audioError}</p>
             {isRecovering && (
-              <p className="handwritten-small text-orange-600 mt-2">Recovering...</p>
+              <p className="text-yellow-200 text-xs mt-2 handwritten">Recovering...</p>
             )}
           </div>
         </div>
       )}
 
       {/* Master Transport Controls */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 component-spacing">
-        <div className="sketch-card p-3 flex flex-col sm:flex-row items-center gap-4 handwritten-text">
+      <div className="fixed top-2 sm:top-4 left-1/2 transform -translate-x-1/2 z-50 px-4">
+        <div className="card-fun p-2 sm:p-3 flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs sm:text-sm">
           <div className="flex items-center gap-2">
-            <span className="text-white">Tempo:</span>
+            <span className="text-white handwritten-bold highlight-cyan">Tempo:</span>
             <input
               type="range"
               min="60"
               max="200"
               value={tempo}
               onChange={(e) => setTempo(Number(e.target.value))}
-              className="w-20 h-2 bg-gray-300 appearance-none cursor-pointer sketch-slider"
+              className="w-16 sm:w-20 h-1 sm:h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
             />
-            <span className="text-white w-16 handwritten-small">{tempo} BPM</span>
+            <span className="text-white w-12 sm:w-16 handwritten-bold highlight-yellow">{tempo} BPM</span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={handleMasterPlayPause}
               disabled={!audioUnlocked || isRecovering}
-              className={`p-2 transition-all duration-200 touch-manipulation min-touch-target ${audioUnlocked && !isRecovering
-                ? 'btn-sketch-primary'
-                : 'btn-sketch opacity-50 cursor-not-allowed'
+              className={`p-2 rounded-lg transition-all duration-300 touch-manipulation min-touch-target ${audioUnlocked && !isRecovering
+                ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white glow-pink'
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                 }`}
             >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              {isPlaying ? <Pause className="w-3 h-3 sm:w-4 sm:h-4" /> : <Play className="w-3 h-3 sm:w-4 sm:h-4" />}
             </button>
             <button
               onClick={handleMasterStop}
               disabled={!audioUnlocked || isRecovering}
-              className={`p-2 transition-all duration-200 touch-manipulation min-touch-target ${audioUnlocked && !isRecovering
-                ? 'btn-sketch'
-                : 'btn-sketch opacity-50 cursor-not-allowed'
+              className={`p-2 rounded-lg transition-all duration-300 touch-manipulation min-touch-target ${audioUnlocked && !isRecovering
+                ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white glow-pink'
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                 }`}
             >
-              <Square className="w-4 h-4" />
+              <Square className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-white">Beat:</span>
-            <span className="text-white font-mono w-12 handwritten-small marker-highlight">
+            <span className="text-white handwritten-bold highlight-green">Beat:</span>
+            <span className="text-purple-400 font-mono w-8 sm:w-12 handwritten-bold highlight-purple">
               {getCurrentBeatDisplay()}
             </span>
           </div>
@@ -567,19 +567,19 @@ const Producer = () => {
       </div>
 
       {/* Navigation */}
-      <div className="fixed top-4 right-4 z-50">
-        <div className="sketch-card p-2">
-          <div className="flex flex-col sm:flex-row gap-1">
+      <div className="fixed top-2 sm:top-4 right-2 sm:right-4 z-50">
+        <div className="card-fun p-2">
+          <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
             {sections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => setCurrentSection(section.id)}
-                className={`px-3 py-2 handwritten-text font-medium transition-all duration-200 touch-manipulation min-touch-target ${currentSection === section.id
-                  ? 'btn-sketch-primary'
-                  : 'btn-sketch'
+                className={`px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-300 touch-manipulation handwritten-bold min-touch-target ${currentSection === section.id
+                  ? `bg-gradient-to-r from-purple-500 to-pink-500 text-white glow-purple`
+                  : `text-white/70 hover:text-white hover:bg-white/10 ${section.color}`
                   }`}
               >
-                <span className="mr-2">{section.icon}</span>
+                <span className="mr-1 sm:mr-2">{section.icon}</span>
                 <span className="hidden sm:inline">{section.name}</span>
               </button>
             ))}
@@ -588,7 +588,7 @@ const Producer = () => {
       </div>
 
       {/* Main Content */}
-      <div className="pt-24">
+      <div className="pt-20 sm:pt-24">
         {renderSection()}
       </div>
     </div>
