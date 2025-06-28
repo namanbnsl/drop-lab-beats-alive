@@ -1,4 +1,4 @@
-import MusicTempo from 'music-tempo';
+import * as MusicTempo from 'music-tempo';
 
 export interface BPMDetectionResult {
   bpm: number;
@@ -16,7 +16,7 @@ export async function detectBPM(audioBuffer: AudioBuffer): Promise<BPMDetectionR
     const sampleRate = audioBuffer.sampleRate;
     
     // Create MusicTempo instance
-    const musicTempo = new MusicTempo(channelData);
+    const musicTempo = new (MusicTempo as any)(channelData);
     
     // Get BPM and confidence
     const bpm = musicTempo.tempo || 120; // Default to 120 if detection fails
