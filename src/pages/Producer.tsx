@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Disc3 } from 'lucide-react';
-import LyriaProductionStudio from '../components/Producer/LyriaProductionStudio';
+import AIStudioInterface from '../components/Producer/AIStudioInterface';
 
 const Producer = () => {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ const Producer = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-teal-900 flex items-center justify-center">
         <motion.div
           className="text-center"
           initial={{ scale: 0.8, opacity: 0 }}
@@ -27,7 +27,7 @@ const Producer = () => {
           transition={{ duration: 0.5 }}
         >
           <motion.div
-            className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-r from-purple-600 to-purple-400 flex items-center justify-center shadow-lg shadow-purple-500/25"
+            className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-r from-purple-600 to-blue-400 flex items-center justify-center shadow-lg shadow-purple-500/25"
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           >
@@ -39,15 +39,15 @@ const Producer = () => {
             animate={{ opacity: [0, 1, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            Initializing Lyria AI Studio...
+            Initializing AI Music Studio...
           </motion.p>
           <motion.p
-            className="text-purple-400 text-sm mt-2"
+            className="text-purple-200 text-sm mt-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
           >
-            Connecting to AI music generation engine
+            Connecting to Google Lyria AI
           </motion.p>
         </motion.div>
       </div>
@@ -55,24 +55,20 @@ const Producer = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-purple-900/30">
+      <div className="absolute top-4 left-4 z-50">
         <button
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors"
+          className="flex items-center gap-2 text-white/80 hover:text-white transition-colors bg-black/30 backdrop-blur-md rounded-lg px-4 py-2"
         >
-          <Disc3 className="w-8 h-8" />
-          <span className="text-xl font-bold">DropLab</span>
+          <Disc3 className="w-6 h-6" />
+          <span className="font-bold">DropLab</span>
         </button>
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
-          Producer Mode
-        </h1>
-        <div className="w-32" /> {/* Spacer for centering */}
       </div>
 
-      {/* Main Production Studio */}
-      <LyriaProductionStudio />
+      {/* Main AI Studio Interface */}
+      <AIStudioInterface />
     </div>
   );
 };
