@@ -480,23 +480,23 @@ const Producer = () => {
   };
 
   return (
-    <div className="min-h-screen paper-bg text-gray-800 paper-texture">
+    <div className="min-h-screen producer-bg text-gray-800 paper-texture">
       {/* Header */}
       <div className="absolute top-4 left-4 z-50">
         <button
           onClick={() => navigate('/')}
-          className="sketch-card px-4 py-2 text-sm sm:text-base touch-manipulation min-touch-target flex items-center gap-2 handwritten-text"
+          className="sketch-card px-4 py-2 touch-manipulation min-touch-target flex items-center gap-2 handwritten-text"
         >
-          <Disc3 className="w-5 h-5 sm:w-6 sm:h-6" />
+          <Disc3 className="w-5 h-5" />
           <span className="font-semibold">DropLab</span>
         </button>
       </div>
 
       {/* Audio Status Notifications */}
       {!audioUnlocked && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4">
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 component-spacing">
           <div className="sketch-card p-4 max-w-sm highlight-yellow">
-            <p className="handwritten-text text-gray-800 text-sm text-center">
+            <p className="handwritten-text text-gray-800 text-center">
               ✋ Click anywhere or press any key to unlock audio
             </p>
           </div>
@@ -504,23 +504,23 @@ const Producer = () => {
       )}
 
       {audioError && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4">
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 component-spacing">
           <div className="sketch-card p-4 max-w-md highlight-pink">
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle className="w-4 h-4 text-red-600" />
-              <p className="handwritten-text text-red-600 text-sm font-medium">Audio Error</p>
+              <p className="handwritten-text text-red-600 font-medium">Audio Error</p>
             </div>
-            <p className="handwritten-small text-red-600 text-sm">{audioError}</p>
+            <p className="handwritten-small text-red-600">{audioError}</p>
             {isRecovering && (
-              <p className="handwritten-small text-orange-600 text-xs mt-2">Recovering...</p>
+              <p className="handwritten-small text-orange-600 mt-2">Recovering...</p>
             )}
           </div>
         </div>
       )}
 
       {/* Master Transport Controls */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4">
-        <div className="sketch-card p-3 flex flex-col sm:flex-row items-center gap-4 handwritten-text text-sm">
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 component-spacing">
+        <div className="sketch-card p-3 flex flex-col sm:flex-row items-center gap-4 handwritten-text">
           <div className="flex items-center gap-2">
             <span className="text-gray-800">Tempo:</span>
             <input
@@ -534,7 +534,7 @@ const Producer = () => {
             <span className="text-gray-800 w-16 handwritten-small">{tempo} BPM</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
               onClick={handleMasterPlayPause}
               disabled={!audioUnlocked || isRecovering}
@@ -574,7 +574,7 @@ const Producer = () => {
               <button
                 key={section.id}
                 onClick={() => setCurrentSection(section.id)}
-                className={`px-3 py-2 handwritten-text text-sm font-medium transition-all duration-200 touch-manipulation min-touch-target ${currentSection === section.id
+                className={`px-3 py-2 handwritten-text font-medium transition-all duration-200 touch-manipulation min-touch-target ${currentSection === section.id
                   ? 'btn-sketch-primary'
                   : 'btn-sketch'
                   }`}

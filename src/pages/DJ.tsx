@@ -36,7 +36,7 @@ const DJ = () => {
   };
 
   return (
-    <div className="min-h-screen paper-bg text-gray-800 overflow-hidden paper-texture">
+    <div className="min-h-screen dj-bg text-gray-800 overflow-hidden paper-texture">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b-2 border-gray-800" style={{ borderStyle: 'dashed' }}>
         <button
@@ -65,7 +65,7 @@ const DJ = () => {
       </div>
 
       {/* Main DJ Layout */}
-      <div className="flex-1 p-4">
+      <div className="flex-1 p-4 component-spacing">
         {/* Decks and Mixer Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <motion.div
