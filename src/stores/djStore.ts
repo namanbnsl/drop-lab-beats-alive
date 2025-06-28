@@ -245,11 +245,7 @@ export const useDJStore = create<DJState>((set, get) => ({
     const engine = deck === 'A' ? state.deckA : state.deckB;
     
     if (engine && engine.isLoaded) {
-      const currentTime = engine.getCurrentTime();
-      const scrubAmount = velocity * 0.1; // Scale velocity to time
-      const newTime = Math.max(0, currentTime + scrubAmount);
-      
-      engine.seek(newTime);
+      engine.scrub(velocity);
     }
   },
 

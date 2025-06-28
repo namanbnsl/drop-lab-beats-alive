@@ -14,6 +14,8 @@ export class DeckAudioEngine {
   private currentBPM: number = 120;
   private trackDuration: number = 0;
   private startTime: number = 0;
+  private pausedAt: number = 0;
+  private cuePoint: number = 0;
 
   constructor() {
     // Initialize audio chain
@@ -68,6 +70,8 @@ export class DeckAudioEngine {
       this.isLoaded = true;
       this.trackDuration = this.player.buffer.duration;
       this.isPlaying = false;
+      this.pausedAt = 0;
+      this.cuePoint = 0; // Reset cue point on new track
       
       console.log(`✅ Track loaded: ${url} (${this.trackDuration.toFixed(2)}s, ${bpm} BPM)`);
       return true;
@@ -78,20 +82,22 @@ export class DeckAudioEngine {
     }
   }
 
-  play() {
+  play(fromCue: boolean = false) {
     if (this.player && this.isLoaded && !this.isPlaying) {
-      this.startTime = Tone.now();
-      this.player.start();
+      const startPosition = fromCue ? this.cuePoint : this.pausedAt;
+      this.startTime = Tone.now() - startPosition;
+      this.player.start(0, startPosition);
       this.isPlaying = true;
-      console.log('▶️ Track playing');
+      console.log(`▶️ Track playing from ${startPosition.toFixed(2)}s`);
     }
   }
 
   pause() {
     if (this.player && this.isPlaying) {
+      this.pausedAt = this.getCurrentTime();
       this.player.stop();
       this.isPlaying = false;
-      console.log('⏸️ Track paused');
+      console.log(`⏸️ Track paused at ${this.pausedAt.toFixed(2)}s`);
     }
   }
 
@@ -105,18 +111,55 @@ export class DeckAudioEngine {
       
       // Clamp position between 0 and track duration
       const clampedPosition = Math.max(0, Math.min(position, this.trackDuration));
+      this.pausedAt = clampedPosition;
       
       if (wasPlaying) {
-        this.startTime = Tone.now() - clampedPosition;
-        this.player.start(0, clampedPosition);
-        this.isPlaying = true;
+        this.play();
+      }
+      
+      console.log(`🎯 Seeked to ${clampedPosition.toFixed(2)}s`);
+    }
+  }
+
+  scrub(velocity: number) {
+    if (this.player && this.isLoaded) {
+      const currentTime = this.getCurrentTime();
+      const scrubAmount = velocity * 0.1; // Scale velocity to time
+      const newTime = Math.max(0, Math.min(currentTime + scrubAmount, this.trackDuration));
+      
+      // Update position without restarting playback
+      this.pausedAt = newTime;
+      
+      if (!this.isPlaying) {
+        // If not playing, just update the position
+        this.seek(newTime);
+      } else {
+        // If playing, temporarily adjust the start time for smooth scrubbing
+        this.startTime = Tone.now() - newTime;
       }
     }
   }
 
+  setCuePoint(position?: number) {
+    if (this.isLoaded) {
+      this.cuePoint = position !== undefined ? position : this.getCurrentTime();
+      console.log(`🎯 Cue point set at ${this.cuePoint.toFixed(2)}s`);
+    }
+  }
+
+  jumpToCue() {
+    if (this.isLoaded && this.cuePoint >= 0) {
+      this.seek(this.cuePoint);
+    }
+  }
+
   getCurrentTime(): number {
-    if (this.player && this.isLoaded && this.isPlaying) {
-      return Tone.now() - this.startTime;
+    if (this.player && this.isLoaded) {
+      if (this.isPlaying) {
+        return Tone.now() - this.startTime;
+      } else {
+        return this.pausedAt;
+      }
     }
     return 0;
   }
@@ -133,6 +176,12 @@ export class DeckAudioEngine {
     if (this.pitchShift) {
       // Convert percentage to cents (100 cents = 1 semitone)
       this.pitchShift.pitch = cents;
+      
+      // Also adjust playback rate for tempo changes
+      if (this.player) {
+        const pitchRatio = Math.pow(2, cents / 1200); // Convert cents to ratio
+        this.player.playbackRate = pitchRatio;
+      }
     }
   }
 
@@ -179,6 +228,11 @@ export class DeckAudioEngine {
 
   triggerBackspin() {
     if (this.isPlaying) {
+      console.log('🌀 Triggering backspin effect');
+      
+      // Store current position
+      const currentTime = this.getCurrentTime();
+      
       // Pause main track
       this.pause();
       
@@ -187,13 +241,17 @@ export class DeckAudioEngine {
         this.backspinPlayer.start();
       }
       
-      // Seek backward after backspin effect
+      // Seek backward and resume after backspin effect
       setTimeout(() => {
-        const currentTime = this.getCurrentTime();
         const newTime = Math.max(0, currentTime - 1.5); // Go back 1.5 seconds
         this.seek(newTime);
         this.play();
       }, 600); // Backspin effect duration
+    } else {
+      // If not playing, just play the backspin sound
+      if (this.backspinPlayer.loaded) {
+        this.backspinPlayer.start();
+      }
     }
   }
 
