@@ -1,5 +1,5 @@
 import * as Tone from 'tone';
-import { detectBPM, loadAudioForBPMDetection, calculatePlaybackRate, BPMDetectionResult } from './bpmDetector';
+import { calculatePlaybackRate, getBPMInfo, BPMInfo } from './bpmDetector';
 
 export class DeckAudioEngine {
   private player: Tone.Player | null = null;
@@ -21,7 +21,6 @@ export class DeckAudioEngine {
   private cuePoint: number = 0;
   private basePlaybackRate: number = 1;
   private tempoBendTimeout: NodeJS.Timeout | null = null;
-  private bpmDetectionResult: BPMDetectionResult | null = null;
 
   constructor() {
     // Initialize audio chain
@@ -57,7 +56,7 @@ export class DeckAudioEngine {
     this.backspinPlayer.load('/backspin.mp3').catch(console.warn);
   }
 
-  async loadTrack(url: string, userDefinedBPM?: number): Promise<boolean> {
+  async loadTrack(url: string, userDefinedBPM: number): Promise<boolean> {
     try {
       if (this.player) {
         this.player.dispose();
@@ -78,27 +77,10 @@ export class DeckAudioEngine {
       this.pausedAt = 0;
       this.cuePoint = 0;
 
-      // Use user-defined BPM if provided, otherwise detect
-      if (userDefinedBPM) {
-        this.originalBPM = userDefinedBPM;
-        this.currentBPM = userDefinedBPM;
-        console.log(`🎵 Track loaded with user-defined BPM: ${userDefinedBPM}`);
-      } else {
-        console.log('🔍 Detecting BPM...');
-        try {
-          const audioBuffer = await loadAudioForBPMDetection(url);
-          this.bpmDetectionResult = await detectBPM(audioBuffer);
-          this.originalBPM = this.bpmDetectionResult.bpm;
-          this.currentBPM = this.originalBPM;
-          
-          console.log(`✅ BPM detected: ${this.originalBPM} (confidence: ${(this.bpmDetectionResult.confidence * 100).toFixed(1)}%)`);
-        } catch (error) {
-          console.warn('⚠️ BPM detection failed, using default 120 BPM');
-          this.originalBPM = 120;
-          this.currentBPM = 120;
-        }
-      }
-
+      // Use user-defined BPM
+      this.originalBPM = userDefinedBPM;
+      this.currentBPM = userDefinedBPM;
+      
       // Set initial playback rate
       this.updatePlaybackRate();
       
@@ -136,14 +118,8 @@ export class DeckAudioEngine {
   /**
    * Get BPM information
    */
-  getBPMInfo() {
-    return {
-      original: this.originalBPM,
-      current: this.currentBPM,
-      target: this.globalBPM,
-      playbackRate: this.basePlaybackRate,
-      confidence: this.bpmDetectionResult?.confidence || 0
-    };
+  getBPMInfo(): BPMInfo {
+    return getBPMInfo(this.originalBPM, this.globalBPM);
   }
 
   play(fromCue: boolean = false) {

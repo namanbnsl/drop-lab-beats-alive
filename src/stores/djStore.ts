@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { DeckAudioEngine } from '../lib/deckAudioEngine';
-import { snapBPMToCommon } from '../lib/bpmDetector';
+import { snapBPMToCommon, BPMInfo } from '../lib/bpmDetector';
 import * as Tone from 'tone';
 
 interface Track {
@@ -19,13 +19,7 @@ interface DeckState {
   volume: number;
   fx: { filter: number; reverb: number; delay: number };
   isSyncing: boolean;
-  bpmInfo?: {
-    original: number;
-    current: number;
-    target: number;
-    playbackRate: number;
-    confidence: number;
-  };
+  bpmInfo?: BPMInfo;
 }
 
 interface DJState {
@@ -189,9 +183,8 @@ export const useDJStore = create<DJState>((set, get) => ({
       if (loaded) {
         // Calculate and apply playback rate for global BPM sync
         if (state.bpmSyncEnabled) {
-          const playbackRate = state.globalBPM / originalBPM;
           engine.setGlobalBPMSync(state.globalBPM, originalBPM);
-          console.log(`🎯 Deck ${deck}: ${originalBPM} BPM → ${state.globalBPM} BPM (rate: ${playbackRate.toFixed(3)}x)`);
+          console.log(`🎯 Deck ${deck}: ${originalBPM} BPM → ${state.globalBPM} BPM`);
         }
         
         const bpmInfo = engine.getBPMInfo();
