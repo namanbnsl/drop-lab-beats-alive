@@ -5,7 +5,7 @@ import CDJDeck from '../components/DJ/CDJDeck';
 import MixerPanel from '../components/DJ/MixerPanel';
 import TrackLibrary from '../components/DJ/TrackLibrary';
 import FirstTimeOverlay from '../components/DJ/FirstTimeOverlay';
-import { Disc3 } from 'lucide-react';
+import { Disc3, Music2, Headphones } from 'lucide-react';
 import { useDJStore } from '../stores/djStore';
 
 const DJ = () => {
@@ -36,51 +36,72 @@ const DJ = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-['Poppins'] overflow-hidden">
+    <div className="min-h-screen dark-paper text-white handwritten overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-purple-900/30">
         <button
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors"
+          className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors card-fun px-3 py-2 handwritten-bold"
         >
           <Disc3 className="w-8 h-8" />
-          <span className="text-xl font-bold">DropLab</span>
+          <span className="text-xl font-bold highlight-pink">DropLab</span>
         </button>
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
-          DJ Mode - Auto-Sync
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold handwritten-title">
+          <span className="highlight-cyan">DJ Mode</span> - <span className="highlight-yellow">Auto-Sync</span>
         </h1>
         <div className="flex gap-2">
           <button
             onClick={() => setShowLibrary(!showLibrary)}
-            className={`px-4 py-2 rounded-lg border transition-all ${
+            className={`px-3 sm:px-4 py-2 rounded-lg border transition-all duration-300 handwritten-bold min-touch-target ${
               showLibrary 
-                ? 'bg-purple-600 border-purple-400 text-white' 
-                : 'border-purple-500/30 hover:border-purple-500 text-purple-400'
+                ? 'bg-gradient-to-r from-purple-500 to-pink-500 border-purple-400 text-white glow-purple' 
+                : 'border-purple-500/30 hover:border-purple-500 text-purple-400 card-fun'
             }`}
           >
-            Library
+            <Music2 className="w-4 h-4 sm:hidden" />
+            <span className="hidden sm:inline">Library</span>
           </button>
         </div>
       </div>
 
       {/* Main DJ Layout */}
-      <div className="flex-1 p-4">
+      <div className="flex-1 p-2 sm:p-4">
         {/* Decks and Mixer Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <CDJDeck side="A" />
-          <MixerPanel />
-          <CDJDeck side="B" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
+          <motion.div
+            initial={{ opacity: 0, x: -50, rotate: -2 }}
+            animate={{ opacity: 1, x: 0, rotate: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <CDJDeck side="A" />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <MixerPanel />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, x: 50, rotate: 2 }}
+            animate={{ opacity: 1, x: 0, rotate: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <CDJDeck side="B" />
+          </motion.div>
         </div>
 
         {/* Track Library */}
         <AnimatePresence>
           {showLibrary && (
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.95 }}
               transition={{ duration: 0.3 }}
-              className="max-w-4xl mx-auto"
+              className="max-w-6xl mx-auto"
             >
               <TrackLibrary />
             </motion.div>
@@ -93,6 +114,24 @@ const DJ = () => {
         isOpen={showFirstTime} 
         onClose={handleFirstTimeClose}
       />
+
+      {/* Fun floating elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <motion.div
+          className="absolute top-20 left-10 text-pink-400 opacity-20"
+          animate={{ rotate: 360, y: [0, -20, 0] }}
+          transition={{ duration: 12, repeat: Infinity }}
+        >
+          <Headphones className="w-8 h-8" />
+        </motion.div>
+        <motion.div
+          className="absolute bottom-20 right-20 text-cyan-400 opacity-20"
+          animate={{ rotate: -360, y: [0, 15, 0] }}
+          transition={{ duration: 8, repeat: Infinity }}
+        >
+          <Music2 className="w-10 h-10" />
+        </motion.div>
+      </div>
     </div>
   );
 };
