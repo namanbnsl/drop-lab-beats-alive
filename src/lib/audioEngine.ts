@@ -60,7 +60,7 @@ export class AudioEngine {
 
     this.drums.set('snare', new Tone.NoiseSynth({
       noise: { type: 'white' },
-      envelope: { attack: 0.005, decay: 0.1, sustain: 0.0 }
+      envelope: { attack: 0.005, decay: 0.1, sustain: 0.0, release: 0.01 }
     }).connect(this.masterGain));
 
     this.drums.set('hihat', (() => {
@@ -313,8 +313,12 @@ export class AudioEngine {
   }
 
   stop() {
-    Tone.Transport.stop();
-    Tone.Transport.cancel();
+    // Only stop if the context is running to avoid timing errors
+    if (Tone.context.state === 'running') {
+      const currentTime = Tone.context.currentTime;
+      Tone.Transport.stop(currentTime);
+      Tone.Transport.cancel(currentTime);
+    }
   }
 
   setMasterVolume(volume: number) {
