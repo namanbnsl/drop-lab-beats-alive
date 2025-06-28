@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, RotateCcw, Zap, Sync } from 'lucide-react';
+import { Play, Pause, RotateCcw, Zap, RefreshCw } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
 
 interface CDJDeckProps {
@@ -236,7 +236,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
               className="p-3 rounded-full bg-blue-600 text-white hover:bg-blue-500 transition-all"
               title="Sync to Deck A"
             >
-              <Sync className="w-6 h-6" />
+              <RefreshCw className="w-6 h-6" />
             </motion.button>
           )}
         </div>
