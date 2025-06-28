@@ -355,7 +355,7 @@ const Index = () => {
         </div>
 
         <p className="text-gray-400 text-xs sm:text-sm">
-          © 2025 DropLab by Aarjav & Team 🚀 | Hackathon Edition
+          © 2025 DropLab by Aarjav & Naman 🚀 | Hackathon Edition
         </p>
       </motion.section>
     </div>
