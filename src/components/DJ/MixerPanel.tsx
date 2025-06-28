@@ -3,7 +3,7 @@ import React from 'react';
 import { useDJStore } from '../../stores/djStore';
 import WaveformDisplay from './WaveformDisplay';
 import VolumeFader from './VolumeFader';
-import FXStack from './FXStack';
+import EQSection from './EQSection';
 
 const MixerPanel = () => {
   const {
@@ -14,16 +14,8 @@ const MixerPanel = () => {
     setCrossfader,
     setMasterVolume,
     setVolume,
-    setDeckFX,
+    setEQ,
   } = useDJStore();
-
-  const handleDeckAFX = (fxType: 'filter' | 'reverb' | 'delay', value: number) => {
-    setDeckFX('A', { [fxType]: value });
-  };
-
-  const handleDeckBFX = (fxType: 'filter' | 'reverb' | 'delay', value: number) => {
-    setDeckFX('B', { [fxType]: value });
-  };
 
   const handleCrossfaderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value);
@@ -36,22 +28,25 @@ const MixerPanel = () => {
         <h3 className="text-lg font-bold text-purple-400">Mixer</h3>
       </div>
 
-      <div className="flex justify-between items-start space-x-6">
-        {/* Deck A Controls */}
+      <div className="flex justify-between items-start space-x-8">
+        {/* Deck A Column */}
         <div className="flex flex-col items-center space-y-6">
+          {/* EQ Section */}
+          <EQSection
+            deck="A"
+            eq={deckAState.eq}
+            onEQChange={(eq) => setEQ('A', eq)}
+          />
+
+          {/* Volume Fader */}
           <VolumeFader
             deck="A"
             value={deckAState.volume}
             onChange={(value) => setVolume('A', value)}
           />
-          <FXStack
-            deck="A"
-            fx={deckAState.fx}
-            onFXChange={handleDeckAFX}
-          />
         </div>
 
-        {/* Center section with waveform and controls */}
+        {/* Center section with waveform and master controls */}
         <div className="flex-1 space-y-6">
           {/* Waveform Display */}
           <div>
@@ -86,44 +81,47 @@ const MixerPanel = () => {
             </div>
             <div className="text-xs text-gray-400">{masterVolume}%</div>
           </div>
-
-          {/* Crossfader */}
-          <div className="space-y-2">
-            <div className="text-xs text-purple-400 text-center font-semibold">CROSSFADER</div>
-            <div className="relative">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={crossfader}
-                onChange={handleCrossfaderChange}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer crossfader"
-              />
-              <div className="flex justify-between text-xs text-gray-400 mt-1">
-                <span>A</span>
-                <span className={crossfader === 50 ? 'text-purple-400' : ''}>MIX</span>
-                <span>B</span>
-              </div>
-              {/* Center notch indicator */}
-              {Math.abs(crossfader - 50) < 2 && (
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1 w-1 h-4 bg-purple-400 rounded-full" />
-              )}
-            </div>
-          </div>
         </div>
 
-        {/* Deck B Controls */}
+        {/* Deck B Column */}
         <div className="flex flex-col items-center space-y-6">
+          {/* EQ Section */}
+          <EQSection
+            deck="B"
+            eq={deckBState.eq}
+            onEQChange={(eq) => setEQ('B', eq)}
+          />
+
+          {/* Volume Fader */}
           <VolumeFader
             deck="B"
             value={deckBState.volume}
             onChange={(value) => setVolume('B', value)}
           />
-          <FXStack
-            deck="B"
-            fx={deckBState.fx}
-            onFXChange={handleDeckBFX}
+        </div>
+      </div>
+
+      {/* Crossfader at bottom */}
+      <div className="mt-8 space-y-2">
+        <div className="text-xs text-purple-400 text-center font-semibold">CROSSFADER</div>
+        <div className="relative">
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={crossfader}
+            onChange={handleCrossfaderChange}
+            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer crossfader"
           />
+          <div className="flex justify-between text-xs text-gray-400 mt-1">
+            <span>A</span>
+            <span className={crossfader === 50 ? 'text-purple-400' : ''}>MIX</span>
+            <span>B</span>
+          </div>
+          {/* Center notch indicator */}
+          {Math.abs(crossfader - 50) < 2 && (
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1 w-1 h-4 bg-purple-400 rounded-full" />
+          )}
         </div>
       </div>
     </div>

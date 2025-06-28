@@ -2,22 +2,20 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
-interface ImprovedFXKnobProps {
+interface EQKnobProps {
   label: string;
   value: number;
   onChange: (value: number) => void;
-  min?: number;
-  max?: number;
+  color?: string;
 }
 
-const ImprovedFXKnob = ({ label, value, onChange, min = 0, max = 100 }: ImprovedFXKnobProps) => {
+const EQKnob = ({ label, value, onChange, color = 'purple' }: EQKnobProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [startValue, setStartValue] = useState(0);
-  const knobRef = useRef<HTMLDivElement>(null);
 
   // Calculate rotation angle for the knob visual (270 degrees total range)
-  const rotation = ((value - min) / (max - min)) * 270 - 135;
+  const rotation = ((value / 100) * 270) - 135;
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
@@ -29,13 +27,13 @@ const ImprovedFXKnob = ({ label, value, onChange, min = 0, max = 100 }: Improved
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
     
-    const deltaY = startY - e.clientY; // Inverted for natural feel
+    const deltaY = startY - e.clientY;
     const sensitivity = 0.5;
     const deltaValue = deltaY * sensitivity;
-    const newValue = Math.max(min, Math.min(max, startValue + deltaValue));
+    const newValue = Math.max(0, Math.min(100, startValue + deltaValue));
     
     onChange(newValue);
-  }, [isDragging, startY, startValue, min, max, onChange]);
+  }, [isDragging, startY, startValue, onChange]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -44,9 +42,9 @@ const ImprovedFXKnob = ({ label, value, onChange, min = 0, max = 100 }: Improved
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const delta = -e.deltaY * 0.1;
-    const newValue = Math.max(min, Math.min(max, value + delta));
+    const newValue = Math.max(0, Math.min(100, value + delta));
     onChange(newValue);
-  }, [value, min, max, onChange]);
+  }, [value, onChange]);
 
   React.useEffect(() => {
     if (isDragging) {
@@ -62,35 +60,54 @@ const ImprovedFXKnob = ({ label, value, onChange, min = 0, max = 100 }: Improved
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
+  const getColorClass = (color: string) => {
+    switch (color) {
+      case 'red': return 'border-red-500 hover:border-red-400';
+      case 'green': return 'border-green-500 hover:border-green-400';
+      case 'blue': return 'border-blue-500 hover:border-blue-400';
+      default: return 'border-purple-500 hover:border-purple-400';
+    }
+  };
+
+  const getIndicatorColor = (color: string) => {
+    switch (color) {
+      case 'red': return 'bg-red-400';
+      case 'green': return 'bg-green-400';
+      case 'blue': return 'bg-blue-400';
+      default: return 'bg-purple-400';
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center space-y-2">
+    <div className="flex flex-col items-center space-y-1">
       <motion.div 
-        ref={knobRef}
-        className="relative w-14 h-14 cursor-pointer"
+        className="relative w-12 h-12 cursor-pointer"
         whileHover={{ scale: 1.05 }}
         animate={{ 
           boxShadow: isDragging 
-            ? '0 0 20px rgba(162, 89, 255, 0.8)' 
-            : '0 0 10px rgba(162, 89, 255, 0.3)'
+            ? `0 0 15px rgba(162, 89, 255, 0.8)` 
+            : '0 0 5px rgba(162, 89, 255, 0.3)'
         }}
         onMouseDown={handleMouseDown}
         onWheel={handleWheel}
-        title={`${label}: ${Math.round(value)}`}
+        title={`EQ control for ${label}`}
       >
         {/* Knob background */}
-        <div className={`w-14 h-14 bg-gray-800 rounded-full border-2 shadow-lg transition-all ${
-          isDragging ? 'border-purple-400 bg-gray-700' : 'border-gray-600 hover:border-purple-500'
+        <div className={`w-12 h-12 bg-gray-800 rounded-full border-2 shadow-lg transition-all ${
+          isDragging ? getColorClass(color) + ' bg-gray-700' : 'border-gray-600 ' + getColorClass(color)
         }`}>
           {/* Knob indicator */}
           <div 
-            className={`absolute top-2 left-1/2 w-1 h-5 rounded-full transform -translate-x-1/2 origin-bottom transition-all ${
-              isDragging ? 'bg-purple-300' : 'bg-purple-400'
+            className={`absolute top-1 left-1/2 w-1 h-4 rounded-full transform -translate-x-1/2 origin-bottom transition-all ${
+              getIndicatorColor(color)
             }`}
             style={{ transform: `translateX(-50%) rotate(${rotation}deg)` }}
           />
           
           {/* Center dot */}
-          <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-purple-500 rounded-full transform -translate-x-1/2 -translate-y-1/2" />
+          <div className={`absolute top-1/2 left-1/2 w-1.5 h-1.5 rounded-full transform -translate-x-1/2 -translate-y-1/2 ${
+            getIndicatorColor(color)
+          }`} />
         </div>
       </motion.div>
       
@@ -107,4 +124,4 @@ const ImprovedFXKnob = ({ label, value, onChange, min = 0, max = 100 }: Improved
   );
 };
 
-export default ImprovedFXKnob;
+export default EQKnob;

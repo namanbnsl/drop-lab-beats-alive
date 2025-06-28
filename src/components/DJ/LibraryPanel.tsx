@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, Music, X, Link } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
@@ -16,6 +16,30 @@ const LibraryPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [googleDriveLink, setGoogleDriveLink] = useState('');
   const { loadTrack } = useDJStore();
+
+  // Pre-loaded Google Drive demo tracks
+  const demoTracks = [
+    {
+      id: 'demo1',
+      name: 'House Track 1',
+      url: 'https://drive.google.com/uc?export=download&id=1YourFileId1'
+    },
+    {
+      id: 'demo2', 
+      name: 'Tech House Mix',
+      url: 'https://drive.google.com/uc?export=download&id=1YourFileId2'
+    },
+    {
+      id: 'demo3',
+      name: 'Deep House Vibe',
+      url: 'https://drive.google.com/uc?export=download&id=1YourFileId3'
+    }
+  ];
+
+  useEffect(() => {
+    // Initialize with demo tracks
+    setTracks(demoTracks);
+  }, []);
 
   const convertGoogleDriveLink = (driveLink: string) => {
     const match = driveLink.match(/\/d\/(.*?)\//);
@@ -137,7 +161,7 @@ const LibraryPanel = () => {
             </button>
           </div>
           <div className="text-xs text-gray-400">
-            Paste a Google Drive share link to add tracks from the demo folder
+            Demo tracks are pre-loaded from the DropLab collection
           </div>
         </div>
 
@@ -152,12 +176,14 @@ const LibraryPanel = () => {
             >
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-semibold text-white truncate">{track.name}</h4>
-                <button
-                  onClick={() => removeTrack(track.id)}
-                  className="text-gray-400 hover:text-red-400"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                {!track.id.startsWith('demo') && (
+                  <button
+                    onClick={() => removeTrack(track.id)}
+                    className="text-gray-400 hover:text-red-400"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
               
               <div className="flex gap-2">
