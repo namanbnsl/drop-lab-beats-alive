@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, RotateCcw, RefreshCw, Activity } from 'lucide-react';
+import { Play, Pause, RotateCcw, RefreshCw, Activity, Target } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
 
 interface CDJDeckProps {
@@ -34,10 +34,9 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     triggerBackspin,
     bendTempo,
     initializeAudio,
-    masterBPM,
+    globalBPM,
     bpmSyncEnabled,
-    setMasterBPM,
-    toggleBPMSync,
+    syncDeckToGlobal,
   } = useDJStore();
 
   const deckState = side === 'A' ? deckAState : deckBState;
@@ -327,13 +326,17 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   const handleSync = () => {
     if (side === 'B') {
       syncDecks();
+    } else {
+      // Sync deck A to global BPM
+      syncDeckToGlobal('A');
     }
   };
 
-  const handleBPMClick = () => {
-    if (side === 'A' && deckState.bpmInfo) {
-      setMasterBPM(deckState.bpmInfo.original);
+  const getPlaybackRate = () => {
+    if (deckState.track?.originalBPM && bpmSyncEnabled) {
+      return globalBPM / deckState.track.originalBPM;
     }
+    return 1;
   };
 
   return (
@@ -399,64 +402,39 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           {deckState.track?.name || 'No Track Loaded'}
         </div>
         <div className="text-sm text-gray-400 flex justify-between mt-1">
-          <button
-            onClick={handleBPMClick}
-            className={`hover:text-white transition-colors ${side === 'A' ? 'cursor-pointer' : 'cursor-default'}`}
-            title={side === 'A' ? 'Click to set as Master BPM' : ''}
-          >
-            {deckState.bpmInfo ? (
+          <div className="flex items-center gap-1">
+            {deckState.track?.originalBPM ? (
               <span className="flex items-center gap-1">
-                {deckState.bpmInfo.current.toFixed(1)} BPM
+                {deckState.track.originalBPM} BPM
                 {bpmSyncEnabled && <Activity className="w-3 h-3 text-green-400" />}
               </span>
             ) : (
-              `${deckState.track?.bpm || 0} BPM`
+              <span>{deckState.track?.bpm || 0} BPM</span>
             )}
-          </button>
+          </div>
           <span>Key: {deckState.track?.key || '-'}</span>
         </div>
+        
+        {/* Global BPM Sync Info */}
+        {bpmSyncEnabled && deckState.track?.originalBPM && (
+          <div className="text-xs text-green-400 mt-1 space-y-1">
+            <div className="flex items-center justify-center gap-1">
+              <Target className="w-3 h-3" />
+              <span>Global: {globalBPM} BPM</span>
+            </div>
+            <div className="text-blue-400">
+              Rate: {getPlaybackRate().toFixed(3)}x
+            </div>
+          </div>
+        )}
+        
         {deckState.bpmInfo && deckState.bpmInfo.confidence > 0 && (
           <div className="text-xs text-gray-500 mt-1">
             Detected: {deckState.bpmInfo.original.toFixed(1)} BPM 
             ({(deckState.bpmInfo.confidence * 100).toFixed(0)}% confidence)
           </div>
         )}
-        {deckState.bpmInfo && deckState.bpmInfo.playbackRate !== 1 && (
-          <div className="text-xs text-blue-400 mt-1">
-            Rate: {deckState.bpmInfo.playbackRate.toFixed(3)}x
-          </div>
-        )}
       </div>
-
-      {/* BPM Sync Controls */}
-      {side === 'A' && (
-        <div className="mb-4 p-3 bg-gray-800/50 rounded-lg">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-300">Master BPM</span>
-            <button
-              onClick={toggleBPMSync}
-              className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${
-                bpmSyncEnabled 
-                  ? 'bg-green-600 text-white' 
-                  : 'bg-gray-600 text-gray-300'
-              }`}
-            >
-              {bpmSyncEnabled ? 'SYNC ON' : 'SYNC OFF'}
-            </button>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              value={masterBPM}
-              onChange={(e) => setMasterBPM(Number(e.target.value))}
-              className="flex-1 bg-black border border-purple-500/30 rounded px-2 py-1 text-white text-sm"
-              min="60"
-              max="200"
-            />
-            <span className="text-xs text-gray-400">BPM</span>
-          </div>
-        </div>
-      )}
 
       {/* Controls */}
       <div className="space-y-4">
@@ -505,22 +483,22 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             <RotateCcw className="w-6 h-6" />
           </motion.button>
 
-          {side === 'B' && (
-            <motion.button
-              onClick={handleSync}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`p-3 rounded-full transition-all ${
-                deckBState.isSyncing
-                  ? 'bg-blue-600 text-white animate-pulse'
-                  : 'bg-blue-600 text-white hover:bg-blue-500'
-              }`}
-              title="Sync to Master BPM"
-              disabled={deckBState.isSyncing}
-            >
-              <RefreshCw className={`w-6 h-6 ${deckBState.isSyncing ? 'animate-spin' : ''}`} />
-            </motion.button>
-          )}
+          <motion.button
+            onClick={handleSync}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`p-3 rounded-full transition-all ${
+              deckState.isSyncing
+                ? 'bg-blue-600 text-white animate-pulse'
+                : bpmSyncEnabled
+                ? 'bg-green-600 text-white hover:bg-green-500'
+                : 'bg-blue-600 text-white hover:bg-blue-500'
+            }`}
+            title={`Sync Deck ${side} to Global BPM`}
+            disabled={deckState.isSyncing || !deckState.track}
+          >
+            <RefreshCw className={`w-6 h-6 ${deckState.isSyncing ? 'animate-spin' : ''}`} />
+          </motion.button>
         </div>
 
         {/* Pitch Fader */}
@@ -560,15 +538,15 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             </div>
           )}
           
-          {deckBState.isSyncing && side === 'B' && (
+          {deckState.isSyncing && (
             <div className="text-xs text-blue-400 animate-pulse">
-              Syncing to Master BPM...
+              Syncing to Global BPM...
             </div>
           )}
 
-          {bpmSyncEnabled && deckState.bpmInfo && (
+          {bpmSyncEnabled && deckState.track?.originalBPM && (
             <div className="text-xs text-green-400">
-              BPM Sync: {deckState.bpmInfo.target} BPM
+              🎯 Synced to {globalBPM} BPM
             </div>
           )}
         </div>
@@ -577,7 +555,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         <div className="text-xs text-gray-500 text-center space-y-1">
           <div>Double-click jogwheel for backspin</div>
           <div>Drag to scrub • Scroll to bend tempo</div>
-          {bpmSyncEnabled && <div>🎯 BPM Sync Active</div>}
+          {bpmSyncEnabled && <div>🎯 Global BPM Sync Active</div>}
         </div>
       </div>
     </div>

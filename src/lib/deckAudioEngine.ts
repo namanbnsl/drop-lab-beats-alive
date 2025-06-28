@@ -14,12 +14,12 @@ export class DeckAudioEngine {
   public isPlaying: boolean = false;
   private currentBPM: number = 120;
   private originalBPM: number = 120;
-  private targetBPM: number = 120;
+  private globalBPM: number = 120;
   private trackDuration: number = 0;
   private startTime: number = 0;
   private pausedAt: number = 0;
   private cuePoint: number = 0;
-  private originalPlaybackRate: number = 1;
+  private basePlaybackRate: number = 1;
   private tempoBendTimeout: NodeJS.Timeout | null = null;
   private bpmDetectionResult: BPMDetectionResult | null = null;
 
@@ -57,7 +57,7 @@ export class DeckAudioEngine {
     this.backspinPlayer.load('/backspin.mp3').catch(console.warn);
   }
 
-  async loadTrack(url: string, providedBPM?: number): Promise<boolean> {
+  async loadTrack(url: string, userDefinedBPM?: number): Promise<boolean> {
     try {
       if (this.player) {
         this.player.dispose();
@@ -78,11 +78,11 @@ export class DeckAudioEngine {
       this.pausedAt = 0;
       this.cuePoint = 0;
 
-      // Detect BPM if not provided
-      if (providedBPM) {
-        this.originalBPM = providedBPM;
-        this.currentBPM = providedBPM;
-        console.log(`🎵 Track loaded with provided BPM: ${providedBPM}`);
+      // Use user-defined BPM if provided, otherwise detect
+      if (userDefinedBPM) {
+        this.originalBPM = userDefinedBPM;
+        this.currentBPM = userDefinedBPM;
+        console.log(`🎵 Track loaded with user-defined BPM: ${userDefinedBPM}`);
       } else {
         console.log('🔍 Detecting BPM...');
         try {
@@ -99,8 +99,8 @@ export class DeckAudioEngine {
         }
       }
 
-      // Set initial playback rate based on target BPM
-      this.updatePlaybackRateForBPM();
+      // Set initial playback rate
+      this.updatePlaybackRate();
       
       console.log(`✅ Track loaded: ${url} (${this.trackDuration.toFixed(2)}s, ${this.originalBPM} BPM)`);
       return true;
@@ -112,22 +112,24 @@ export class DeckAudioEngine {
   }
 
   /**
-   * Set the target BPM for synchronization
+   * Set global BPM sync - calculates playback rate to match global tempo
    */
-  setTargetBPM(bpm: number) {
-    this.targetBPM = bpm;
-    this.updatePlaybackRateForBPM();
-    console.log(`🎯 Target BPM set to ${bpm}, playback rate: ${this.originalPlaybackRate.toFixed(3)}x`);
+  setGlobalBPMSync(globalBPM: number, originalBPM: number) {
+    this.globalBPM = globalBPM;
+    this.originalBPM = originalBPM;
+    this.currentBPM = globalBPM;
+    this.updatePlaybackRate();
+    
+    console.log(`🎯 Global BPM Sync: ${originalBPM} → ${globalBPM} BPM (rate: ${this.basePlaybackRate.toFixed(3)}x)`);
   }
 
   /**
-   * Update playback rate to match target BPM
+   * Update playback rate based on global BPM sync
    */
-  private updatePlaybackRateForBPM() {
+  private updatePlaybackRate() {
     if (this.player && this.originalBPM > 0) {
-      this.originalPlaybackRate = calculatePlaybackRate(this.originalBPM, this.targetBPM);
-      this.player.playbackRate = this.originalPlaybackRate;
-      this.currentBPM = this.targetBPM;
+      this.basePlaybackRate = calculatePlaybackRate(this.originalBPM, this.globalBPM);
+      this.player.playbackRate = this.basePlaybackRate;
     }
   }
 
@@ -138,8 +140,8 @@ export class DeckAudioEngine {
     return {
       original: this.originalBPM,
       current: this.currentBPM,
-      target: this.targetBPM,
-      playbackRate: this.originalPlaybackRate,
+      target: this.globalBPM,
+      playbackRate: this.basePlaybackRate,
       confidence: this.bpmDetectionResult?.confidence || 0
     };
   }
@@ -150,7 +152,7 @@ export class DeckAudioEngine {
       this.startTime = Tone.now() - startPosition;
       this.player.start(0, startPosition);
       this.isPlaying = true;
-      console.log(`▶️ Track playing from ${startPosition.toFixed(2)}s at ${this.currentBPM} BPM (${this.originalPlaybackRate.toFixed(3)}x rate)`);
+      console.log(`▶️ Track playing from ${startPosition.toFixed(2)}s at ${this.currentBPM} BPM (${this.basePlaybackRate.toFixed(3)}x rate)`);
     }
   }
 
@@ -200,8 +202,8 @@ export class DeckAudioEngine {
 
   bendTempo(rate: number) {
     if (this.player && this.isLoaded) {
-      // Apply tempo bend on top of BPM sync rate
-      this.player.playbackRate = this.originalPlaybackRate * rate;
+      // Apply tempo bend on top of global BPM sync rate
+      this.player.playbackRate = this.basePlaybackRate * rate;
       
       // Clear any existing timeout
       if (this.tempoBendTimeout) {
@@ -212,7 +214,7 @@ export class DeckAudioEngine {
       if (rate !== 1.0) {
         this.tempoBendTimeout = setTimeout(() => {
           if (this.player) {
-            this.player.playbackRate = this.originalPlaybackRate;
+            this.player.playbackRate = this.basePlaybackRate;
           }
         }, 500);
       }
@@ -261,8 +263,8 @@ export class DeckAudioEngine {
       
       if (this.player) {
         const pitchRatio = Math.pow(2, cents / 1200);
-        // Apply pitch change on top of BPM sync rate
-        this.player.playbackRate = this.originalPlaybackRate * pitchRatio;
+        // Apply pitch change on top of global BPM sync rate
+        this.player.playbackRate = this.basePlaybackRate * pitchRatio;
       }
     }
   }

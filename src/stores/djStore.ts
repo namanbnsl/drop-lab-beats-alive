@@ -8,6 +8,7 @@ interface Track {
   bpm: number;
   key: string;
   url?: string;
+  originalBPM?: number; // User-defined original BPM
 }
 
 interface DeckState {
@@ -39,18 +40,23 @@ interface DJState {
   // Mixer
   crossfader: number;
   
-  // BPM Sync
-  masterBPM: number;
+  // Global BPM Control
+  globalBPM: number;
   bpmSyncEnabled: boolean;
   
   // Transport for sync
   isTransportRunning: boolean;
+  
+  // BPM Input Modal State
+  showBPMModal: boolean;
+  pendingTrack: { deck: 'A' | 'B'; track: Track } | null;
   
   // Actions
   initializeAudio: () => Promise<void>;
   playDeck: (deck: 'A' | 'B') => void;
   pauseDeck: (deck: 'A' | 'B') => void;
   loadTrack: (deck: 'A' | 'B', track: Track) => Promise<void>;
+  confirmTrackBPM: (bpm: number) => Promise<void>;
   setPitch: (deck: 'A' | 'B', value: number) => void;
   setEQ: (deck: 'A' | 'B', eq: { low: number; mid: number; high: number }) => void;
   setVolume: (deck: 'A' | 'B', value: number) => void;
@@ -60,8 +66,11 @@ interface DJState {
   triggerBackspin: (deck: 'A' | 'B') => void;
   bendTempo: (deck: 'A' | 'B', rate: number) => void;
   syncDecks: () => void;
-  setMasterBPM: (bpm: number) => void;
+  setGlobalBPM: (bpm: number) => void;
   toggleBPMSync: () => void;
+  syncDeckToGlobal: (deck: 'A' | 'B') => void;
+  resetToOriginalBPMs: () => void;
+  setShowBPMModal: (show: boolean) => void;
   cleanup: () => void;
 }
 
@@ -83,9 +92,12 @@ export const useDJStore = create<DJState>((set, get) => ({
   deckBState: defaultDeckState,
   
   crossfader: 50,
-  masterBPM: 120,
+  globalBPM: 128,
   bpmSyncEnabled: true,
   isTransportRunning: false,
+  
+  showBPMModal: false,
+  pendingTrack: null,
 
   initializeAudio: async () => {
     try {
@@ -95,11 +107,11 @@ export const useDJStore = create<DJState>((set, get) => ({
       const deckB = new DeckAudioEngine();
       
       // Initialize transport for sync
-      Tone.Transport.bpm.value = 120;
+      Tone.Transport.bpm.value = 128;
       
       set({ deckA, deckB });
       
-      console.log('🎧 DJ Audio System Initialized with BPM Sync');
+      console.log('🎧 DJ Audio System Initialized with Global BPM Sync');
     } catch (error) {
       console.error('Failed to initialize audio:', error);
     }
@@ -116,14 +128,11 @@ export const useDJStore = create<DJState>((set, get) => ({
       // Update BPM info
       const bpmInfo = engine.getBPMInfo();
       
-      // Start transport if this is deck A and not already running
-      if (deck === 'A' && !state.isTransportRunning) {
-        Tone.Transport.bpm.value = bpmInfo.current;
+      // Start transport if not already running
+      if (!state.isTransportRunning) {
+        Tone.Transport.bpm.value = state.globalBPM;
         Tone.Transport.start();
-        set({ 
-          isTransportRunning: true,
-          masterBPM: bpmInfo.current
-        });
+        set({ isTransportRunning: true });
       }
       
       set({
@@ -154,37 +163,51 @@ export const useDJStore = create<DJState>((set, get) => ({
 
   loadTrack: async (deck, track) => {
     const state = get();
+    
+    // Show BPM input modal for user to set original BPM
+    set({
+      showBPMModal: true,
+      pendingTrack: { deck, track }
+    });
+  },
+
+  confirmTrackBPM: async (originalBPM) => {
+    const state = get();
+    const { pendingTrack } = state;
+    
+    if (!pendingTrack) return;
+    
+    const { deck, track } = pendingTrack;
     const engine = deck === 'A' ? state.deckA : state.deckB;
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
     if (engine && track.url) {
-      const loaded = await engine.loadTrack(track.url, track.bpm);
+      // Create track with user-defined original BPM
+      const trackWithBPM = { ...track, originalBPM };
+      
+      const loaded = await engine.loadTrack(track.url, originalBPM);
       if (loaded) {
-        const bpmInfo = engine.getBPMInfo();
-        
-        // If BPM sync is enabled, set target BPM
+        // Calculate and apply playback rate for global BPM sync
         if (state.bpmSyncEnabled) {
-          let targetBPM = state.masterBPM;
-          
-          // If this is the first track loaded, use its BPM as master
-          if (deck === 'A' && (!state.deckAState.track && !state.deckBState.track)) {
-            targetBPM = snapBPMToCommon(bpmInfo.original);
-            get().setMasterBPM(targetBPM);
-          }
-          
-          engine.setTargetBPM(targetBPM);
+          const playbackRate = state.globalBPM / originalBPM;
+          engine.setGlobalBPMSync(state.globalBPM, originalBPM);
+          console.log(`🎯 Deck ${deck}: ${originalBPM} BPM → ${state.globalBPM} BPM (rate: ${playbackRate.toFixed(3)}x)`);
         }
+        
+        const bpmInfo = engine.getBPMInfo();
         
         set({
           [deckState]: {
             ...state[deckState],
-            track,
+            track: trackWithBPM,
             isPlaying: false,
-            bpmInfo: engine.getBPMInfo()
+            bpmInfo
           },
+          showBPMModal: false,
+          pendingTrack: null
         });
         
-        console.log(`🎵 Loaded "${track.name}" to Deck ${deck} - Original: ${bpmInfo.original} BPM, Target: ${bpmInfo.target} BPM`);
+        console.log(`🎵 Loaded "${track.name}" to Deck ${deck} - Original: ${originalBPM} BPM, Global: ${state.globalBPM} BPM`);
       }
     }
   },
@@ -324,11 +347,11 @@ export const useDJStore = create<DJState>((set, get) => ({
         },
       });
 
-      // Set both decks to master BPM
-      deckB.setTargetBPM(state.masterBPM);
+      // Sync deck B to global BPM
+      get().syncDeckToGlobal('B');
       
-      // Set transport BPM to master BPM
-      Tone.Transport.bpm.value = state.masterBPM;
+      // Set transport BPM to global BPM
+      Tone.Transport.bpm.value = state.globalBPM;
       
       if (!state.isTransportRunning) {
         Tone.Transport.start();
@@ -352,7 +375,7 @@ export const useDJStore = create<DJState>((set, get) => ({
               bpmInfo: deckB.getBPMInfo()
             },
           });
-          console.log(`🎯 Deck B synced to Master BPM: ${state.masterBPM}`);
+          console.log(`🎯 Deck B synced to Global BPM: ${state.globalBPM}`);
         }
       }, `+${beatsUntilNextBar}n`);
 
@@ -360,19 +383,19 @@ export const useDJStore = create<DJState>((set, get) => ({
     }
   },
 
-  setMasterBPM: (bpm) => {
+  setGlobalBPM: (bpm) => {
     const state = get();
-    const snappedBPM = snapBPMToCommon(bpm);
+    const snappedBPM = Math.round(bpm); // Keep user's exact input
     
-    set({ masterBPM: snappedBPM });
+    set({ globalBPM: snappedBPM });
     
     // Update transport BPM
     Tone.Transport.bpm.value = snappedBPM;
     
     // Update both decks if BPM sync is enabled
     if (state.bpmSyncEnabled) {
-      if (state.deckA) {
-        state.deckA.setTargetBPM(snappedBPM);
+      if (state.deckA && state.deckAState.track?.originalBPM) {
+        state.deckA.setGlobalBPMSync(snappedBPM, state.deckAState.track.originalBPM);
         set({
           deckAState: {
             ...state.deckAState,
@@ -381,8 +404,8 @@ export const useDJStore = create<DJState>((set, get) => ({
         });
       }
       
-      if (state.deckB) {
-        state.deckB.setTargetBPM(snappedBPM);
+      if (state.deckB && state.deckBState.track?.originalBPM) {
+        state.deckB.setGlobalBPMSync(snappedBPM, state.deckBState.track.originalBPM);
         set({
           deckBState: {
             ...state.deckBState,
@@ -392,7 +415,7 @@ export const useDJStore = create<DJState>((set, get) => ({
       }
     }
     
-    console.log(`🎯 Master BPM set to ${snappedBPM}`);
+    console.log(`🎯 Global BPM set to ${snappedBPM}`);
   },
 
   toggleBPMSync: () => {
@@ -402,9 +425,9 @@ export const useDJStore = create<DJState>((set, get) => ({
     set({ bpmSyncEnabled: newSyncState });
     
     if (newSyncState) {
-      // Enable sync - set both decks to master BPM
-      if (state.deckA) {
-        state.deckA.setTargetBPM(state.masterBPM);
+      // Enable sync - set both decks to global BPM
+      if (state.deckA && state.deckAState.track?.originalBPM) {
+        state.deckA.setGlobalBPMSync(state.globalBPM, state.deckAState.track.originalBPM);
         set({
           deckAState: {
             ...state.deckAState,
@@ -413,8 +436,8 @@ export const useDJStore = create<DJState>((set, get) => ({
         });
       }
       
-      if (state.deckB) {
-        state.deckB.setTargetBPM(state.masterBPM);
+      if (state.deckB && state.deckBState.track?.originalBPM) {
+        state.deckB.setGlobalBPMSync(state.globalBPM, state.deckBState.track.originalBPM);
         set({
           deckBState: {
             ...state.deckBState,
@@ -423,11 +446,11 @@ export const useDJStore = create<DJState>((set, get) => ({
         });
       }
       
-      console.log('🔄 BPM Sync enabled');
+      console.log('🔄 Global BPM Sync enabled');
     } else {
       // Disable sync - reset to original BPMs
-      if (state.deckA) {
-        state.deckA.setTargetBPM(state.deckA.getOriginalBPM());
+      if (state.deckA && state.deckAState.track?.originalBPM) {
+        state.deckA.setGlobalBPMSync(state.deckAState.track.originalBPM, state.deckAState.track.originalBPM);
         set({
           deckAState: {
             ...state.deckAState,
@@ -436,8 +459,8 @@ export const useDJStore = create<DJState>((set, get) => ({
         });
       }
       
-      if (state.deckB) {
-        state.deckB.setTargetBPM(state.deckB.getOriginalBPM());
+      if (state.deckB && state.deckBState.track?.originalBPM) {
+        state.deckB.setGlobalBPMSync(state.deckBState.track.originalBPM, state.deckBState.track.originalBPM);
         set({
           deckBState: {
             ...state.deckBState,
@@ -446,7 +469,60 @@ export const useDJStore = create<DJState>((set, get) => ({
         });
       }
       
-      console.log('⏸️ BPM Sync disabled');
+      console.log('⏸️ Global BPM Sync disabled');
+    }
+  },
+
+  syncDeckToGlobal: (deck) => {
+    const state = get();
+    const engine = deck === 'A' ? state.deckA : state.deckB;
+    const deckState = deck === 'A' ? state.deckAState : state.deckBState;
+    
+    if (engine && deckState.track?.originalBPM) {
+      engine.setGlobalBPMSync(state.globalBPM, deckState.track.originalBPM);
+      
+      const newDeckState = deck === 'A' ? 'deckAState' : 'deckBState';
+      set({
+        [newDeckState]: {
+          ...deckState,
+          bpmInfo: engine.getBPMInfo()
+        }
+      });
+      
+      console.log(`🎯 Deck ${deck} synced to Global BPM: ${state.globalBPM}`);
+    }
+  },
+
+  resetToOriginalBPMs: () => {
+    const state = get();
+    
+    if (state.deckA && state.deckAState.track?.originalBPM) {
+      state.deckA.setGlobalBPMSync(state.deckAState.track.originalBPM, state.deckAState.track.originalBPM);
+      set({
+        deckAState: {
+          ...state.deckAState,
+          bpmInfo: state.deckA.getBPMInfo()
+        }
+      });
+    }
+    
+    if (state.deckB && state.deckBState.track?.originalBPM) {
+      state.deckB.setGlobalBPMSync(state.deckBState.track.originalBPM, state.deckBState.track.originalBPM);
+      set({
+        deckBState: {
+          ...state.deckBState,
+          bpmInfo: state.deckB.getBPMInfo()
+        }
+      });
+    }
+    
+    console.log('🔄 Reset all decks to original BPMs');
+  },
+
+  setShowBPMModal: (show) => {
+    set({ showBPMModal: show });
+    if (!show) {
+      set({ pendingTrack: null });
     }
   },
 
