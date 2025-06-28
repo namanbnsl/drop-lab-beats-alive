@@ -1,125 +1,331 @@
-
 import * as Tone from 'tone';
 
-export class DeckAudioEngine {
-  public player: Tone.Player;
-  public eq: Tone.EQ3;
-  public filter: Tone.Filter;
-  public reverb: Tone.Reverb;
-  public delay: Tone.FeedbackDelay;
-  public gain: Tone.Gain;
-  public analyser: Tone.Analyser;
-  public isLoaded: boolean = false;
-  public duration: number = 0;
+export interface AudioPattern {
+  notes: Array<{
+    time: string;
+    note: string;
+    duration: string;
+    velocity?: number;
+  }>;
+  drums: Array<{
+    time: string;
+    drum: string;
+    velocity?: number;
+  }>;
+}
+
+export class AudioEngine {
+  private synths: Map<string, Tone.PolySynth> = new Map();
+  private drums: Map<string, Tone.MembraneSynth | Tone.MetalSynth | Tone.NoiseSynth> = new Map();
+  private effects: Map<string, Tone.Reverb | Tone.FeedbackDelay | Tone.Filter | Tone.Distortion> = new Map();
+  private masterGain: Tone.Gain;
+  private isInitialized = false;
 
   constructor() {
-    // Initialize audio chain
-    this.player = new Tone.Player();
-    this.eq = new Tone.EQ3();
-    this.filter = new Tone.Filter(20000, 'lowpass');
-    this.reverb = new Tone.Reverb(1);
-    this.delay = new Tone.FeedbackDelay('8n', 0);
-    this.gain = new Tone.Gain(0.8);
-    this.analyser = new Tone.Analyser('waveform', 1024);
+    this.masterGain = new Tone.Gain(0.7).toDestination();
+    this.initializeInstruments();
+  }
 
-    // Connect audio chain
-    this.player.chain(
-      this.eq,
-      this.filter,
-      this.reverb,
-      this.delay,
-      this.gain,
-      this.analyser,
-      Tone.Destination
-    );
+  private async initializeInstruments() {
+    if (this.isInitialized) return;
 
-    // Setup player events
-    this.player.onstop = () => {
-      console.log('Player stopped');
+    // Initialize synthesizers for different genres
+    this.synths.set('lead', new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: 'sawtooth' },
+      envelope: { attack: 0.1, decay: 0.2, sustain: 0.3, release: 0.8 }
+    }).connect(this.masterGain));
+
+    this.synths.set('bass', new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: 'square' },
+      envelope: { attack: 0.05, decay: 0.3, sustain: 0.4, release: 1.2 }
+    }).connect(this.masterGain));
+
+    this.synths.set('pad', new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: 'sine' },
+      envelope: { attack: 0.8, decay: 0.5, sustain: 0.7, release: 2.0 }
+    }).connect(this.masterGain));
+
+    this.synths.set('pluck', new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: 'triangle' },
+      envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 0.5 }
+    }).connect(this.masterGain));
+
+    // Initialize drum machines
+    this.drums.set('kick', new Tone.MembraneSynth({
+      pitchDecay: 0.05,
+      octaves: 10,
+      oscillator: { type: 'sine' },
+      envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
+    }).connect(this.masterGain));
+
+    this.drums.set('snare', new Tone.NoiseSynth({
+      noise: { type: 'white' },
+      envelope: { attack: 0.005, decay: 0.1, sustain: 0.0 }
+    }).connect(this.masterGain));
+
+    this.drums.set('hihat', (() => {
+      const synth = new Tone.MetalSynth({
+        envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
+        harmonicity: 5.1,
+        modulationIndex: 32,
+        resonance: 4000,
+        octaves: 1.5
+      }).connect(this.masterGain);
+      synth.frequency.value = 200;
+      return synth;
+    })());
+
+    // Initialize effects
+    this.effects.set('reverb', new Tone.Reverb(2).connect(this.masterGain));
+    this.effects.set('delay', new Tone.FeedbackDelay('8n', 0.3).connect(this.masterGain));
+    this.effects.set('filter', new Tone.Filter(1000, 'lowpass').connect(this.masterGain));
+    this.effects.set('distortion', new Tone.Distortion(0.4).connect(this.masterGain));
+
+    this.isInitialized = true;
+  }
+
+  async start() {
+    await Tone.start();
+    await this.initializeInstruments();
+  }
+
+  generatePattern(genreId: string): AudioPattern {
+    const patterns = this.getGenrePatterns();
+    return patterns[genreId] || patterns['default'];
+  }
+
+  private getGenrePatterns(): Record<string, AudioPattern> {
+    return {
+      'bossa-nova': {
+        notes: [
+          { time: '0:0:0', note: 'C4', duration: '4n' },
+          { time: '0:1:0', note: 'E4', duration: '4n' },
+          { time: '0:2:0', note: 'G4', duration: '4n' },
+          { time: '0:3:0', note: 'B4', duration: '4n' }
+        ],
+        drums: [
+          { time: '0:0:0', drum: 'kick' },
+          { time: '0:2:0', drum: 'snare' },
+          { time: '0:1:0', drum: 'hihat' },
+          { time: '0:3:0', drum: 'hihat' }
+        ]
+      },
+      'chillwave': {
+        notes: [
+          { time: '0:0:0', note: 'A3', duration: '2n' },
+          { time: '0:2:0', note: 'C4', duration: '2n' },
+          { time: '1:0:0', note: 'E4', duration: '2n' },
+          { time: '1:2:0', note: 'G4', duration: '2n' }
+        ],
+        drums: [
+          { time: '0:0:0', drum: 'kick' },
+          { time: '0:2:0', drum: 'kick' },
+          { time: '0:1:0', drum: 'hihat' },
+          { time: '0:3:0', drum: 'hihat' }
+        ]
+      },
+      'drum-and-bass': {
+        notes: [
+          { time: '0:0:0', note: 'D2', duration: '8n' },
+          { time: '0:0:2', note: 'D2', duration: '8n' },
+          { time: '0:1:0', note: 'F2', duration: '8n' },
+          { time: '0:1:2', note: 'A2', duration: '8n' }
+        ],
+        drums: [
+          { time: '0:0:0', drum: 'kick' },
+          { time: '0:1:0', drum: 'snare' },
+          { time: '0:0:2', drum: 'hihat' },
+          { time: '0:1:2', drum: 'hihat' },
+          { time: '0:2:2', drum: 'hihat' },
+          { time: '0:3:2', drum: 'hihat' }
+        ]
+      },
+      'shoegaze': {
+        notes: [
+          { time: '0:0:0', note: 'E3', duration: '1n' },
+          { time: '0:0:0', note: 'G3', duration: '1n' },
+          { time: '0:0:0', note: 'B3', duration: '1n' },
+          { time: '1:0:0', note: 'D4', duration: '1n' },
+          { time: '1:0:0', note: 'F#4', duration: '1n' },
+          { time: '1:0:0', note: 'A4', duration: '1n' }
+        ],
+        drums: [
+          { time: '0:0:0', drum: 'kick' },
+          { time: '0:2:0', drum: 'snare' },
+          { time: '0:1:0', drum: 'hihat' },
+          { time: '0:3:0', drum: 'hihat' }
+        ]
+      },
+      'chiptune': {
+        notes: [
+          { time: '0:0:0', note: 'C5', duration: '16n' },
+          { time: '0:0:1', note: 'E5', duration: '16n' },
+          { time: '0:0:2', note: 'G5', duration: '16n' },
+          { time: '0:0:3', note: 'C6', duration: '16n' },
+          { time: '0:1:0', note: 'G5', duration: '16n' },
+          { time: '0:1:1', note: 'E5', duration: '16n' },
+          { time: '0:1:2', note: 'C5', duration: '16n' },
+          { time: '0:1:3', note: 'E5', duration: '16n' }
+        ],
+        drums: [
+          { time: '0:0:0', drum: 'kick' },
+          { time: '0:1:0', drum: 'kick' },
+          { time: '0:2:0', drum: 'snare' },
+          { time: '0:3:0', drum: 'kick' }
+        ]
+      },
+      'trip-hop': {
+        notes: [
+          { time: '0:0:0', note: 'F#2', duration: '4n' },
+          { time: '0:2:0', note: 'A2', duration: '4n' },
+          { time: '1:0:0', note: 'C#3', duration: '4n' },
+          { time: '1:2:0', note: 'E3', duration: '4n' }
+        ],
+        drums: [
+          { time: '0:0:0', drum: 'kick' },
+          { time: '0:2:2', drum: 'snare' },
+          { time: '0:1:2', drum: 'hihat' },
+          { time: '0:3:0', drum: 'hihat' }
+        ]
+      },
+      'default': {
+        notes: [
+          { time: '0:0:0', note: 'C4', duration: '4n' },
+          { time: '0:1:0', note: 'E4', duration: '4n' },
+          { time: '0:2:0', note: 'G4', duration: '4n' },
+          { time: '0:3:0', note: 'C5', duration: '4n' }
+        ],
+        drums: [
+          { time: '0:0:0', drum: 'kick' },
+          { time: '0:2:0', drum: 'snare' },
+          { time: '0:1:0', drum: 'hihat' },
+          { time: '0:3:0', drum: 'hihat' }
+        ]
+      }
     };
   }
 
-  async loadTrack(url: string) {
-    try {
-      await this.player.load(url);
-      this.isLoaded = true;
-      this.duration = this.player.buffer.duration;
-      return true;
-    } catch (error) {
-      console.error('Error loading track:', error);
-      return false;
+  async playPattern(pattern: AudioPattern, genreId: string) {
+    await this.start();
+
+    // Stop any existing patterns
+    Tone.Transport.stop();
+    Tone.Transport.cancel();
+
+    // Configure synth based on genre
+    this.configureSynthForGenre(genreId);
+
+    // Schedule notes
+    const notePart = new Tone.Part((time, note) => {
+      const synth = this.getSynthForGenre(genreId);
+      synth?.triggerAttackRelease(note.note, note.duration, time, note.velocity || 0.7);
+    }, pattern.notes);
+
+    // Schedule drums
+    const drumPart = new Tone.Part((time, drum) => {
+      const drumSynth = this.drums.get(drum.drum);
+      if (drumSynth) {
+        if (drum.drum === 'kick' || drum.drum === 'snare') {
+          (drumSynth as Tone.MembraneSynth | Tone.NoiseSynth).triggerAttackRelease('C2', '8n', time, drum.velocity || 0.8);
+        } else {
+          (drumSynth as Tone.MetalSynth).triggerAttackRelease('16n', time, drum.velocity || 0.6);
+        }
+      }
+    }, pattern.drums);
+
+    // Set loop points
+    notePart.loop = true;
+    notePart.loopEnd = '2m';
+    drumPart.loop = true;
+    drumPart.loopEnd = '2m';
+
+    // Start parts
+    notePart.start(0);
+    drumPart.start(0);
+
+    // Set tempo based on genre
+    Tone.Transport.bpm.value = this.getBPMForGenre(genreId);
+    Tone.Transport.start();
+
+    return { notePart, drumPart };
+  }
+
+  private configureSynthForGenre(genreId: string) {
+    const leadSynth = this.synths.get('lead');
+    if (!leadSynth) return;
+
+    switch (genreId) {
+      case 'chiptune':
+        leadSynth.set({
+          oscillator: { type: 'square' },
+          envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 0.3 }
+        });
+        break;
+      case 'shoegaze':
+        leadSynth.set({
+          oscillator: { type: 'sawtooth' },
+          envelope: { attack: 0.5, decay: 0.3, sustain: 0.8, release: 1.5 }
+        });
+        break;
+      case 'drum-and-bass':
+        leadSynth.set({
+          oscillator: { type: 'square' },
+          envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.5 }
+        });
+        break;
+      default:
+        leadSynth.set({
+          oscillator: { type: 'triangle' },
+          envelope: { attack: 0.1, decay: 0.2, sustain: 0.3, release: 0.8 }
+        });
     }
   }
 
-  play() {
-    if (this.isLoaded && Tone.context.state === 'running') {
-      this.player.start();
+  private getSynthForGenre(genreId: string): Tone.PolySynth | undefined {
+    switch (genreId) {
+      case 'drum-and-bass':
+      case 'trip-hop':
+        return this.synths.get('bass');
+      case 'shoegaze':
+      case 'chillwave':
+        return this.synths.get('pad');
+      case 'bossa-nova':
+        return this.synths.get('pluck');
+      default:
+        return this.synths.get('lead');
     }
   }
 
-  pause() {
-    this.player.stop();
+  private getBPMForGenre(genreId: string): number {
+    const bpmMap: Record<string, number> = {
+      'bossa-nova': 120,
+      'chillwave': 85,
+      'drum-and-bass': 174,
+      'post-punk': 140,
+      'shoegaze': 110,
+      'funk': 115,
+      'chiptune': 150,
+      'trip-hop': 90,
+      'dubstep': 140,
+      'thrash': 180
+    };
+    return bpmMap[genreId] || 120;
   }
 
-  scrub(position: number) {
-    if (this.isLoaded) {
-      const time = position * this.duration;
-      this.player.seek(time);
-    }
+  stop() {
+    Tone.Transport.stop();
+    Tone.Transport.cancel();
   }
 
-  setEQ(low: number, mid: number, high: number) {
-    // Convert 0-100 range to -12 to +12 dB
-    this.eq.low.value = (low - 50) * 0.24;
-    this.eq.mid.value = (mid - 50) * 0.24;
-    this.eq.high.value = (high - 50) * 0.24;
-  }
-
-  setFilter(value: number) {
-    // Convert 0-100 to frequency sweep
-    if (value < 50) {
-      // Low-pass filter (50 to 0 = 20000Hz to 200Hz)
-      this.filter.type = 'lowpass';
-      this.filter.frequency.value = 200 + (50 - value) * 396;
-    } else {
-      // High-pass filter (50 to 100 = 20Hz to 2000Hz)
-      this.filter.type = 'highpass';
-      this.filter.frequency.value = 20 + (value - 50) * 39.6;
-    }
-  }
-
-  setReverb(wet: number) {
-    this.reverb.wet.value = wet / 100;
-  }
-
-  setDelay(wet: number) {
-    this.delay.wet.value = wet / 100;
-  }
-
-  setGain(value: number) {
-    this.gain.gain.value = value / 100;
-  }
-
-  setPitch(value: number) {
-    // Convert -25 to +25 to playback rate
-    this.player.playbackRate = 1 + (value / 100);
-  }
-
-  getWaveform(): Float32Array {
-    return this.analyser.getValue() as Float32Array;
-  }
-
-  getCurrentTime(): number {
-    return this.player.immediate();
+  setMasterVolume(volume: number) {
+    this.masterGain.gain.rampTo(volume, 0.1);
   }
 
   dispose() {
-    this.player.dispose();
-    this.eq.dispose();
-    this.filter.dispose();
-    this.reverb.dispose();
-    this.delay.dispose();
-    this.gain.dispose();
-    this.analyser.dispose();
+    this.stop();
+    this.synths.forEach(synth => synth.dispose());
+    this.drums.forEach(drum => drum.dispose());
+    this.effects.forEach(effect => effect.dispose());
+    this.masterGain.dispose();
   }
 }
