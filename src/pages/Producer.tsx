@@ -13,7 +13,7 @@ import GridSection from '../components/Producer/GridSection';
 import FXSection from '../components/Producer/FXSection';
 import MixerSection from '../components/Producer/MixerSection';
 import ExportSection from '../components/Producer/ExportSection';
-import { decode, decodeAudioData } from '../../useful_resources/utils';
+import { decode, decodeAudioData } from '../lib/audioUtils';
 
 const Producer = () => {
   const navigate = useNavigate();
@@ -87,7 +87,7 @@ const Producer = () => {
             await audioContext.resume();
           }
 
-          // Decode base64 PCM data using /useful_resources utilities
+          // Decode base64 PCM data using audioUtils utilities
           const decodedData = decode(audioChunk); // audioChunk is base64 string
           const audioBuffer = await decodeAudioData(
             decodedData,
@@ -101,7 +101,7 @@ const Producer = () => {
           source.buffer = audioBuffer;
           source.connect(outputNode);
 
-          // Handle timing and underrun protection (matching /useful_resources)
+          // Handle timing and underrun protection
           if (nextStartTime === 0) {
             nextStartTime = audioContext.currentTime + bufferTime;
             setTimeout(() => {
