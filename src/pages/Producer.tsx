@@ -479,13 +479,6 @@ const Producer = () => {
       <main className="relative z-10">
         <WelcomeSection />
         <MusicGenerationSection />
-        <DrumSection
-          onGenerateDrums={async () => null}
-          onPlayDrums={() => { }}
-          drumSequence={null}
-          modelsLoaded={!!lyria}
-        />
-        <GridSection />
         <ExportSection
           onExportMelody={() => exportToMidi(lyria, 'droplab-melody')}
           onExportDrums={() => exportToMidi(lyria, 'droplab-drums')}
