@@ -12,6 +12,7 @@ const DJ = () => {
   const navigate = useNavigate();
   const [showLibrary, setShowLibrary] = useState(true);
   const [showFirstTime, setShowFirstTime] = useState(false);
+  
   const { cleanup } = useDJStore();
 
   useEffect(() => {
@@ -46,7 +47,7 @@ const DJ = () => {
           <span className="text-xl font-bold">DropLab</span>
         </button>
         <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
-          DJ Mode
+          DJ Mode - Auto-Sync
         </h1>
         <div className="flex gap-2">
           <button
