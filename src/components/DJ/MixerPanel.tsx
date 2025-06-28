@@ -2,7 +2,8 @@
 import React from 'react';
 import { useDJStore } from '../../stores/djStore';
 import WaveformDisplay from './WaveformDisplay';
-import FXKnob from './FXKnob';
+import VolumeFader from './VolumeFader';
+import FXStack from './FXStack';
 
 const MixerPanel = () => {
   const {
@@ -12,42 +13,21 @@ const MixerPanel = () => {
     deckBState,
     setCrossfader,
     setMasterVolume,
-    setFX,
-    fx,
+    setVolume,
+    setDeckFX,
   } = useDJStore();
 
   const handleDeckAFX = (fxType: 'filter' | 'reverb' | 'delay', value: number) => {
-    const state = useDJStore.getState();
-    if (state.deckA) {
-      switch (fxType) {
-        case 'filter':
-          state.deckA.setFilter(value);
-          break;
-        case 'reverb':
-          state.deckA.setReverb(value);
-          break;
-        case 'delay':
-          state.deckA.setDelay(value);
-          break;
-      }
-    }
+    setDeckFX('A', { [fxType]: value });
   };
 
   const handleDeckBFX = (fxType: 'filter' | 'reverb' | 'delay', value: number) => {
-    const state = useDJStore.getState();
-    if (state.deckB) {
-      switch (fxType) {
-        case 'filter':
-          state.deckB.setFilter(value);
-          break;
-        case 'reverb':
-          state.deckB.setReverb(value);
-          break;
-        case 'delay':
-          state.deckB.setDelay(value);
-          break;
-      }
-    }
+    setDeckFX('B', { [fxType]: value });
+  };
+
+  const handleCrossfaderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
+    setCrossfader(value);
   };
 
   return (
@@ -57,26 +37,18 @@ const MixerPanel = () => {
       </div>
 
       <div className="flex justify-between items-start space-x-6">
-        {/* Deck A FX Strip */}
-        <div className="flex flex-col items-center space-y-4">
-          <div className="text-xs text-purple-400 font-semibold mb-2">DECK A FX</div>
-          <div className="space-y-4">
-            <FXKnob
-              label="Filter"
-              value={fx.filter}
-              onChange={(value) => handleDeckAFX('filter', value)}
-            />
-            <FXKnob
-              label="Reverb"
-              value={fx.reverb}
-              onChange={(value) => handleDeckAFX('reverb', value)}
-            />
-            <FXKnob
-              label="Delay"
-              value={fx.delay}
-              onChange={(value) => handleDeckAFX('delay', value)}
-            />
-          </div>
+        {/* Deck A Controls */}
+        <div className="flex flex-col items-center space-y-6">
+          <VolumeFader
+            deck="A"
+            value={deckAState.volume}
+            onChange={(value) => setVolume('A', value)}
+          />
+          <FXStack
+            deck="A"
+            fx={deckAState.fx}
+            onFXChange={handleDeckAFX}
+          />
         </div>
 
         {/* Center section with waveform and controls */}
@@ -124,7 +96,7 @@ const MixerPanel = () => {
                 min="0"
                 max="100"
                 value={crossfader}
-                onChange={(e) => setCrossfader(Number(e.target.value))}
+                onChange={handleCrossfaderChange}
                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer crossfader"
               />
               <div className="flex justify-between text-xs text-gray-400 mt-1">
@@ -140,26 +112,18 @@ const MixerPanel = () => {
           </div>
         </div>
 
-        {/* Deck B FX Strip */}
-        <div className="flex flex-col items-center space-y-4">
-          <div className="text-xs text-purple-400 font-semibold mb-2">DECK B FX</div>
-          <div className="space-y-4">
-            <FXKnob
-              label="Filter"
-              value={fx.filter}
-              onChange={(value) => handleDeckBFX('filter', value)}
-            />
-            <FXKnob
-              label="Reverb"
-              value={fx.reverb}
-              onChange={(value) => handleDeckBFX('reverb', value)}
-            />
-            <FXKnob
-              label="Delay"
-              value={fx.delay}
-              onChange={(value) => handleDeckBFX('delay', value)}
-            />
-          </div>
+        {/* Deck B Controls */}
+        <div className="flex flex-col items-center space-y-6">
+          <VolumeFader
+            deck="B"
+            value={deckBState.volume}
+            onChange={(value) => setVolume('B', value)}
+          />
+          <FXStack
+            deck="B"
+            fx={deckBState.fx}
+            onFXChange={handleDeckBFX}
+          />
         </div>
       </div>
     </div>

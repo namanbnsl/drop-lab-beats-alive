@@ -1,8 +1,8 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, RotateCcw, Zap, Upload } from 'lucide-react';
+import { Play, Pause, RotateCcw, Zap } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
+import CuePads from './CuePads';
 
 interface CDJDeckProps {
   side: 'A' | 'B';
@@ -21,7 +21,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     pauseDeck,
     setPitch,
     setEQ,
-    setVolume,
     initializeAudio,
   } = useDJStore();
 
@@ -29,7 +28,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   const isPlaying = deckState.isPlaying;
 
   useEffect(() => {
-    // Initialize audio on first render
     initializeAudio();
   }, [initializeAudio]);
 
@@ -109,14 +107,8 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     setEQ(side, newEQ);
   };
 
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number(e.target.value);
-    setVolume(side, value);
-  };
-
   const handlePlatterMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
-    // Add scrubbing logic here
   };
 
   const handlePlatterMouseUp = () => {
@@ -187,33 +179,10 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         ))}
       </div>
 
-      {/* Volume Fader */}
-      <div className="flex flex-col items-center space-y-2 mb-4">
-        <div className="text-xs text-purple-400 font-semibold">VOLUME</div>
-        <div className="h-24 w-6 bg-gray-700 rounded-full relative">
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={deckState.volume}
-            onChange={handleVolumeChange}
-            className="h-24 w-6 appearance-none bg-transparent cursor-pointer transform -rotate-90 origin-center"
-            style={{ 
-              width: '96px',
-              height: '24px',
-              marginTop: '36px',
-              marginLeft: '-45px'
-            }}
-          />
-          <div 
-            className="absolute w-6 h-6 bg-purple-500 rounded-full shadow-lg pointer-events-none"
-            style={{ 
-              bottom: `${deckState.volume}%`,
-              transform: 'translateY(50%)'
-            }}
-          />
-        </div>
-        <div className="text-xs text-gray-400">{deckState.volume}%</div>
+      {/* Cue Pads */}
+      <div className="mb-4">
+        <div className="text-xs text-purple-400 text-center mb-2">CUE PADS</div>
+        <CuePads side={side} />
       </div>
 
       {/* Controls */}
@@ -266,16 +235,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             />
           </div>
         </div>
-
-        {/* Load Track */}
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full p-3 bg-purple-600/20 border border-purple-500/30 rounded-lg text-purple-400 hover:bg-purple-600/30 transition-all flex items-center justify-center gap-2"
-        >
-          <Upload className="w-4 h-4" />
-          Load Track
-        </motion.button>
       </div>
     </div>
   );

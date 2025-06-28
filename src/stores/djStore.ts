@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { DeckAudioEngine } from '../lib/audioEngine';
 import * as Tone from 'tone';
@@ -187,14 +186,16 @@ export const useDJStore = create<DJState>((set, get) => ({
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
     if (engine) {
-      // Apply crossfader mixing
-      const crossfader = state.crossfader / 100;
+      // Apply crossfader mixing with cosine curve
+      const crossfaderNormalized = state.crossfader / 100;
       let finalVolume = value / 100;
       
       if (deck === 'A') {
-        finalVolume *= Math.cos((crossfader * Math.PI) / 2);
+        // Deck A fades out as crossfader moves right
+        finalVolume *= Math.cos(crossfaderNormalized * 0.5 * Math.PI);
       } else {
-        finalVolume *= Math.cos(((1 - crossfader) * Math.PI) / 2);
+        // Deck B fades out as crossfader moves left
+        finalVolume *= Math.cos((1 - crossfaderNormalized) * 0.5 * Math.PI);
       }
       
       engine.setGain(finalVolume * (state.masterVolume / 100) * 100);
@@ -212,7 +213,7 @@ export const useDJStore = create<DJState>((set, get) => ({
     const state = get();
     set({ crossfader: value });
     
-    // Update both deck volumes to apply crossfader
+    // Update both deck volumes to apply crossfader with cosine curve
     get().setVolume('A', state.deckAState.volume);
     get().setVolume('B', state.deckBState.volume);
   },
