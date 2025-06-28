@@ -16,6 +16,7 @@ interface DeckState {
   pitch: number;
   eq: { low: number; mid: number; high: number };
   volume: number;
+  fx: { filter: number; reverb: number; delay: number };
 }
 
 interface FXState {
@@ -52,6 +53,7 @@ interface DJState {
   setCrossfader: (value: number) => void;
   setMasterVolume: (value: number) => void;
   setFX: (fx: Partial<FXState>) => void;
+  setDeckFX: (deck: 'A' | 'B', fx: Partial<{ filter: number; reverb: number; delay: number }>) => void;
   cleanup: () => void;
 }
 
@@ -61,6 +63,7 @@ const defaultDeckState: DeckState = {
   pitch: 0,
   eq: { low: 50, mid: 50, high: 50 },
   volume: 75,
+  fx: { filter: 50, reverb: 0, delay: 0 },
 };
 
 export const useDJStore = create<DJState>((set, get) => ({
@@ -242,6 +245,28 @@ export const useDJStore = create<DJState>((set, get) => ({
       state.deckB.setFilter(newFX.filter);
       state.deckB.setReverb(newFX.reverb);
       state.deckB.setDelay(newFX.delay);
+    }
+  },
+
+  setDeckFX: (deck, fx) => {
+    const state = get();
+    const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
+    const engine = deck === 'A' ? state.deckA : state.deckB;
+    
+    const newDeckFX = { ...state[deckState].fx, ...fx };
+    
+    set({
+      [deckState]: {
+        ...state[deckState],
+        fx: newDeckFX,
+      },
+    });
+
+    // Apply FX to the engine
+    if (engine) {
+      if (fx.filter !== undefined) engine.setFilter(fx.filter);
+      if (fx.reverb !== undefined) engine.setReverb(fx.reverb);
+      if (fx.delay !== undefined) engine.setDelay(fx.delay);
     }
   },
 
