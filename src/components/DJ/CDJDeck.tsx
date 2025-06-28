@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, RotateCcw, RefreshCw, Activity, Target, Clock } from 'lucide-react';
+import { Play, Pause, RotateCcw, RefreshCw, Activity } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
 
 interface CDJDeckProps {
@@ -34,9 +34,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     triggerBackspin,
     bendTempo,
     initializeAudio,
-    globalBPM,
-    bpmSyncEnabled,
-    syncDeckToGlobal,
     isTransportRunning,
   } = useDJStore();
 
@@ -76,7 +73,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       } else if (isPlaying) {
         ctx.strokeStyle = tempoBend.active 
           ? (tempoBend.direction > 0 ? '#22c55e' : '#ef4444') // Green/Red when tempo bending
-          : bpmSyncEnabled ? '#10b981' : '#a259ff'; // Green when synced, Purple when not
+          : '#10b981'; // Green when auto-synced
       } else if (isCuePressed) {
         ctx.strokeStyle = '#22c55e'; // Green when cueing
       } else if (deckState.isSyncing) {
@@ -93,7 +90,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         ctx.beginPath();
         ctx.moveTo(60, 0);
         ctx.lineTo(75, 0);
-        ctx.strokeStyle = isPlaying ? (bpmSyncEnabled ? '#10b981' : '#8b5cf6') : '#6b7280';
+        ctx.strokeStyle = isPlaying ? '#10b981' : '#6b7280';
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.rotate(Math.PI / 4);
@@ -104,11 +101,11 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       // Center dot
       ctx.beginPath();
       ctx.arc(canvas.width / 2, canvas.height / 2, 8, 0, Math.PI * 2);
-      ctx.fillStyle = isPlaying ? (bpmSyncEnabled ? '#10b981' : '#a259ff') : '#374151';
+      ctx.fillStyle = isPlaying ? '#10b981' : '#374151';
       ctx.fill();
 
-      // BPM sync indicator ring
-      if (bpmSyncEnabled && deckState.track) {
+      // Auto-sync indicator ring
+      if (deckState.track) {
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.beginPath();
@@ -183,7 +180,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying, isDragging, isCuePressed, scrubIndicator, cuePoint, tempoBend, bpmSyncEnabled, deckState.track, deckState.isSyncing]);
+  }, [isPlaying, isDragging, isCuePressed, scrubIndicator, cuePoint, tempoBend, deckState.track, deckState.isSyncing]);
 
   const handlePlayPause = () => {
     if (isPlaying) {
@@ -342,15 +339,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   const handleSync = () => {
     if (side === 'B') {
       syncDecks();
-    } else {
-      // Sync deck A to global BPM
-      syncDeckToGlobal('A');
     }
   };
 
   const getPlaybackRate = () => {
-    if (deckState.track?.originalBPM && bpmSyncEnabled) {
-      return globalBPM / deckState.track.originalBPM;
+    if (deckState.track?.originalBPM) {
+      return 128 / deckState.track.originalBPM; // Auto-synced to 128 BPM
     }
     return 1;
   };
@@ -361,8 +355,8 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         <h3 className="text-lg font-bold text-purple-400">Deck {side}</h3>
         {isTransportRunning && (
           <div className="text-xs text-green-400 flex items-center justify-center gap-1 mt-1">
-            <Clock className="w-3 h-3" />
-            Silent Metronome: {globalBPM} BPM
+            <Activity className="w-3 h-3" />
+            Auto-Sync Active
           </div>
         )}
       </div>
@@ -383,7 +377,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           
           {/* Status overlays */}
           {isPlaying && (
-            <div className="absolute inset-0 rounded-full bg-purple-500/10 animate-pulse pointer-events-none" />
+            <div className="absolute inset-0 rounded-full bg-green-500/10 animate-pulse pointer-events-none" />
           )}
           
           {isDragging && (
@@ -416,9 +410,9 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             </div>
           )}
 
-          {bpmSyncEnabled && deckState.track && (
+          {deckState.track && (
             <div className="absolute bottom-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full pointer-events-none">
-              SYNC
+              AUTO
             </div>
           )}
         </div>
@@ -434,7 +428,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             {deckState.track?.originalBPM ? (
               <span className="flex items-center gap-1">
                 {deckState.track.originalBPM} BPM
-                {bpmSyncEnabled && <Activity className="w-3 h-3 text-green-400" />}
+                <Activity className="w-3 h-3 text-green-400" />
               </span>
             ) : (
               <span>{deckState.track?.bpm || 0} BPM</span>
@@ -443,12 +437,11 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           <span>Key: {deckState.track?.key || '-'}</span>
         </div>
         
-        {/* Global BPM Sync Info */}
-        {bpmSyncEnabled && deckState.track?.originalBPM && (
+        {/* Auto-sync info */}
+        {deckState.track?.originalBPM && (
           <div className="text-xs text-green-400 mt-1 space-y-1">
             <div className="flex items-center justify-center gap-1">
-              <Target className="w-3 h-3" />
-              <span>Global: {globalBPM} BPM</span>
+              <span>Auto-synced to 128 BPM</span>
             </div>
             <div className="text-blue-400">
               Rate: {getPlaybackRate().toFixed(3)}x
@@ -474,7 +467,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             whileTap={{ scale: 0.95 }}
             className={`p-3 rounded-full transition-all ${
               isPlaying 
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25' 
+                ? 'bg-green-600 text-white shadow-lg shadow-green-500/25' 
                 : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
             }`}
           >
@@ -511,22 +504,22 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             <RotateCcw className="w-6 h-6" />
           </motion.button>
 
-          <motion.button
-            onClick={handleSync}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`p-3 rounded-full transition-all ${
-              deckState.isSyncing
-                ? 'bg-blue-600 text-white animate-pulse'
-                : bpmSyncEnabled
-                ? 'bg-green-600 text-white hover:bg-green-500'
-                : 'bg-blue-600 text-white hover:bg-blue-500'
-            }`}
-            title={`Sync Deck ${side} to Global BPM (Next Bar)`}
-            disabled={deckState.isSyncing || !deckState.track}
-          >
-            <RefreshCw className={`w-6 h-6 ${deckState.isSyncing ? 'animate-spin' : ''}`} />
-          </motion.button>
+          {side === 'B' && (
+            <motion.button
+              onClick={handleSync}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`p-3 rounded-full transition-all ${
+                deckState.isSyncing
+                  ? 'bg-blue-600 text-white animate-pulse'
+                  : 'bg-blue-600 text-white hover:bg-blue-500'
+              }`}
+              title="Sync to next bar"
+              disabled={deckState.isSyncing || !deckState.track}
+            >
+              <RefreshCw className={`w-6 h-6 ${deckState.isSyncing ? 'animate-spin' : ''}`} />
+            </motion.button>
+          )}
         </div>
 
         {/* Pitch Fader */}
@@ -572,9 +565,9 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             </div>
           )}
 
-          {bpmSyncEnabled && deckState.track?.originalBPM && (
+          {deckState.track?.originalBPM && (
             <div className="text-xs text-green-400">
-              🎯 Synced to {globalBPM} BPM
+              🎯 Auto-synced to 128 BPM
             </div>
           )}
         </div>
@@ -583,7 +576,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         <div className="text-xs text-gray-500 text-center space-y-1">
           <div>Double-click jogwheel for backspin</div>
           <div>Drag to scrub • Scroll to bend tempo</div>
-          {bpmSyncEnabled && <div>🎯 Bar-Aligned Sync Active</div>}
+          {deckState.track && <div>🎯 Auto-sync Active</div>}
           {isTransportRunning && <div>🔇 Silent Metronome Running</div>}
         </div>
       </div>

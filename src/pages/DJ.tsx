@@ -5,24 +5,15 @@ import CDJDeck from '../components/DJ/CDJDeck';
 import MixerPanel from '../components/DJ/MixerPanel';
 import TrackLibrary from '../components/DJ/TrackLibrary';
 import FirstTimeOverlay from '../components/DJ/FirstTimeOverlay';
-import BPMInputModal from '../components/DJ/BPMInputModal';
-import GlobalBPMControl from '../components/DJ/GlobalBPMControl';
-import { Disc3, Target } from 'lucide-react';
+import { Disc3 } from 'lucide-react';
 import { useDJStore } from '../stores/djStore';
 
 const DJ = () => {
   const navigate = useNavigate();
   const [showLibrary, setShowLibrary] = useState(true);
   const [showFirstTime, setShowFirstTime] = useState(false);
-  const [showGlobalBPM, setShowGlobalBPM] = useState(true);
   
-  const { 
-    cleanup, 
-    showBPMModal, 
-    pendingTrack, 
-    setShowBPMModal, 
-    confirmTrackBPM 
-  } = useDJStore();
+  const { cleanup } = useDJStore();
 
   useEffect(() => {
     // Check if first time visiting DJ mode
@@ -44,14 +35,6 @@ const DJ = () => {
     }
   };
 
-  const handleBPMConfirm = (bpm: number) => {
-    confirmTrackBPM(bpm);
-  };
-
-  const handleBPMModalClose = () => {
-    setShowBPMModal(false);
-  };
-
   return (
     <div className="min-h-screen bg-black text-white font-['Poppins'] overflow-hidden">
       {/* Header */}
@@ -64,22 +47,9 @@ const DJ = () => {
           <span className="text-xl font-bold">DropLab</span>
         </button>
         <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
-          DJ Mode - Global BPM Sync
+          DJ Mode - Auto-Sync
         </h1>
         <div className="flex gap-2">
-          <button
-            onClick={() => setShowGlobalBPM(!showGlobalBPM)}
-            className={`px-4 py-2 rounded-lg border transition-all ${
-              showGlobalBPM 
-                ? 'bg-green-600 border-green-400 text-white' 
-                : 'border-purple-500/30 hover:border-purple-500 text-purple-400'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Target className="w-4 h-4" />
-              BPM
-            </div>
-          </button>
           <button
             onClick={() => setShowLibrary(!showLibrary)}
             className={`px-4 py-2 rounded-lg border transition-all ${
@@ -95,21 +65,6 @@ const DJ = () => {
 
       {/* Main DJ Layout */}
       <div className="flex-1 p-4">
-        {/* Global BPM Control */}
-        <AnimatePresence>
-          {showGlobalBPM && (
-            <motion.div
-              initial={{ opacity: 0, y: -50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -50 }}
-              transition={{ duration: 0.3 }}
-              className="mb-6 max-w-md mx-auto"
-            >
-              <GlobalBPMControl />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Decks and Mixer Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <CDJDeck side="A" />
@@ -132,16 +87,6 @@ const DJ = () => {
           )}
         </AnimatePresence>
       </div>
-
-      {/* BPM Input Modal */}
-      <BPMInputModal
-        isOpen={showBPMModal}
-        onClose={handleBPMModalClose}
-        onConfirm={handleBPMConfirm}
-        trackName={pendingTrack?.track.name || ''}
-        deck={pendingTrack?.deck || 'A'}
-        suggestedBPM={pendingTrack?.track.bpm}
-      />
 
       {/* First Time Overlay */}
       <FirstTimeOverlay 
