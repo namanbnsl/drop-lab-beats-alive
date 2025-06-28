@@ -1,23 +1,88 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Music, Download } from 'lucide-react';
+import { Music } from 'lucide-react';
+import { useDJStore } from '../../stores/djStore';
 
 const TrackLibrary = () => {
+  const { loadTrack } = useDJStore();
+  
+  // Sample tracks with placeholder URLs (you can replace with real audio files)
   const tracks = [
-    { id: 1, title: "Astral Bounce", genre: "House", bpm: 126, key: "Am" },
-    { id: 2, title: "Night Voltage", genre: "DnB", bpm: 174, key: "Dm" },
-    { id: 3, title: "Neon Dreams", genre: "Synthwave", bpm: 110, key: "Em" },
-    { id: 4, title: "Bass Drop City", genre: "Dubstep", bpm: 140, key: "Gm" },
-    { id: 5, title: "Midnight Groove", genre: "Tech House", bpm: 128, key: "F#m" },
-    { id: 6, title: "Crystal Waters", genre: "Ambient", bpm: 85, key: "Cm" },
-    { id: 7, title: "Electric Pulse", genre: "Electro", bpm: 132, key: "Bm" },
-    { id: 8, title: "Solar Flare", genre: "Trance", bpm: 138, key: "Am" },
+    { 
+      id: 1, 
+      name: "Astral Bounce", 
+      genre: "House", 
+      bpm: 126, 
+      key: "Am",
+      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
+    },
+    { 
+      id: 2, 
+      name: "Night Voltage", 
+      genre: "DnB", 
+      bpm: 174, 
+      key: "Dm",
+      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
+    },
+    { 
+      id: 3, 
+      name: "Neon Dreams", 
+      genre: "Synthwave", 
+      bpm: 110, 
+      key: "Em",
+      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
+    },
+    { 
+      id: 4, 
+      name: "Bass Drop City", 
+      genre: "Dubstep", 
+      bpm: 140, 
+      key: "Gm",
+      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
+    },
+    { 
+      id: 5, 
+      name: "Midnight Groove", 
+      genre: "Tech House", 
+      bpm: 128, 
+      key: "F#m",
+      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
+    },
+    { 
+      id: 6, 
+      name: "Crystal Waters", 
+      genre: "Ambient", 
+      bpm: 85, 
+      key: "Cm",
+      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
+    },
+    { 
+      id: 7, 
+      name: "Electric Pulse", 
+      genre: "Electro", 
+      bpm: 132, 
+      key: "Bm",
+      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
+    },
+    { 
+      id: 8, 
+      name: "Solar Flare", 
+      genre: "Trance", 
+      bpm: 138, 
+      key: "Am",
+      url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" // Placeholder
+    },
   ];
 
-  const handleLoadTrack = (track: typeof tracks[0], deck: 'A' | 'B') => {
-    console.log(`Loading "${track.title}" to Deck ${deck}`);
-    // This will be wired up to actual audio loading later
+  const handleLoadTrack = async (track: typeof tracks[0], deck: 'A' | 'B') => {
+    console.log(`Loading "${track.name}" to Deck ${deck}`);
+    await loadTrack(deck, {
+      name: track.name,
+      bpm: track.bpm,
+      key: track.key,
+      url: track.url,
+    });
   };
 
   return (
@@ -42,7 +107,7 @@ const TrackLibrary = () => {
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-white group-hover:text-purple-300 transition-colors">
-                    {track.title}
+                    {track.name}
                   </h4>
                   <span className="text-xs px-2 py-1 bg-purple-600/20 text-purple-400 rounded-full">
                     {track.genre}
