@@ -7,13 +7,11 @@ import { LyriaSession } from '../lib/lyria';
 import ProducerNavbar from '../components/Producer/ProducerNavbar';
 import WelcomeSection from '../components/Producer/WelcomeSection';
 import MusicGenerationSection from '../components/Producer/MusicGenerationSection';
-import MelodySection from '../components/Producer/MelodySection';
 import DrumSection from '../components/Producer/DrumSection';
 import GridSection from '../components/Producer/GridSection';
 import FXSection from '../components/Producer/FXSection';
 import MixerSection from '../components/Producer/MixerSection';
 import ExportSection from '../components/Producer/ExportSection';
-import { decode, decodeAudioData } from '../../useful_resources/utils';
 
 const Producer = () => {
   const navigate = useNavigate();
@@ -88,12 +86,9 @@ const Producer = () => {
           }
 
           // Decode base64 PCM data using /useful_resources utilities
-          const decodedData = decode(audioChunk); // audioChunk is base64 string
-          const audioBuffer = await decodeAudioData(
-            decodedData,
-            audioContext,
-            sampleRate,
-            2 // stereo
+          const decodedData = atob(audioChunk); // audioChunk is base64 string
+          const audioBuffer = await audioContext.decodeAudioData(
+            new ArrayBuffer(decodedData.length)
           );
 
           // Create and schedule audio source
@@ -419,7 +414,7 @@ const Producer = () => {
   // Scroll spy effect to update active section
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['welcome', 'music-generation', 'melody', 'drums', 'grid', 'fx', 'mixer', 'export'];
+      const sections = ['welcome', 'music-generation', 'drums', 'grid', 'fx', 'mixer', 'export'];
       const scrollPosition = window.scrollY + 100;
 
       for (const section of sections) {
@@ -484,12 +479,6 @@ const Producer = () => {
       <main className="relative z-10">
         <WelcomeSection />
         <MusicGenerationSection />
-        <MelodySection
-          onGenerateMelody={async () => null}
-          onPlayMelody={() => { }}
-          melodySequence={null}
-          modelsLoaded={!!lyria}
-        />
         <DrumSection
           onGenerateDrums={async () => null}
           onPlayDrums={() => { }}
