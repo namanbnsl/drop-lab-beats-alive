@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Home, Music, Drum, Grid3X3, Sliders, Volume2, Download } from 'lucide-react';
+import { Home, Music, Drum, Grid3X3, Sliders, Volume2, Download, Disc3 } from 'lucide-react';
 
 interface ProducerNavbarProps {
   activeSection: string;
@@ -10,6 +10,7 @@ interface ProducerNavbarProps {
 const ProducerNavbar: React.FC<ProducerNavbarProps> = ({ activeSection, onNavigateHome }) => {
   const navItems = [
     { id: 'welcome', label: 'Welcome', icon: Music },
+    { id: 'music-generation', label: 'Generate', icon: Disc3 },
     { id: 'melody', label: 'Melody', icon: Music },
     { id: 'drums', label: 'Drums', icon: Drum },
     { id: 'grid', label: 'Grid', icon: Grid3X3 },

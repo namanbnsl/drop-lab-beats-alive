@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +6,7 @@ import * as Tone from 'tone';
 import { LyriaAPI, type LyriaGenerationResponse } from '../lib/lyria';
 import ProducerNavbar from '../components/Producer/ProducerNavbar';
 import WelcomeSection from '../components/Producer/WelcomeSection';
+import MusicGenerationSection from '../components/Producer/MusicGenerationSection';
 import MelodySection from '../components/Producer/MelodySection';
 import DrumSection from '../components/Producer/DrumSection';
 import GridSection from '../components/Producer/GridSection';
@@ -123,15 +123,43 @@ const Producer = () => {
           }
         }).connect(melodyGainRef.current);
 
-        // Create drum sampler with fallback samples
-        drumSamplerRef.current = new Tone.Players({
-          kick: "https://tonejs.github.io/audio/drum-samples/CR78/kick.wav",
-          snare: "https://tonejs.github.io/audio/drum-samples/CR78/snare.wav",
-          hihat: "https://tonejs.github.io/audio/drum-samples/CR78/hihat.wav",
-          openhat: "https://tonejs.github.io/audio/drum-samples/CR78/openhat.wav"
-        }).connect(drumsGainRef.current);
+        // Create drum sampler with synthesized drums
+        const drumSynths = {
+          kick: new Tone.MembraneSynth({
+            pitchDecay: 0.05,
+            octaves: 10,
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
+          }).connect(drumsGainRef.current),
+          
+          snare: new Tone.NoiseSynth({
+            noise: { type: 'white' },
+            envelope: { attack: 0.005, decay: 0.1, sustain: 0.0 }
+          }).connect(drumsGainRef.current),
+          
+          hihat: new Tone.MetalSynth({
+            frequency: 200,
+            envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
+            harmonicity: 5.1,
+            modulationIndex: 32,
+            resonance: 4000,
+            octaves: 1.5
+          }).connect(drumsGainRef.current),
+          
+          openhat: new Tone.MetalSynth({
+            frequency: 400,
+            envelope: { attack: 0.001, decay: 0.3, release: 0.1 },
+            harmonicity: 3.1,
+            modulationIndex: 16,
+            resonance: 2000,
+            octaves: 1
+          }).connect(drumsGainRef.current)
+        };
 
-        console.log('✅ Tone.js audio engine initialized');
+        // Store drum synths for later use
+        (window as any).drumSynths = drumSynths;
+
+        console.log('✅ Tone.js audio engine initialized with synthesized drums');
       } catch (error) {
         console.error('❌ Error initializing audio:', error);
       }
@@ -188,7 +216,7 @@ const Producer = () => {
     }
   }, [delayAmount]);
 
-  // Drum Patterns: Different styles
+  // Drum Patterns: Different styles with synthesized drums
   const getDrumPattern = (style: string) => {
     const patterns = {
       house: [
@@ -268,10 +296,10 @@ const Producer = () => {
     }
   };
 
-  // Drums: Generate pattern using Tone.js
+  // Drums: Generate pattern using synthesized drums
   const generateDrums = async (style: string, complexity: string) => {
     try {
-      console.log(`🥁 Generating drums with Tone.js (${style}, ${complexity})...`);
+      console.log(`🥁 Generating drums with synthesized sounds (${style}, ${complexity})...`);
       
       // Create mock drum data for consistency with export system
       const pattern = getDrumPattern(style.toLowerCase());
@@ -286,7 +314,7 @@ const Producer = () => {
         })),
         metadata: {
           duration: 8,
-          key: 'C', // Add missing key property
+          key: 'C',
           tempo: 120,
           style: style
         }
@@ -303,7 +331,7 @@ const Producer = () => {
     }
   };
 
-  // Unified Playback: Play full track with quantization
+  // Unified Playback: Play full track with synthesized drums
   const playFullTrack = async () => {
     if (!melodyData && !drumData) {
       console.warn('⚠️ No sequences to play');
@@ -331,23 +359,36 @@ const Producer = () => {
         }
       }
 
-      // Play drums if available
-      if (drumData && drumSamplerRef.current) {
+      // Play drums if available using synthesized drums
+      if (drumData) {
         const pattern = getDrumPattern(drumStyle);
+        const drumSynths = (window as any).drumSynths;
         
-        drumPatternRef.current = new Tone.Loop((time) => {
-          pattern.forEach((hit) => {
-            const hitTime = Tone.Time(hit.time).toSeconds();
-            drumSamplerRef.current?.player(hit.sample).start(time + hitTime);
-          });
-        }, "2m").start(0);
+        if (drumSynths) {
+          drumPatternRef.current = new Tone.Loop((time) => {
+            pattern.forEach((hit) => {
+              const hitTime = Tone.Time(hit.time).toSeconds();
+              const drumSynth = drumSynths[hit.sample];
+              
+              if (drumSynth) {
+                if (hit.sample === 'kick') {
+                  drumSynth.triggerAttackRelease('C2', '8n', time + hitTime, 0.8);
+                } else if (hit.sample === 'snare') {
+                  drumSynth.triggerAttackRelease('8n', time + hitTime, 0.7);
+                } else if (hit.sample === 'hihat' || hit.sample === 'openhat') {
+                  drumSynth.triggerAttackRelease('16n', time + hitTime, 0.6);
+                }
+              }
+            });
+          }, "2m").start(0);
+        }
       }
 
       Tone.Transport.bpm.value = 120;
       Tone.Transport.start();
       setIsPlaying(true);
 
-      console.log('▶️ Playing full track with Lyria melody + Tone.js drums');
+      console.log('▶️ Playing full track with Lyria melody + synthesized drums');
     } catch (error) {
       console.error('❌ Error playing track:', error);
     }
@@ -408,7 +449,7 @@ const Producer = () => {
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'droplab-lyria-track.wav';
+        a.download = 'droplab-generated-track.wav';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -427,7 +468,7 @@ const Producer = () => {
   // Scroll spy effect to update active section
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['welcome', 'melody', 'drums', 'grid', 'fx', 'mixer', 'export'];
+      const sections = ['welcome', 'music-generation', 'melody', 'drums', 'grid', 'fx', 'mixer', 'export'];
       const scrollPosition = window.scrollY + 100;
 
       for (const section of sections) {
@@ -483,7 +524,7 @@ const Producer = () => {
         >
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-white rounded-full"></div>
-            <span className="text-sm">Lyria AI Ready</span>
+            <span className="text-sm">Audio Engine Ready</span>
           </div>
         </motion.div>
       )}
@@ -491,6 +532,7 @@ const Producer = () => {
       {/* Main Content */}
       <main className="relative z-10">
         <WelcomeSection />
+        <MusicGenerationSection />
         <MelodySection 
           onGenerateMelody={generateMelody}
           onPlayMelody={() => playFullTrack()}
@@ -501,7 +543,7 @@ const Producer = () => {
           onGenerateDrums={generateDrums}
           onPlayDrums={() => playFullTrack()}
           drumSequence={drumData}
-          modelsLoaded={true} // Tone.js drums are always ready
+          modelsLoaded={true}
         />
         <GridSection />
         <FXSection 
@@ -521,8 +563,8 @@ const Producer = () => {
           onMasterVolumeChange={setMasterVolume}
         />
         <ExportSection 
-          onExportMelody={() => exportToMidi(melodyData, 'droplab-lyria-melody')}
-          onExportDrums={() => exportToMidi(drumData, 'droplab-lyria-drums')}
+          onExportMelody={() => exportToMidi(melodyData, 'droplab-melody')}
+          onExportDrums={() => exportToMidi(drumData, 'droplab-drums')}
           onExportAudio={exportToAudio}
           onPlayTrack={isPlaying ? stopPlayback : playFullTrack}
           hasGeneratedContent={!!(melodyData || drumData)}
