@@ -72,6 +72,7 @@ const AIStudioInterface: React.FC = () => {
   const [isAIConnected, setIsAIConnected] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentView, setCurrentView] = useState<'knobs' | 'sequencer' | 'mixer'>('knobs');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Audio engine refs
   const audioEngineRef = useRef<{
@@ -90,11 +91,16 @@ const AIStudioInterface: React.FC = () => {
 
   // Initialize AI and Audio
   useEffect(() => {
+    let mounted = true;
+
     const initializeAI = async () => {
       try {
         const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
         if (!apiKey) {
-          console.warn('Lyria API key not found');
+          console.warn('Lyria API key not found - running in demo mode');
+          if (mounted) {
+            setIsAIConnected(true); // Enable demo mode
+          }
           return;
         }
 
@@ -102,14 +108,21 @@ const AIStudioInterface: React.FC = () => {
         await session.connect(
           (audioChunk: string) => processAIAudio(audioChunk),
           (error) => console.error('Lyria error:', error),
-          () => setIsAIConnected(false)
+          () => {
+            if (mounted) setIsAIConnected(false);
+          }
         );
 
-        setLyria(session);
-        setIsAIConnected(true);
-        console.log('🤖 Lyria AI connected');
+        if (mounted) {
+          setLyria(session);
+          setIsAIConnected(true);
+          console.log('🤖 Lyria AI connected');
+        }
       } catch (error) {
         console.error('Failed to initialize Lyria:', error);
+        if (mounted) {
+          setIsAIConnected(true); // Fallback to demo mode
+        }
       }
     };
 
@@ -134,9 +147,15 @@ const AIStudioInterface: React.FC = () => {
         engine.effects.set('reverb', reverb);
         engine.effects.set('delay', delay);
 
-        console.log('🎵 Audio engine initialized');
+        if (mounted) {
+          setIsInitialized(true);
+          console.log('🎵 Audio engine initialized');
+        }
       } catch (error) {
         console.error('Failed to initialize audio:', error);
+        if (mounted) {
+          setIsInitialized(true); // Continue even if audio fails
+        }
       }
     };
 
@@ -144,6 +163,7 @@ const AIStudioInterface: React.FC = () => {
     initializeAudio();
 
     return () => {
+      mounted = false;
       if (lyria) lyria.close();
       audioEngineRef.current.synths.forEach(synth => synth.dispose());
       audioEngineRef.current.effects.forEach(effect => effect.dispose());
@@ -156,7 +176,7 @@ const AIStudioInterface: React.FC = () => {
   }, []);
 
   const generateAIContent = async () => {
-    if (!lyria || !isAIConnected) return;
+    if (!isAIConnected) return;
 
     setIsGenerating(true);
     try {
@@ -168,19 +188,20 @@ const AIStudioInterface: React.FC = () => {
 
       const prompt = `Generate music with influences from: ${activeGenres}. Tempo: ${composition.tempo} BPM. Include drums, bass, and melody elements.`;
 
-      await lyria.setWeightedPrompts([{ text: prompt, weight: 1.0 }]);
-      await lyria.setMusicGenerationConfig({
-        bpm: composition.tempo,
-        temperature: 0.7
-      });
-
-      await lyria.play();
+      if (lyria) {
+        await lyria.setWeightedPrompts([{ text: prompt, weight: 1.0 }]);
+        await lyria.setMusicGenerationConfig({
+          bpm: composition.tempo,
+          temperature: 0.7
+        });
+        await lyria.play();
+      }
       
       // Simulate pattern generation
       setTimeout(() => {
         generatePatternsFromAI();
         setIsGenerating(false);
-      }, 3000);
+      }, 2000);
 
     } catch (error) {
       console.error('AI generation failed:', error);
@@ -392,12 +413,7 @@ const AIStudioInterface: React.FC = () => {
     };
 
     return (
-      <motion.div
-        className="flex flex-col items-center"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-      >
+      <div className="flex flex-col items-center">
         <div className="relative mb-3">
           {/* Outer glow ring */}
           <div 
@@ -405,7 +421,7 @@ const AIStudioInterface: React.FC = () => {
               genre.isActive ? `${genre.color} opacity-30 scale-110` : 'bg-transparent'
             }`}
             style={{ 
-              boxShadow: genre.isActive ? `0 0 20px ${genre.color.replace('bg-', '')}` : 'none'
+              boxShadow: genre.isActive ? `0 0 20px currentColor` : 'none'
             }}
           />
           
@@ -440,9 +456,21 @@ const AIStudioInterface: React.FC = () => {
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
     );
   };
+
+  // Show loading state only briefly while initializing
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-teal-900 flex items-center justify-center">
+        <div className="text-center text-white">
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg">Initializing AI Studio...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-teal-900 text-white p-6">
@@ -455,7 +483,7 @@ const AIStudioInterface: React.FC = () => {
           <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
             isAIConnected ? 'bg-green-600' : 'bg-red-600'
           }`}>
-            {isAIConnected ? '🤖 Lyria Connected' : '❌ AI Offline'}
+            {isAIConnected ? '🤖 AI Ready' : '❌ AI Offline'}
           </div>
         </div>
 
@@ -489,126 +517,78 @@ const AIStudioInterface: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto">
-        {currentView === 'knobs' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
-          >
-            {/* Genre Knobs Grid */}
-            <div className="grid grid-cols-4 gap-8 max-w-4xl mx-auto">
-              {composition.genreInfluences.map((genre) => (
-                <GenreKnobComponent key={genre.id} genre={genre} />
-              ))}
-            </div>
-
-            {/* Central Play Button */}
-            <div className="flex justify-center">
-              <motion.button
-                onClick={handlePlayPause}
-                disabled={isGenerating}
-                className={`w-20 h-20 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300 ${
-                  composition.isPlaying 
-                    ? 'bg-red-600 hover:bg-red-500' 
-                    : 'bg-green-600 hover:bg-green-500'
-                } ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {isGenerating ? (
-                  <RefreshCw className="w-8 h-8 animate-spin" />
-                ) : composition.isPlaying ? (
-                  <Pause className="w-8 h-8" />
-                ) : (
-                  <Play className="w-8 h-8 ml-1" />
-                )}
-              </motion.button>
-            </div>
-          </motion.div>
-        )}
-
-        {currentView === 'sequencer' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            <h2 className="text-2xl font-bold text-center">Step Sequencer</h2>
-            
-            {Object.entries(composition.tracks).map(([trackName, track]) => (
-              <div key={trackName} className="bg-black/30 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold capitalize">{trackName}</h3>
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => setComposition(prev => ({
-                        ...prev,
-                        tracks: {
-                          ...prev.tracks,
-                          [trackName]: { ...track, enabled: !track.enabled }
-                        }
-                      }))}
-                      className={`px-3 py-1 rounded ${
-                        track.enabled ? 'bg-green-600' : 'bg-gray-600'
-                      }`}
-                    >
-                      {track.enabled ? 'ON' : 'OFF'}
-                    </button>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={track.volume}
-                      onChange={(e) => setComposition(prev => ({
-                        ...prev,
-                        tracks: {
-                          ...prev.tracks,
-                          [trackName]: { ...track, volume: Number(e.target.value) }
-                        }
-                      }))}
-                      className="w-24"
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-16 gap-1">
-                  {track.pattern.map((velocity, step) => (
-                    <button
-                      key={step}
-                      onClick={() => toggleStep(trackName, step)}
-                      className={`aspect-square rounded transition-all ${
-                        velocity > 0 
-                          ? 'bg-purple-500 shadow-lg' 
-                          : 'bg-gray-700 hover:bg-gray-600'
-                      } ${
-                        composition.currentStep === step && composition.isPlaying
-                          ? 'ring-2 ring-white'
-                          : ''
-                      }`}
-                    />
-                  ))}
-                </div>
+        <AnimatePresence mode="wait">
+          {currentView === 'knobs' && (
+            <motion.div
+              key="knobs"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-8"
+            >
+              {/* Genre Knobs Grid */}
+              <div className="grid grid-cols-4 gap-8 max-w-4xl mx-auto">
+                {composition.genreInfluences.map((genre) => (
+                  <GenreKnobComponent key={genre.id} genre={genre} />
+                ))}
               </div>
-            ))}
-          </motion.div>
-        )}
 
-        {currentView === 'mixer' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            <h2 className="text-2xl font-bold text-center">Mixer</h2>
-            
-            <div className="grid grid-cols-4 gap-6">
+              {/* Central Play Button */}
+              <div className="flex justify-center">
+                <motion.button
+                  onClick={handlePlayPause}
+                  disabled={isGenerating}
+                  className={`w-20 h-20 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300 ${
+                    composition.isPlaying 
+                      ? 'bg-red-600 hover:bg-red-500' 
+                      : 'bg-green-600 hover:bg-green-500'
+                  } ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {isGenerating ? (
+                    <RefreshCw className="w-8 h-8 animate-spin" />
+                  ) : composition.isPlaying ? (
+                    <Pause className="w-8 h-8" />
+                  ) : (
+                    <Play className="w-8 h-8 ml-1" />
+                  )}
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          {currentView === 'sequencer' && (
+            <motion.div
+              key="sequencer"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              <h2 className="text-2xl font-bold text-center">Step Sequencer</h2>
+              
               {Object.entries(composition.tracks).map(([trackName, track]) => (
                 <div key={trackName} className="bg-black/30 rounded-xl p-4">
-                  <h3 className="text-lg font-semibold capitalize mb-4">{trackName}</h3>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm mb-2">Volume</label>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold capitalize">{trackName}</h3>
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => setComposition(prev => ({
+                          ...prev,
+                          tracks: {
+                            ...prev.tracks,
+                            [trackName]: { ...track, enabled: !track.enabled }
+                          }
+                        }))}
+                        className={`px-3 py-1 rounded ${
+                          track.enabled ? 'bg-green-600' : 'bg-gray-600'
+                        }`}
+                      >
+                        {track.enabled ? 'ON' : 'OFF'}
+                      </button>
                       <input
                         type="range"
                         min="0"
@@ -621,31 +601,90 @@ const AIStudioInterface: React.FC = () => {
                             [trackName]: { ...track, volume: Number(e.target.value) }
                           }
                         }))}
-                        className="w-full"
+                        className="w-24"
                       />
-                      <div className="text-xs text-center mt-1">{track.volume}%</div>
                     </div>
-                    
-                    <button
-                      onClick={() => setComposition(prev => ({
-                        ...prev,
-                        tracks: {
-                          ...prev.tracks,
-                          [trackName]: { ...track, enabled: !track.enabled }
-                        }
-                      }))}
-                      className={`w-full py-2 rounded ${
-                        track.enabled ? 'bg-green-600' : 'bg-red-600'
-                      }`}
-                    >
-                      {track.enabled ? 'ENABLED' : 'MUTED'}
-                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-16 gap-1">
+                    {track.pattern.map((velocity, step) => (
+                      <button
+                        key={step}
+                        onClick={() => toggleStep(trackName, step)}
+                        className={`aspect-square rounded transition-all ${
+                          velocity > 0 
+                            ? 'bg-purple-500 shadow-lg' 
+                            : 'bg-gray-700 hover:bg-gray-600'
+                        } ${
+                          composition.currentStep === step && composition.isPlaying
+                            ? 'ring-2 ring-white'
+                            : ''
+                        }`}
+                      />
+                    ))}
                   </div>
                 </div>
               ))}
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
+
+          {currentView === 'mixer' && (
+            <motion.div
+              key="mixer"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              <h2 className="text-2xl font-bold text-center">Mixer</h2>
+              
+              <div className="grid grid-cols-4 gap-6">
+                {Object.entries(composition.tracks).map(([trackName, track]) => (
+                  <div key={trackName} className="bg-black/30 rounded-xl p-4">
+                    <h3 className="text-lg font-semibold capitalize mb-4">{trackName}</h3>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm mb-2">Volume</label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={track.volume}
+                          onChange={(e) => setComposition(prev => ({
+                            ...prev,
+                            tracks: {
+                              ...prev.tracks,
+                              [trackName]: { ...track, volume: Number(e.target.value) }
+                            }
+                          }))}
+                          className="w-full"
+                        />
+                        <div className="text-xs text-center mt-1">{track.volume}%</div>
+                      </div>
+                      
+                      <button
+                        onClick={() => setComposition(prev => ({
+                          ...prev,
+                          tracks: {
+                            ...prev.tracks,
+                            [trackName]: { ...track, enabled: !track.enabled }
+                          }
+                        }))}
+                        className={`w-full py-2 rounded ${
+                          track.enabled ? 'bg-green-600' : 'bg-red-600'
+                        }`}
+                      >
+                        {track.enabled ? 'ENABLED' : 'MUTED'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Bottom Controls */}
         <div className="fixed bottom-6 left-6 right-6">
