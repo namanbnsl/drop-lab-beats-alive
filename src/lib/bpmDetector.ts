@@ -1,4 +1,4 @@
-import MusicTempo from 'musictempo';
+import MusicTempo from 'music-tempo';
 
 export interface BPMDetectionResult {
   bpm: number;
