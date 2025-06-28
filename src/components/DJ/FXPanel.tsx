@@ -1,13 +1,11 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import InfoTooltip from '../InfoTooltip';
+import { useDJStore } from '../../stores/djStore';
 
 const FXPanel = () => {
-  const [filter, setFilter] = useState(50);
-  const [reverb, setReverb] = useState(0);
-  const [delay, setDelay] = useState(0);
-  const [assignedTo, setAssignedTo] = useState<'A' | 'B' | 'BOTH'>('BOTH');
+  const { fx, setFX } = useDJStore();
 
   const Knob = ({ 
     value, 
@@ -65,20 +63,20 @@ const FXPanel = () => {
       {/* FX Controls */}
       <div className="grid grid-cols-3 gap-6 mb-6">
         <Knob
-          value={filter}
-          onChange={setFilter}
+          value={fx.filter}
+          onChange={(value) => setFX({ filter: value })}
           label="FILTER"
           tooltip="Sweep from full bass (left) to full treble (right). Center is neutral."
         />
         <Knob
-          value={reverb}
-          onChange={setReverb}
+          value={fx.reverb}
+          onChange={(value) => setFX({ reverb: value })}
           label="REVERB"
           tooltip="Add space and echo to your sound. Great for breakdowns and transitions."
         />
         <Knob
-          value={delay}
-          onChange={setDelay}
+          value={fx.delay}
+          onChange={(value) => setFX({ delay: value })}
           label="DELAY"
           tooltip="Repeat sound in rhythmic bursts. Perfect for creating tension and drops."
         />
@@ -91,11 +89,11 @@ const FXPanel = () => {
           {(['A', 'B', 'BOTH'] as const).map((option) => (
             <motion.button
               key={option}
-              onClick={() => setAssignedTo(option)}
+              onClick={() => setFX({ assignedTo: option })}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className={`px-4 py-2 rounded-lg border font-semibold transition-all ${
-                assignedTo === option
+                fx.assignedTo === option
                   ? 'bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-500/25'
                   : 'border-purple-500/30 text-purple-400 hover:border-purple-500 hover:bg-purple-600/10'
               }`}
@@ -107,19 +105,19 @@ const FXPanel = () => {
       </div>
 
       {/* Visual FX Indicator */}
-      {(filter !== 50 || reverb > 0 || delay > 0) && (
+      {(fx.filter !== 50 || fx.reverb > 0 || fx.delay > 0) && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="mt-4 p-3 bg-purple-600/20 border border-purple-500/30 rounded-lg text-center"
         >
           <div className="text-sm text-purple-400">
-            FX Active on Deck {assignedTo}
+            FX Active on Deck {fx.assignedTo}
           </div>
           <div className="text-xs text-gray-400 mt-1">
-            {filter !== 50 && `Filter: ${Math.round(filter)}% `}
-            {reverb > 0 && `Reverb: ${Math.round(reverb)}% `}
-            {delay > 0 && `Delay: ${Math.round(delay)}%`}
+            {fx.filter !== 50 && `Filter: ${Math.round(fx.filter)}% `}
+            {fx.reverb > 0 && `Reverb: ${Math.round(fx.reverb)}% `}
+            {fx.delay > 0 && `Delay: ${Math.round(fx.delay)}%`}
           </div>
         </motion.div>
       )}

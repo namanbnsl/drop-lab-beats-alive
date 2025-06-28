@@ -2,22 +2,36 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, RotateCcw, Zap, Upload } from 'lucide-react';
+import { useDJStore } from '../../stores/djStore';
 
 interface CDJDeckProps {
   side: 'A' | 'B';
 }
 
 const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [pitch, setPitch] = useState(0);
-  const [trackInfo, setTrackInfo] = useState({
-    name: 'No Track Loaded',
-    bpm: 0,
-    key: '-'
-  });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>();
   const rotationRef = useRef(0);
+  const [isDragging, setIsDragging] = useState(false);
+  
+  const {
+    deckAState,
+    deckBState,
+    playDeck,
+    pauseDeck,
+    setPitch,
+    setEQ,
+    setVolume,
+    initializeAudio,
+  } = useDJStore();
+
+  const deckState = side === 'A' ? deckAState : deckBState;
+  const isPlaying = deckState.isPlaying;
+
+  useEffect(() => {
+    // Initialize audio on first render
+    initializeAudio();
+  }, [initializeAudio]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -27,7 +41,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     if (!ctx) return;
 
     const animate = () => {
-      if (isPlaying) {
+      if (isPlaying && !isDragging) {
         rotationRef.current += 0.02;
       }
 
@@ -75,14 +89,38 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying]);
+  }, [isPlaying, isDragging]);
 
   const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
+    if (isPlaying) {
+      pauseDeck(side);
+    } else {
+      playDeck(side);
+    }
   };
 
   const handlePitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPitch(Number(e.target.value));
+    const value = Number(e.target.value);
+    setPitch(side, value);
+  };
+
+  const handleEQChange = (band: 'low' | 'mid' | 'high', value: number) => {
+    const newEQ = { ...deckState.eq, [band]: value };
+    setEQ(side, newEQ);
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
+    setVolume(side, value);
+  };
+
+  const handlePlatterMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    // Add scrubbing logic here
+  };
+
+  const handlePlatterMouseUp = () => {
+    setIsDragging(false);
   };
 
   return (
@@ -98,7 +136,9 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             ref={canvasRef}
             width={200}
             height={200}
-            className="rounded-full bg-gray-800 shadow-lg"
+            className="rounded-full bg-gray-800 shadow-lg cursor-pointer"
+            onMouseDown={handlePlatterMouseDown}
+            onMouseUp={handlePlatterMouseUp}
           />
           {isPlaying && (
             <div className="absolute inset-0 rounded-full bg-purple-500/10 animate-pulse" />
@@ -108,11 +148,72 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
 
       {/* Track Info */}
       <div className="bg-black rounded-lg p-3 mb-4 text-center">
-        <div className="text-purple-400 font-semibold truncate">{trackInfo.name}</div>
-        <div className="text-sm text-gray-400 flex justify-between mt-1">
-          <span>{trackInfo.bpm} BPM</span>
-          <span>Key: {trackInfo.key}</span>
+        <div className="text-purple-400 font-semibold truncate">
+          {deckState.track?.name || 'No Track Loaded'}
         </div>
+        <div className="text-sm text-gray-400 flex justify-between mt-1">
+          <span>{deckState.track?.bpm || 0} BPM</span>
+          <span>Key: {deckState.track?.key || '-'}</span>
+        </div>
+      </div>
+
+      {/* EQ Section */}
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        {(['high', 'mid', 'low'] as const).map((band) => (
+          <div key={band} className="flex flex-col items-center space-y-1">
+            <div className="relative w-12 h-12">
+              <div 
+                className="w-12 h-12 rounded-full border-4 border-purple-500 bg-gray-800 relative cursor-pointer shadow-lg"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const centerX = rect.left + rect.width / 2;
+                  const centerY = rect.top + rect.height / 2;
+                  const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+                  const degrees = (angle * 180 / Math.PI + 90 + 360) % 360;
+                  const normalizedValue = Math.max(0, Math.min(100, (degrees / 270) * 100));
+                  handleEQChange(band, normalizedValue);
+                }}
+              >
+                <div 
+                  className="absolute w-1 h-4 bg-purple-400 top-1 left-1/2 transform -translate-x-1/2 origin-bottom rounded-full transition-transform"
+                  style={{ 
+                    transform: `translateX(-50%) rotate(${(deckState.eq[band] / 100) * 270 - 135}deg)` 
+                  }}
+                />
+              </div>
+            </div>
+            <div className="text-xs text-gray-400 text-center uppercase">{band}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Volume Fader */}
+      <div className="flex flex-col items-center space-y-2 mb-4">
+        <div className="text-xs text-purple-400 font-semibold">VOLUME</div>
+        <div className="h-24 w-6 bg-gray-700 rounded-full relative">
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={deckState.volume}
+            onChange={handleVolumeChange}
+            className="h-24 w-6 appearance-none bg-transparent cursor-pointer transform -rotate-90 origin-center"
+            style={{ 
+              width: '96px',
+              height: '24px',
+              marginTop: '36px',
+              marginLeft: '-45px'
+            }}
+          />
+          <div 
+            className="absolute w-6 h-6 bg-purple-500 rounded-full shadow-lg pointer-events-none"
+            style={{ 
+              bottom: `${deckState.volume}%`,
+              transform: 'translateY(50%)'
+            }}
+          />
+        </div>
+        <div className="text-xs text-gray-400">{deckState.volume}%</div>
       </div>
 
       {/* Controls */}
@@ -152,19 +253,16 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         {/* Pitch Fader */}
         <div className="space-y-2">
           <div className="text-xs text-gray-400 text-center">
-            Pitch: {pitch > 0 ? '+' : ''}{pitch}%
+            Pitch: {deckState.pitch > 0 ? '+' : ''}{deckState.pitch}%
           </div>
           <div className="flex justify-center">
             <input
               type="range"
               min="-25"
               max="25"
-              value={pitch}
+              value={deckState.pitch}
               onChange={handlePitchChange}
               className="w-32 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer pitch-slider"
-              style={{
-                background: `linear-gradient(to right, #374151 0%, #374151 ${((pitch + 25) / 50) * 100}%, #a259ff ${((pitch + 25) / 50) * 100}%, #a259ff 100%)`
-              }}
             />
           </div>
         </div>

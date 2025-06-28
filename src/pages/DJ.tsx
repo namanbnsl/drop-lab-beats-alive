@@ -8,12 +8,14 @@ import FXPanel from '../components/DJ/FXPanel';
 import TrackLibrary from '../components/DJ/TrackLibrary';
 import FirstTimeOverlay from '../components/DJ/FirstTimeOverlay';
 import { Disc3 } from 'lucide-react';
+import { useDJStore } from '../stores/djStore';
 
 const DJ = () => {
   const navigate = useNavigate();
   const [showFXPanel, setShowFXPanel] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [showFirstTime, setShowFirstTime] = useState(false);
+  const { cleanup } = useDJStore();
 
   useEffect(() => {
     // Check if first time visiting DJ mode
@@ -21,7 +23,12 @@ const DJ = () => {
     if (!hasVisited) {
       setShowFirstTime(true);
     }
-  }, []);
+
+    // Cleanup audio on unmount
+    return () => {
+      cleanup();
+    };
+  }, [cleanup]);
 
   const handleFirstTimeClose = (dontShowAgain: boolean) => {
     setShowFirstTime(false);
