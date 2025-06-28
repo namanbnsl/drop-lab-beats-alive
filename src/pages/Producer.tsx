@@ -54,11 +54,11 @@ const Producer = () => {
   const lastAudioTimeRef = useRef<number>(0);
 
   const sections = [
-    { id: 'drums', name: 'Drums', icon: '🥁', color: 'text-pink-400' },
-    { id: 'melody', name: 'Melody', icon: '🎼', color: 'text-cyan-400' },
-    { id: 'mixer', name: 'Mixer', icon: '🎚️', color: 'text-yellow-400' },
-    { id: 'fx', name: 'Effects', icon: '🎛️', color: 'text-green-400' },
-    { id: 'export', name: 'Export', icon: '💾', color: 'text-purple-400' }
+    { id: 'drums', name: 'Drums', icon: '🥁' },
+    { id: 'melody', name: 'Melody', icon: '🎼' },
+    { id: 'mixer', name: 'Mixer', icon: '🎚️' },
+    { id: 'fx', name: 'Effects', icon: '🎛️' },
+    { id: 'export', name: 'Export', icon: '💾' }
   ];
 
   // Check if content has been generated
@@ -480,24 +480,24 @@ const Producer = () => {
   };
 
   return (
-    <div className="min-h-screen dark-paper handwritten">
+    <div className="min-h-screen bg-black">
       {/* Header */}
       <div className="absolute top-2 sm:top-4 left-2 sm:left-4 z-50">
         <button
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-white/80 hover:text-white transition-colors card-fun px-3 sm:px-4 py-2 text-sm sm:text-base touch-manipulation handwritten-bold min-touch-target"
+          className="flex items-center gap-2 text-white/80 hover:text-white transition-colors bg-black/30 backdrop-blur-md rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base touch-manipulation"
         >
           <Disc3 className="w-5 h-5 sm:w-6 sm:h-6" />
-          <span className="font-bold highlight-pink">DropLab</span>
+          <span className="font-bold">DropLab</span>
         </button>
       </div>
 
       {/* Audio Status Notifications */}
       {!audioUnlocked && (
         <div className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 px-4">
-          <div className="card-fun glow-yellow p-3 sm:p-4 max-w-sm">
-            <p className="text-yellow-200 text-xs sm:text-sm text-center handwritten-bold">
-              🔊 <span className="highlight-yellow">Click anywhere</span> or press any key to unlock audio
+          <div className="bg-yellow-900/90 backdrop-blur-md rounded-lg p-3 sm:p-4 border border-yellow-500/50 max-w-sm">
+            <p className="text-yellow-200 text-xs sm:text-sm text-center">
+              🔊 Click anywhere or press any key to unlock audio
             </p>
           </div>
         </div>
@@ -505,14 +505,14 @@ const Producer = () => {
 
       {audioError && (
         <div className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 px-4">
-          <div className="card-fun glow-pink p-3 sm:p-4 max-w-md">
+          <div className="bg-red-900/90 backdrop-blur-md rounded-lg p-3 sm:p-4 border border-red-500/50 max-w-md">
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle className="w-4 h-4 text-red-300" />
-              <p className="text-red-200 text-xs sm:text-sm font-medium handwritten-bold">Audio Error</p>
+              <p className="text-red-200 text-xs sm:text-sm font-medium">Audio Error</p>
             </div>
-            <p className="text-red-200 text-xs sm:text-sm handwritten">{audioError}</p>
+            <p className="text-red-200 text-xs sm:text-sm">{audioError}</p>
             {isRecovering && (
-              <p className="text-yellow-200 text-xs mt-2 handwritten">Recovering...</p>
+              <p className="text-yellow-200 text-xs mt-2">Recovering...</p>
             )}
           </div>
         </div>
@@ -520,26 +520,26 @@ const Producer = () => {
 
       {/* Master Transport Controls */}
       <div className="fixed top-2 sm:top-4 left-1/2 transform -translate-x-1/2 z-50 px-4">
-        <div className="card-fun p-2 sm:p-3 flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+        <div className="bg-black/30 backdrop-blur-md rounded-lg p-2 sm:p-3 flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs sm:text-sm">
           <div className="flex items-center gap-2">
-            <span className="text-white handwritten-bold highlight-cyan">Tempo:</span>
+            <span className="text-white">Tempo:</span>
             <input
               type="range"
               min="60"
               max="200"
               value={tempo}
               onChange={(e) => setTempo(Number(e.target.value))}
-              className="w-16 sm:w-20 h-1 sm:h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+              className="w-16 sm:w-20 h-1 sm:h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
             />
-            <span className="text-white w-12 sm:w-16 handwritten-bold highlight-yellow">{tempo} BPM</span>
+            <span className="text-white w-12 sm:w-16">{tempo} BPM</span>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handleMasterPlayPause}
               disabled={!audioUnlocked || isRecovering}
-              className={`p-2 rounded-lg transition-all duration-300 touch-manipulation min-touch-target ${audioUnlocked && !isRecovering
-                ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white glow-pink'
+              className={`p-2 rounded-lg transition-colors touch-manipulation ${audioUnlocked && !isRecovering
+                ? 'bg-purple-600 hover:bg-purple-700 text-white'
                 : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                 }`}
             >
@@ -548,8 +548,8 @@ const Producer = () => {
             <button
               onClick={handleMasterStop}
               disabled={!audioUnlocked || isRecovering}
-              className={`p-2 rounded-lg transition-all duration-300 touch-manipulation min-touch-target ${audioUnlocked && !isRecovering
-                ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white glow-pink'
+              className={`p-2 rounded-lg transition-colors touch-manipulation ${audioUnlocked && !isRecovering
+                ? 'bg-red-600 hover:bg-red-700 text-white'
                 : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                 }`}
             >
@@ -558,8 +558,8 @@ const Producer = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-white handwritten-bold highlight-green">Beat:</span>
-            <span className="text-purple-400 font-mono w-8 sm:w-12 handwritten-bold highlight-purple">
+            <span className="text-white">Beat:</span>
+            <span className="text-purple-400 font-mono w-8 sm:w-12">
               {getCurrentBeatDisplay()}
             </span>
           </div>
@@ -568,15 +568,15 @@ const Producer = () => {
 
       {/* Navigation */}
       <div className="fixed top-2 sm:top-4 right-2 sm:right-4 z-50">
-        <div className="card-fun p-2">
+        <div className="bg-black/30 backdrop-blur-md rounded-lg p-2">
           <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
             {sections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => setCurrentSection(section.id)}
-                className={`px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-300 touch-manipulation handwritten-bold min-touch-target ${currentSection === section.id
-                  ? `bg-gradient-to-r from-purple-500 to-pink-500 text-white glow-purple`
-                  : `text-white/70 hover:text-white hover:bg-white/10 ${section.color}`
+                className={`px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors touch-manipulation ${currentSection === section.id
+                  ? 'bg-purple-600 text-white'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
                   }`}
               >
                 <span className="mr-1 sm:mr-2">{section.icon}</span>

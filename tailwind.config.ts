@@ -12,20 +12,14 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: {
-				DEFAULT: '1rem',
-				sm: '2rem',
-				lg: '3rem',
-			},
+			padding: '2rem',
 			screens: {
 				'2xl': '1400px'
 			}
 		},
 		extend: {
 			fontFamily: {
-				'kalam': ['Kalam', 'cursive'],
-				'caveat': ['Caveat', 'cursive'],
-				'architects': ['Architects Daughter', 'cursive'],
+				'poppins': ['Poppins', 'sans-serif'],
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -107,73 +101,12 @@ export default {
 					'50%': {
 						boxShadow: '0 0 20px currentColor, 0 0 30px currentColor'
 					}
-				},
-				'bounce-fun': {
-					'0%, 20%, 53%, 80%, 100%': {
-						transform: 'translate3d(0,0,0)'
-					},
-					'40%, 43%': {
-						transform: 'translate3d(0, -0.5rem, 0)'
-					},
-					'70%': {
-						transform: 'translate3d(0, -0.25rem, 0)'
-					},
-					'90%': {
-						transform: 'translate3d(0, -0.125rem, 0)'
-					}
-				},
-				'wiggle': {
-					'0%, 7%': {
-						transform: 'rotateZ(0)'
-					},
-					'15%': {
-						transform: 'rotateZ(-15deg)'
-					},
-					'20%': {
-						transform: 'rotateZ(10deg)'
-					},
-					'25%': {
-						transform: 'rotateZ(-10deg)'
-					},
-					'30%': {
-						transform: 'rotateZ(6deg)'
-					},
-					'35%': {
-						transform: 'rotateZ(-4deg)'
-					},
-					'40%, 100%': {
-						transform: 'rotateZ(0)'
-					}
-				},
-				'float': {
-					'0%': {
-						transform: 'translateY(0px)'
-					},
-					'50%': {
-						transform: 'translateY(-0.5rem)'
-					},
-					'100%': {
-						transform: 'translateY(0px)'
-					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-				'bounce-fun': 'bounce-fun 1s ease-in-out',
-				'wiggle': 'wiggle 2s ease-in-out',
-				'float': 'float 3s ease-in-out infinite'
-			},
-			spacing: {
-				'18': '4.5rem',
-				'88': '22rem',
-			},
-			fontSize: {
-				'2xs': '0.625rem',
-			},
-			screens: {
-				'xs': '475px',
+				'pulse-glow': 'pulse-glow 2s ease-in-out infinite'
 			}
 		}
 	},
