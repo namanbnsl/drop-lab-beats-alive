@@ -1,4 +1,5 @@
 import * as Tone from 'tone';
+import { detectBPM, loadAudioForBPMDetection, calculatePlaybackRate, BPMDetectionResult } from './bpmDetector';
 
 export class DeckAudioEngine {
   private player: Tone.Player | null = null;
@@ -12,12 +13,15 @@ export class DeckAudioEngine {
   public isLoaded: boolean = false;
   public isPlaying: boolean = false;
   private currentBPM: number = 120;
+  private originalBPM: number = 120;
+  private targetBPM: number = 120;
   private trackDuration: number = 0;
   private startTime: number = 0;
   private pausedAt: number = 0;
   private cuePoint: number = 0;
   private originalPlaybackRate: number = 1;
   private tempoBendTimeout: NodeJS.Timeout | null = null;
+  private bpmDetectionResult: BPMDetectionResult | null = null;
 
   constructor() {
     // Initialize audio chain
@@ -53,7 +57,7 @@ export class DeckAudioEngine {
     this.backspinPlayer.load('/backspin.mp3').catch(console.warn);
   }
 
-  async loadTrack(url: string, bpm: number = 120): Promise<boolean> {
+  async loadTrack(url: string, providedBPM?: number): Promise<boolean> {
     try {
       if (this.player) {
         this.player.dispose();
@@ -66,17 +70,39 @@ export class DeckAudioEngine {
       });
       
       this.player.connect(this.eq.low);
-      this.currentBPM = bpm;
-      this.originalPlaybackRate = 1;
       
       await this.player.load(url);
-      this.isLoaded = true;
       this.trackDuration = this.player.buffer.duration;
+      this.isLoaded = true;
       this.isPlaying = false;
       this.pausedAt = 0;
       this.cuePoint = 0;
+
+      // Detect BPM if not provided
+      if (providedBPM) {
+        this.originalBPM = providedBPM;
+        this.currentBPM = providedBPM;
+        console.log(`🎵 Track loaded with provided BPM: ${providedBPM}`);
+      } else {
+        console.log('🔍 Detecting BPM...');
+        try {
+          const audioBuffer = await loadAudioForBPMDetection(url);
+          this.bpmDetectionResult = await detectBPM(audioBuffer);
+          this.originalBPM = this.bpmDetectionResult.bpm;
+          this.currentBPM = this.originalBPM;
+          
+          console.log(`✅ BPM detected: ${this.originalBPM} (confidence: ${(this.bpmDetectionResult.confidence * 100).toFixed(1)}%)`);
+        } catch (error) {
+          console.warn('⚠️ BPM detection failed, using default 120 BPM');
+          this.originalBPM = 120;
+          this.currentBPM = 120;
+        }
+      }
+
+      // Set initial playback rate based on target BPM
+      this.updatePlaybackRateForBPM();
       
-      console.log(`✅ Track loaded: ${url} (${this.trackDuration.toFixed(2)}s, ${bpm} BPM)`);
+      console.log(`✅ Track loaded: ${url} (${this.trackDuration.toFixed(2)}s, ${this.originalBPM} BPM)`);
       return true;
     } catch (error) {
       console.error('❌ Failed to load track:', error);
@@ -85,13 +111,46 @@ export class DeckAudioEngine {
     }
   }
 
+  /**
+   * Set the target BPM for synchronization
+   */
+  setTargetBPM(bpm: number) {
+    this.targetBPM = bpm;
+    this.updatePlaybackRateForBPM();
+    console.log(`🎯 Target BPM set to ${bpm}, playback rate: ${this.originalPlaybackRate.toFixed(3)}x`);
+  }
+
+  /**
+   * Update playback rate to match target BPM
+   */
+  private updatePlaybackRateForBPM() {
+    if (this.player && this.originalBPM > 0) {
+      this.originalPlaybackRate = calculatePlaybackRate(this.originalBPM, this.targetBPM);
+      this.player.playbackRate = this.originalPlaybackRate;
+      this.currentBPM = this.targetBPM;
+    }
+  }
+
+  /**
+   * Get BPM information
+   */
+  getBPMInfo() {
+    return {
+      original: this.originalBPM,
+      current: this.currentBPM,
+      target: this.targetBPM,
+      playbackRate: this.originalPlaybackRate,
+      confidence: this.bpmDetectionResult?.confidence || 0
+    };
+  }
+
   play(fromCue: boolean = false) {
     if (this.player && this.isLoaded && !this.isPlaying) {
       const startPosition = fromCue ? this.cuePoint : this.pausedAt;
       this.startTime = Tone.now() - startPosition;
       this.player.start(0, startPosition);
       this.isPlaying = true;
-      console.log(`▶️ Track playing from ${startPosition.toFixed(2)}s`);
+      console.log(`▶️ Track playing from ${startPosition.toFixed(2)}s at ${this.currentBPM} BPM (${this.originalPlaybackRate.toFixed(3)}x rate)`);
     }
   }
 
@@ -141,7 +200,7 @@ export class DeckAudioEngine {
 
   bendTempo(rate: number) {
     if (this.player && this.isLoaded) {
-      // Apply tempo bend
+      // Apply tempo bend on top of BPM sync rate
       this.player.playbackRate = this.originalPlaybackRate * rate;
       
       // Clear any existing timeout
@@ -192,14 +251,18 @@ export class DeckAudioEngine {
     return this.currentBPM;
   }
 
+  getOriginalBPM(): number {
+    return this.originalBPM;
+  }
+
   setPitch(cents: number) {
     if (this.pitchShift) {
       this.pitchShift.pitch = cents;
       
       if (this.player) {
         const pitchRatio = Math.pow(2, cents / 1200);
-        this.originalPlaybackRate = pitchRatio;
-        this.player.playbackRate = pitchRatio;
+        // Apply pitch change on top of BPM sync rate
+        this.player.playbackRate = this.originalPlaybackRate * pitchRatio;
       }
     }
   }

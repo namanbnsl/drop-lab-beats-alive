@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, RotateCcw, RefreshCw } from 'lucide-react';
+import { Play, Pause, RotateCcw, RefreshCw, Activity } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
 
 interface CDJDeckProps {
@@ -34,6 +34,10 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     triggerBackspin,
     bendTempo,
     initializeAudio,
+    masterBPM,
+    bpmSyncEnabled,
+    setMasterBPM,
+    toggleBPMSync,
   } = useDJStore();
 
   const deckState = side === 'A' ? deckAState : deckBState;
@@ -72,7 +76,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       } else if (isPlaying) {
         ctx.strokeStyle = tempoBend.active 
           ? (tempoBend.direction > 0 ? '#22c55e' : '#ef4444') // Green/Red when tempo bending
-          : '#a259ff'; // Purple when playing normally
+          : bpmSyncEnabled ? '#10b981' : '#a259ff'; // Green when synced, Purple when not
       } else if (isCuePressed) {
         ctx.strokeStyle = '#22c55e'; // Green when cueing
       } else {
@@ -87,7 +91,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         ctx.beginPath();
         ctx.moveTo(60, 0);
         ctx.lineTo(75, 0);
-        ctx.strokeStyle = isPlaying ? '#8b5cf6' : '#6b7280';
+        ctx.strokeStyle = isPlaying ? (bpmSyncEnabled ? '#10b981' : '#8b5cf6') : '#6b7280';
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.rotate(Math.PI / 4);
@@ -98,8 +102,21 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       // Center dot
       ctx.beginPath();
       ctx.arc(canvas.width / 2, canvas.height / 2, 8, 0, Math.PI * 2);
-      ctx.fillStyle = isPlaying ? '#a259ff' : '#374151';
+      ctx.fillStyle = isPlaying ? (bpmSyncEnabled ? '#10b981' : '#a259ff') : '#374151';
       ctx.fill();
+
+      // BPM sync indicator ring
+      if (bpmSyncEnabled && deckState.bpmInfo) {
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.beginPath();
+        ctx.arc(0, 0, 85, 0, Math.PI * 2);
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+        ctx.restore();
+      }
 
       // Scrub direction indicator
       if (scrubIndicator.active) {
@@ -151,7 +168,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying, isDragging, isCuePressed, scrubIndicator, cuePoint, tempoBend]);
+  }, [isPlaying, isDragging, isCuePressed, scrubIndicator, cuePoint, tempoBend, bpmSyncEnabled, deckState.bpmInfo]);
 
   const handlePlayPause = () => {
     if (isPlaying) {
@@ -313,6 +330,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     }
   };
 
+  const handleBPMClick = () => {
+    if (side === 'A' && deckState.bpmInfo) {
+      setMasterBPM(deckState.bpmInfo.original);
+    }
+  };
+
   return (
     <div className="bg-gray-900 rounded-xl p-6 border border-purple-500/30">
       <div className="text-center mb-4">
@@ -361,6 +384,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
               {tempoBend.direction > 0 ? '⏩ FASTER' : '⏪ SLOWER'}
             </div>
           )}
+
+          {bpmSyncEnabled && deckState.bpmInfo && (
+            <div className="absolute bottom-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full pointer-events-none">
+              SYNC
+            </div>
+          )}
         </div>
       </div>
 
@@ -370,10 +399,64 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           {deckState.track?.name || 'No Track Loaded'}
         </div>
         <div className="text-sm text-gray-400 flex justify-between mt-1">
-          <span>{deckState.track?.bpm || 0} BPM</span>
+          <button
+            onClick={handleBPMClick}
+            className={`hover:text-white transition-colors ${side === 'A' ? 'cursor-pointer' : 'cursor-default'}`}
+            title={side === 'A' ? 'Click to set as Master BPM' : ''}
+          >
+            {deckState.bpmInfo ? (
+              <span className="flex items-center gap-1">
+                {deckState.bpmInfo.current.toFixed(1)} BPM
+                {bpmSyncEnabled && <Activity className="w-3 h-3 text-green-400" />}
+              </span>
+            ) : (
+              `${deckState.track?.bpm || 0} BPM`
+            )}
+          </button>
           <span>Key: {deckState.track?.key || '-'}</span>
         </div>
+        {deckState.bpmInfo && deckState.bpmInfo.confidence > 0 && (
+          <div className="text-xs text-gray-500 mt-1">
+            Detected: {deckState.bpmInfo.original.toFixed(1)} BPM 
+            ({(deckState.bpmInfo.confidence * 100).toFixed(0)}% confidence)
+          </div>
+        )}
+        {deckState.bpmInfo && deckState.bpmInfo.playbackRate !== 1 && (
+          <div className="text-xs text-blue-400 mt-1">
+            Rate: {deckState.bpmInfo.playbackRate.toFixed(3)}x
+          </div>
+        )}
       </div>
+
+      {/* BPM Sync Controls */}
+      {side === 'A' && (
+        <div className="mb-4 p-3 bg-gray-800/50 rounded-lg">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-300">Master BPM</span>
+            <button
+              onClick={toggleBPMSync}
+              className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${
+                bpmSyncEnabled 
+                  ? 'bg-green-600 text-white' 
+                  : 'bg-gray-600 text-gray-300'
+              }`}
+            >
+              {bpmSyncEnabled ? 'SYNC ON' : 'SYNC OFF'}
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              value={masterBPM}
+              onChange={(e) => setMasterBPM(Number(e.target.value))}
+              className="flex-1 bg-black border border-purple-500/30 rounded px-2 py-1 text-white text-sm"
+              min="60"
+              max="200"
+            />
+            <span className="text-xs text-gray-400">BPM</span>
+          </div>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="space-y-4">
@@ -432,7 +515,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
                   ? 'bg-blue-600 text-white animate-pulse'
                   : 'bg-blue-600 text-white hover:bg-blue-500'
               }`}
-              title="Sync to Deck A"
+              title="Sync to Master BPM"
               disabled={deckBState.isSyncing}
             >
               <RefreshCw className={`w-6 h-6 ${deckBState.isSyncing ? 'animate-spin' : ''}`} />
@@ -479,7 +562,13 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           
           {deckBState.isSyncing && side === 'B' && (
             <div className="text-xs text-blue-400 animate-pulse">
-              Syncing to Deck A...
+              Syncing to Master BPM...
+            </div>
+          )}
+
+          {bpmSyncEnabled && deckState.bpmInfo && (
+            <div className="text-xs text-green-400">
+              BPM Sync: {deckState.bpmInfo.target} BPM
             </div>
           )}
         </div>
@@ -488,6 +577,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         <div className="text-xs text-gray-500 text-center space-y-1">
           <div>Double-click jogwheel for backspin</div>
           <div>Drag to scrub • Scroll to bend tempo</div>
+          {bpmSyncEnabled && <div>🎯 BPM Sync Active</div>}
         </div>
       </div>
     </div>
