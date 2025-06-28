@@ -25,7 +25,7 @@ const LibraryPanel = () => {
       url: 'https://drive.google.com/uc?export=download&id=1YourFileId1'
     },
     {
-      id: 'demo2', 
+      id: 'demo2',
       name: 'Tech House Mix',
       url: 'https://drive.google.com/uc?export=download&id=1YourFileId2'
     },
@@ -64,7 +64,7 @@ const LibraryPanel = () => {
 
   const handleGoogleDriveAdd = () => {
     if (!googleDriveLink.trim()) return;
-    
+
     const directUrl = convertGoogleDriveLink(googleDriveLink);
     if (!directUrl) {
       alert('Invalid Google Drive link format');
@@ -102,11 +102,10 @@ const LibraryPanel = () => {
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className={`fixed top-4 right-4 z-50 p-3 rounded-full transition-all ${
-          isOpen 
-            ? 'bg-purple-600 text-white' 
+        className={`fixed top-4 right-4 z-50 p-3 rounded-full transition-all ${isOpen
+            ? 'bg-purple-600 text-white'
             : 'bg-gray-800 text-purple-400 hover:bg-gray-700'
-        }`}
+          }`}
       >
         <Music className="w-6 h-6" />
       </motion.button>
@@ -185,7 +184,7 @@ const LibraryPanel = () => {
                   </button>
                 )}
               </div>
-              
+
               <div className="flex gap-2">
                 <button
                   onClick={() => handleLoadTrack(track, 'A')}

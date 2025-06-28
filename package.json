@@ -61,6 +61,7 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "tone": "^15.1.22",
+    "use-sound": "^5.0.0",
     "vaul": "^0.9.3",
     "zod": "^3.23.8",
     "zustand": "^5.0.6"
