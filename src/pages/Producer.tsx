@@ -511,51 +511,6 @@ const Producer = () => {
           isPlaying={isPlaying}
           isRecording={isRecording}
         />
-        <section className="lyria-controls bg-gray-900/60 rounded-xl p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-300 mb-1">Prompt</label>
-              <input
-                type="text"
-                value={promptText}
-                onChange={e => setPromptText(e.target.value)}
-                className="w-full bg-black border border-purple-500/50 rounded-lg px-4 py-2 text-white focus:border-purple-500 focus:outline-none"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-300 mb-1">BPM</label>
-              <input
-                type="number"
-                min={60}
-                max={180}
-                value={bpm}
-                onChange={e => setBpm(Number(e.target.value))}
-                className="w-full bg-black border border-purple-500/50 rounded-lg px-4 py-2 text-white focus:border-purple-500 focus:outline-none"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-300 mb-1">Temperature</label>
-              <input
-                type="range"
-                min={0.1}
-                max={2.0}
-                step={0.01}
-                value={temperature}
-                onChange={e => setTemperature(Number(e.target.value))}
-                className="w-full"
-              />
-              <span className="text-xs text-purple-400 ml-2">{temperature.toFixed(2)}</span>
-            </div>
-            <button
-              onClick={isPlaying ? handleStop : handlePlay}
-              className="px-6 py-3 bg-purple-600 rounded-lg text-white font-semibold hover:bg-purple-500 transition-all"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Loading...' : isPlaying ? 'Stop' : 'Play'}
-            </button>
-          </div>
-          {error && <div className="text-red-500 mt-2">{error}</div>}
-        </section>
         <section className="audio-status text-center mt-4">
           {isPlaying && <span className="text-green-400">Music is playing from Lyria!</span>}
           {!isPlaying && !isLoading && <span className="text-gray-400">Press Play to generate music.</span>}
