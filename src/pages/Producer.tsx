@@ -113,10 +113,15 @@ const Producer = () => {
         await Tone.context.resume();
       }
 
-      // Restart sequencer
+      // Start transport first to establish valid timeline
+      Tone.Transport.start();
+      
+      // Wait a small amount to ensure transport is running
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      // Create and start sequencer after transport is running
       const sequencer = createSequencer();
       sequencer.start(0);
-      Tone.Transport.start();
 
       // Restart step counter with proper beat calculation
       const stepDuration = (60 / tempo) * 1000 / 4; // 16th note timing
@@ -274,9 +279,16 @@ const Producer = () => {
           await Tone.context.resume();
         }
 
+        // Start transport first to establish valid timeline
+        Tone.Transport.start();
+        
+        // Wait a small amount to ensure transport is running
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+        // Create and start sequencer after transport is running
         const sequencer = createSequencer();
         sequencer.start(0);
-        Tone.Transport.start();
+        
         setIsPlaying(true);
         setAudioError(null);
 
