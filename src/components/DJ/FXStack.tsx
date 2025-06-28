@@ -1,6 +1,6 @@
 
 import React from 'react';
-import FXKnob from './FXKnob';
+import ImprovedFXKnob from './ImprovedFXKnob';
 
 interface FXStackProps {
   deck: 'A' | 'B';
@@ -13,17 +13,17 @@ const FXStack = ({ deck, fx, onFXChange }: FXStackProps) => {
     <div className="flex flex-col items-center space-y-4">
       <div className="text-xs text-purple-400 font-semibold mb-2">DECK {deck} FX</div>
       <div className="space-y-4">
-        <FXKnob
+        <ImprovedFXKnob
           label="Filter"
           value={fx.filter}
           onChange={(value) => onFXChange('filter', value)}
         />
-        <FXKnob
+        <ImprovedFXKnob
           label="Reverb"
           value={fx.reverb}
           onChange={(value) => onFXChange('reverb', value)}
         />
-        <FXKnob
+        <ImprovedFXKnob
           label="Delay"
           value={fx.delay}
           onChange={(value) => onFXChange('delay', value)}

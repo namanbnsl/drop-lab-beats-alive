@@ -1,8 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, RotateCcw, Zap } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
-import CuePads from './CuePads';
+import PerformancePads from './PerformancePads';
 
 interface CDJDeckProps {
   side: 'A' | 'B';
@@ -179,10 +180,10 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         ))}
       </div>
 
-      {/* Cue Pads */}
+      {/* Performance Pads */}
       <div className="mb-4">
-        <div className="text-xs text-purple-400 text-center mb-2">CUE PADS</div>
-        <CuePads side={side} />
+        <div className="text-xs text-purple-400 text-center mb-2">PERFORMANCE PADS</div>
+        <PerformancePads side={side} />
       </div>
 
       {/* Controls */}

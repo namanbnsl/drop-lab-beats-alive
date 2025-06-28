@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Music, X } from 'lucide-react';
+import { Upload, Music, X, Link } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
 
 interface Track {
@@ -14,7 +14,15 @@ interface Track {
 const LibraryPanel = () => {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [googleDriveLink, setGoogleDriveLink] = useState('');
   const { loadTrack } = useDJStore();
+
+  const convertGoogleDriveLink = (driveLink: string) => {
+    const match = driveLink.match(/\/d\/(.*?)\//);
+    if (!match) return null;
+    const fileId = match[1];
+    return `https://drive.google.com/uc?export=download&id=${fileId}`;
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -28,6 +36,26 @@ const LibraryPanel = () => {
     };
 
     setTracks(prev => [...prev, newTrack]);
+  };
+
+  const handleGoogleDriveAdd = () => {
+    if (!googleDriveLink.trim()) return;
+    
+    const directUrl = convertGoogleDriveLink(googleDriveLink);
+    if (!directUrl) {
+      alert('Invalid Google Drive link format');
+      return;
+    }
+
+    const trackName = `Google Drive Track ${tracks.length + 1}`;
+    const newTrack: Track = {
+      id: Date.now().toString(),
+      name: trackName,
+      url: directUrl,
+    };
+
+    setTracks(prev => [...prev, newTrack]);
+    setGoogleDriveLink('');
   };
 
   const handleLoadTrack = async (track: Track, deck: 'A' | 'B') => {
@@ -64,7 +92,7 @@ const LibraryPanel = () => {
         initial={{ x: '100%' }}
         animate={{ x: isOpen ? 0 : '100%' }}
         transition={{ duration: 0.3 }}
-        className="fixed top-0 right-0 h-full w-80 bg-gray-900 border-l border-purple-500/30 z-40 p-6"
+        className="fixed top-0 right-0 h-full w-80 bg-gray-900 border-l border-purple-500/30 z-40 p-6 overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-bold text-purple-400">Music Library</h3>
@@ -90,8 +118,31 @@ const LibraryPanel = () => {
           </label>
         </div>
 
+        {/* Google Drive Section */}
+        <div className="mb-6 space-y-3">
+          <div className="text-sm text-purple-400 font-semibold">Google Drive Link</div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={googleDriveLink}
+              onChange={(e) => setGoogleDriveLink(e.target.value)}
+              placeholder="Paste Google Drive share link..."
+              className="flex-1 px-3 py-2 bg-gray-800 border border-purple-500/30 rounded text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+            />
+            <button
+              onClick={handleGoogleDriveAdd}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors"
+            >
+              <Link className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="text-xs text-gray-400">
+            Paste a Google Drive share link to add tracks from the demo folder
+          </div>
+        </div>
+
         {/* Track List */}
-        <div className="space-y-3 max-h-96 overflow-y-auto">
+        <div className="space-y-3">
           {tracks.map((track) => (
             <motion.div
               key={track.id}
