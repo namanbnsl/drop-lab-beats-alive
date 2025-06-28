@@ -4,7 +4,7 @@ import { ChevronDown } from 'lucide-react';
 
 const WelcomeSection = () => {
   const scrollToMelody = () => {
-    const element = document.getElementById('melody');
+    const element = document.getElementById('music-generation');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
