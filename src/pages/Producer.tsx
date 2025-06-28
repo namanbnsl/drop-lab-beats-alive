@@ -486,22 +486,6 @@ const Producer = () => {
           modelsLoaded={!!lyria}
         />
         <GridSection />
-        <FXSection
-          reverbAmount={reverbAmount}
-          delayAmount={delayAmount}
-          onReverbChange={setReverbAmount}
-          onDelayChange={setDelayAmount}
-        />
-        <MixerSection
-          melodyVolume={melodyVolume}
-          drumsVolume={drumsVolume}
-          fxVolume={fxVolume}
-          masterVolume={masterVolume}
-          onMelodyVolumeChange={setMelodyVolume}
-          onDrumsVolumeChange={setDrumsVolume}
-          onFxVolumeChange={setFxVolume}
-          onMasterVolumeChange={setMasterVolume}
-        />
         <ExportSection
           onExportMelody={() => exportToMidi(lyria, 'droplab-melody')}
           onExportDrums={() => exportToMidi(lyria, 'droplab-drums')}
