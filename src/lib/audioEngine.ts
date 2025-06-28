@@ -17,7 +17,7 @@ export interface AudioPattern {
 export class AudioEngine {
   private synths: Map<string, Tone.PolySynth> = new Map();
   private drums: Map<string, Tone.MembraneSynth | Tone.MetalSynth | Tone.NoiseSynth> = new Map();
-  private effects: Map<string, Tone.Effect> = new Map();
+  private effects: Map<string, Tone.Reverb | Tone.FeedbackDelay | Tone.Filter | Tone.Distortion> = new Map();
   private masterGain: Tone.Gain;
   private isInitialized = false;
 
@@ -45,7 +45,10 @@ export class AudioEngine {
       envelope: { attack: 0.8, decay: 0.5, sustain: 0.7, release: 2.0 }
     }).connect(this.masterGain));
 
-    this.synths.set('pluck', new Tone.PolySynth(Tone.PluckSynth).connect(this.masterGain));
+    this.synths.set('pluck', new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: 'triangle' },
+      envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 0.5 }
+    }).connect(this.masterGain));
 
     // Initialize drum machines
     this.drums.set('kick', new Tone.MembraneSynth({
@@ -60,14 +63,17 @@ export class AudioEngine {
       envelope: { attack: 0.005, decay: 0.1, sustain: 0.0 }
     }).connect(this.masterGain));
 
-    this.drums.set('hihat', new Tone.MetalSynth({
-      frequency: 200,
-      envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
-      harmonicity: 5.1,
-      modulationIndex: 32,
-      resonance: 4000,
-      octaves: 1.5
-    }).connect(this.masterGain));
+    this.drums.set('hihat', (() => {
+      const synth = new Tone.MetalSynth({
+        envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
+        harmonicity: 5.1,
+        modulationIndex: 32,
+        resonance: 4000,
+        octaves: 1.5
+      }).connect(this.masterGain);
+      synth.frequency.value = 200;
+      return synth;
+    })());
 
     // Initialize effects
     this.effects.set('reverb', new Tone.Reverb(2).connect(this.masterGain));

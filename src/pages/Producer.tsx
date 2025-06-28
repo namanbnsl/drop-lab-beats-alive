@@ -3,7 +3,7 @@ import { motion, useAnimation } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Music, Home, Volume2, Play, Pause, Download, Send } from 'lucide-react';
 import * as Tone from 'tone';
-import { LyriaAPI, type LyriaGenerationResponse } from '../lib/lyria';
+import { LyriaSession } from '../lib/lyria';
 import ProducerNavbar from '../components/Producer/ProducerNavbar';
 import WelcomeSection from '../components/Producer/WelcomeSection';
 import MusicGenerationSection from '../components/Producer/MusicGenerationSection';
@@ -13,19 +13,26 @@ import GridSection from '../components/Producer/GridSection';
 import FXSection from '../components/Producer/FXSection';
 import MixerSection from '../components/Producer/MixerSection';
 import ExportSection from '../components/Producer/ExportSection';
+import { decode, decodeAudioData } from '../../useful_resources/utils';
 
 const Producer = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('welcome');
-  
-  // Lyria API: Initialize with API key
-  const lyriaAPI = useRef<LyriaAPI>();
-  const [apiReady, setApiReady] = useState(false);
-  const [isLoadingAPI, setIsLoadingAPI] = useState(true);
-  
-  // Generated sequences storage
-  const [melodyData, setMelodyData] = useState<LyriaGenerationResponse | null>(null);
-  const [drumData, setDrumData] = useState<LyriaGenerationResponse | null>(null);
+
+  // Lyria session state
+  const [lyria, setLyria] = useState<LyriaSession | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [audioChunks, setAudioChunks] = useState<ArrayBuffer[]>([]);
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  const [audioSource, setAudioSource] = useState<AudioBufferSourceNode | null>(null);
+
+  // Prompt/config controls
+  const [promptText, setPromptText] = useState('Minimal Techno');
+  const [promptWeight, setPromptWeight] = useState(1.0);
+  const [bpm, setBpm] = useState(120);
+  const [temperature, setTemperature] = useState(1.0);
 
   // Tone.js: Audio engine setup
   const melodyGainRef = useRef<Tone.Gain>();
@@ -50,32 +57,133 @@ const Producer = () => {
   const [delayAmount, setDelayAmount] = useState(0.2);
 
   // Playback states
-  const [isPlaying, setIsPlaying] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
 
   // Drum pattern state
   const [drumStyle, setDrumStyle] = useState('house');
 
-  // Lyria API: Initialize on component mount
+  // Connect to Lyria session on mount
   useEffect(() => {
-    const initializeLyria = async () => {
-      try {
-        console.log('🎵 Initializing Lyria API...');
-        
-        const apiKey = import.meta.env.VITE_GEMINI_API_KEY || 'demo-key';
-        
-        lyriaAPI.current = new LyriaAPI(apiKey);
-        setApiReady(true);
-        setIsLoadingAPI(false);
-        console.log('✅ Lyria API ready for music generation!');
-      } catch (error) {
-        console.error('❌ Error initializing Lyria API:', error);
-        setIsLoadingAPI(false);
-      }
-    };
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+    const lyriaSession = new LyriaSession(apiKey);
+    setLyria(lyriaSession);
+    setIsLoading(true);
 
-    initializeLyria();
+    // Audio playback setup (matching /useful_resources)
+    const sampleRate = 48000;
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate });
+    const outputNode = audioContext.createGain();
+    let nextStartTime = 0;
+    const bufferTime = 2; // adds an audio buffer in case of network latency
+
+    outputNode.connect(audioContext.destination);
+    setAudioContext(audioContext);
+
+    lyriaSession.connect(
+      async (audioChunk: string) => {
+        try {
+          // Resume AudioContext if suspended (required for user gesture)
+          if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+          }
+
+          // Decode base64 PCM data using /useful_resources utilities
+          const decodedData = decode(audioChunk); // audioChunk is base64 string
+          const audioBuffer = await decodeAudioData(
+            decodedData,
+            audioContext,
+            sampleRate,
+            2 // stereo
+          );
+
+          // Create and schedule audio source
+          const source = audioContext.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(outputNode);
+
+          // Handle timing and underrun protection (matching /useful_resources)
+          if (nextStartTime === 0) {
+            nextStartTime = audioContext.currentTime + bufferTime;
+            setTimeout(() => {
+              setIsPlaying(true);
+            }, bufferTime * 1000);
+          }
+
+          if (nextStartTime < audioContext.currentTime) {
+            console.log('Audio underrun detected');
+            setIsPlaying(false);
+            nextStartTime = 0;
+            return;
+          }
+
+          source.start(nextStartTime);
+          nextStartTime += audioBuffer.duration;
+
+          setAudioSource(source);
+          setAudioChunks((prev) => [...prev, audioChunk as any]);
+        } catch (err) {
+          console.error('Audio playback error:', err);
+          setError('Audio playback error');
+        }
+      },
+      (err) => {
+        console.error('Lyria session error:', err);
+        setError(err?.message || 'Lyria session error');
+        setIsPlaying(false);
+      },
+      () => {
+        console.log('Lyria session closed');
+        setIsPlaying(false);
+      }
+    ).then(() => setIsLoading(false));
+
+    return () => {
+      lyriaSession.close();
+      if (audioContext) audioContext.close();
+    };
   }, []);
+
+  // Handle prompt/config changes
+  const handlePromptConfigChange = async () => {
+    if (!lyria) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      await lyria.setWeightedPrompts([{ text: promptText, weight: promptWeight }]);
+      await lyria.setMusicGenerationConfig({ bpm, temperature });
+    } catch (err: any) {
+      setError(err.message || 'Failed to update prompt/config');
+    }
+    setIsLoading(false);
+  };
+
+  // Start/stop music generation
+  const handlePlay = async () => {
+    if (!lyria) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      await handlePromptConfigChange();
+      await lyria.play();
+      setIsPlaying(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to start playback');
+    }
+    setIsLoading(false);
+  };
+
+  const handleStop = async () => {
+    if (!lyria) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      await lyria.stop();
+      setIsPlaying(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to stop playback');
+    }
+    setIsLoading(false);
+  };
 
   // Tone.js: Initialize audio engine with FX chains
   useEffect(() => {
@@ -87,12 +195,12 @@ const Producer = () => {
         masterGainRef.current = new Tone.Gain(masterVolume / 100).toDestination();
         recorderRef.current = new Tone.Recorder();
         masterGainRef.current.connect(recorderRef.current);
-        
+
         // Create FX sends (parallel processing)
         reverbRef.current = new Tone.Reverb(2);
         delayRef.current = new Tone.FeedbackDelay("8n", 0.4);
         fxSendRef.current = new Tone.Gain(fxVolume / 100);
-        
+
         // Set initial FX amounts
         reverbRef.current.wet.value = reverbAmount;
         delayRef.current.wet.value = delayAmount;
@@ -131,29 +239,35 @@ const Producer = () => {
             oscillator: { type: 'sine' },
             envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
           }).connect(drumsGainRef.current),
-          
+
           snare: new Tone.NoiseSynth({
             noise: { type: 'white' },
             envelope: { attack: 0.005, decay: 0.1, sustain: 0.0 }
           }).connect(drumsGainRef.current),
-          
-          hihat: new Tone.MetalSynth({
-            frequency: 200,
-            envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
-            harmonicity: 5.1,
-            modulationIndex: 32,
-            resonance: 4000,
-            octaves: 1.5
-          }).connect(drumsGainRef.current),
-          
-          openhat: new Tone.MetalSynth({
-            frequency: 400,
-            envelope: { attack: 0.001, decay: 0.3, release: 0.1 },
-            harmonicity: 3.1,
-            modulationIndex: 16,
-            resonance: 2000,
-            octaves: 1
-          }).connect(drumsGainRef.current)
+
+          hihat: (() => {
+            const synth = new Tone.MetalSynth({
+              envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
+              harmonicity: 5.1,
+              modulationIndex: 32,
+              resonance: 4000,
+              octaves: 1.5
+            }).connect(drumsGainRef.current);
+            synth.frequency.value = 200;
+            return synth;
+          })(),
+
+          openhat: (() => {
+            const synth = new Tone.MetalSynth({
+              envelope: { attack: 0.001, decay: 0.3, release: 0.1 },
+              harmonicity: 3.1,
+              modulationIndex: 16,
+              resonance: 2000,
+              octaves: 1
+            }).connect(drumsGainRef.current);
+            synth.frequency.value = 400;
+            return synth;
+          })(),
         };
 
         // Store drum synths for later use
@@ -254,183 +368,20 @@ const Producer = () => {
   };
 
   // Helper: Convert Lyria response to Tone.js events
-  const convertLyriaToToneEvents = (lyriaData: LyriaGenerationResponse | null) => {
-    if (!lyriaData || !lyriaData.midiData) return [];
-    
-    try {
-      const decoder = new TextDecoder();
-      const jsonString = decoder.decode(lyriaData.midiData);
-      const midiData = JSON.parse(jsonString);
-      
-      return midiData.notes.map((note: any) => ({
-        time: note.startTime,
-        note: Tone.Frequency(note.pitch, "midi").toNote(),
-        duration: note.endTime - note.startTime,
-        velocity: note.velocity
-      }));
-    } catch (error) {
-      console.error('Error parsing Lyria data:', error);
-      return [];
-    }
-  };
-
-  // Lyria API: Generate melody using AI
-  const generateMelody = async (key: string, style: string, length: number) => {
-    if (!lyriaAPI.current || !apiReady) {
-      console.warn('⚠️ Lyria API not ready yet');
-      return null;
-    }
-
-    try {
-      console.log(`🎼 Generating AI melody with Lyria in ${key} (${style}, ${length} bars)...`);
-      
-      const result = await lyriaAPI.current.generateMelody({ key, style, length });
-      
-      console.log('✅ Melody generated successfully with Lyria:', result);
-      setMelodyData(result);
-      
-      return result;
-    } catch (error) {
-      console.error('❌ Error generating melody with Lyria:', error);
-      return null;
-    }
-  };
-
-  // Drums: Generate pattern using synthesized drums
-  const generateDrums = async (style: string, complexity: string) => {
-    try {
-      console.log(`🥁 Generating drums with synthesized sounds (${style}, ${complexity})...`);
-      
-      // Create mock drum data for consistency with export system
-      const pattern = getDrumPattern(style.toLowerCase());
-      const mockDrumData = {
-        midiData: new TextEncoder().encode(JSON.stringify({
-          notes: pattern.map((hit, index) => ({
-            pitch: hit.sample === 'kick' ? 36 : hit.sample === 'snare' ? 38 : 42,
-            startTime: parseFloat(hit.time.replace(':', '.')),
-            endTime: parseFloat(hit.time.replace(':', '.')) + 0.1,
-            velocity: 0.8
-          }))
-        })),
-        metadata: {
-          duration: 8,
-          key: 'C',
-          tempo: 120,
-          style: style
-        }
-      };
-      
-      setDrumData(mockDrumData);
-      setDrumStyle(style.toLowerCase());
-      
-      console.log('✅ Drum pattern generated successfully');
-      return mockDrumData;
-    } catch (error) {
-      console.error('❌ Error generating drums:', error);
-      return null;
-    }
-  };
-
-  // Unified Playback: Play full track with synthesized drums
-  const playFullTrack = async () => {
-    if (!melodyData && !drumData) {
-      console.warn('⚠️ No sequences to play');
-      return;
-    }
-
-    try {
-      await Tone.start();
-      
-      // Stop any existing playback
-      Tone.Transport.stop();
-      Tone.Transport.cancel();
-      if (drumPatternRef.current) {
-        drumPatternRef.current.stop();
-        drumPatternRef.current.dispose();
-      }
-
-      // Play melody if available
-      if (melodyData && melodySynthRef.current) {
-        const melodyEvents = convertLyriaToToneEvents(melodyData);
-        if (melodyEvents.length > 0) {
-          const melodyPart = new Tone.Part((time, note) => {
-            melodySynthRef.current?.triggerAttackRelease(note.note, note.duration, time, note.velocity);
-          }, melodyEvents).start(0);
-        }
-      }
-
-      // Play drums if available using synthesized drums
-      if (drumData) {
-        const pattern = getDrumPattern(drumStyle);
-        const drumSynths = (window as any).drumSynths;
-        
-        if (drumSynths) {
-          drumPatternRef.current = new Tone.Loop((time) => {
-            pattern.forEach((hit) => {
-              const hitTime = Tone.Time(hit.time).toSeconds();
-              const drumSynth = drumSynths[hit.sample];
-              
-              if (drumSynth) {
-                if (hit.sample === 'kick') {
-                  drumSynth.triggerAttackRelease('C2', '8n', time + hitTime, 0.8);
-                } else if (hit.sample === 'snare') {
-                  drumSynth.triggerAttackRelease('8n', time + hitTime, 0.7);
-                } else if (hit.sample === 'hihat' || hit.sample === 'openhat') {
-                  drumSynth.triggerAttackRelease('16n', time + hitTime, 0.6);
-                }
-              }
-            });
-          }, "2m").start(0);
-        }
-      }
-
-      Tone.Transport.bpm.value = 120;
-      Tone.Transport.start();
-      setIsPlaying(true);
-
-      console.log('▶️ Playing full track with Lyria melody + synthesized drums');
-    } catch (error) {
-      console.error('❌ Error playing track:', error);
-    }
-  };
-
-  const stopPlayback = () => {
-    Tone.Transport.stop();
-    if (drumPatternRef.current) {
-      drumPatternRef.current.stop();
-    }
-    setIsPlaying(false);
-    console.log('⏹️ Playback stopped');
+  const convertLyriaToToneEvents = (lyriaData: LyriaSession | null) => {
+    // LyriaSession provides real-time audio streaming, not MIDI data
+    return [];
   };
 
   // Export: Convert data to MIDI
-  const exportToMidi = (data: LyriaGenerationResponse | null, filename: string) => {
-    if (!data || !data.midiData) {
-      console.warn('⚠️ No data to export');
-      return;
-    }
-
-    try {
-      const blob = new Blob([data.midiData], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${filename}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      console.log(`✅ Exported ${filename}.json`);
-    } catch (error) {
-      console.error('❌ Error exporting data:', error);
-    }
+  const exportToMidi = (data: LyriaSession | null, filename: string) => {
+    // LyriaSession provides real-time audio streaming, not MIDI data
+    console.warn('MIDI export not available for real-time Lyria sessions');
   };
 
   // Export: Record full track with FX
   const exportToAudio = async () => {
-    if (!recorderRef.current || (!melodyData && !drumData)) {
+    if (!recorderRef.current || !lyria) {
       console.warn('⚠️ No content to record');
       return;
     }
@@ -440,13 +391,13 @@ const Producer = () => {
       console.log('🎙️ Starting audio recording...');
 
       await recorderRef.current.start();
-      await playFullTrack();
+      await handlePlay();
 
       // Record for 8 seconds (2 bar loop * 4 repetitions)
       setTimeout(async () => {
         const recording = await recorderRef.current!.stop();
         const url = URL.createObjectURL(recording);
-        
+
         const a = document.createElement('a');
         a.href = url;
         a.download = 'droplab-generated-track.wav';
@@ -454,8 +405,8 @@ const Producer = () => {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
-        stopPlayback();
+
+        handleStop();
         setIsRecording(false);
         console.log('✅ Audio export completed');
       }, 8000);
@@ -499,7 +450,7 @@ const Producer = () => {
       <ProducerNavbar activeSection={activeSection} onNavigateHome={() => navigate('/')} />
 
       {/* Lyria API Loading Indicator */}
-      {isLoadingAPI && (
+      {isLoading && (
         <motion.div
           className="fixed top-4 right-4 z-50 bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg"
           initial={{ opacity: 0, x: 100 }}
@@ -514,7 +465,7 @@ const Producer = () => {
       )}
 
       {/* API Ready Indicator */}
-      {apiReady && !isLoadingAPI && (
+      {lyria && !isLoading && (
         <motion.div
           className="fixed top-4 right-4 z-50 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg"
           initial={{ opacity: 0, x: 100 }}
@@ -533,26 +484,26 @@ const Producer = () => {
       <main className="relative z-10">
         <WelcomeSection />
         <MusicGenerationSection />
-        <MelodySection 
-          onGenerateMelody={generateMelody}
-          onPlayMelody={() => playFullTrack()}
-          melodySequence={melodyData}
-          modelsLoaded={apiReady}
+        <MelodySection
+          onGenerateMelody={async () => null}
+          onPlayMelody={() => { }}
+          melodySequence={null}
+          modelsLoaded={!!lyria}
         />
-        <DrumSection 
-          onGenerateDrums={generateDrums}
-          onPlayDrums={() => playFullTrack()}
-          drumSequence={drumData}
-          modelsLoaded={true}
+        <DrumSection
+          onGenerateDrums={async () => null}
+          onPlayDrums={() => { }}
+          drumSequence={null}
+          modelsLoaded={!!lyria}
         />
         <GridSection />
-        <FXSection 
+        <FXSection
           reverbAmount={reverbAmount}
           delayAmount={delayAmount}
           onReverbChange={setReverbAmount}
           onDelayChange={setDelayAmount}
         />
-        <MixerSection 
+        <MixerSection
           melodyVolume={melodyVolume}
           drumsVolume={drumsVolume}
           fxVolume={fxVolume}
@@ -562,15 +513,77 @@ const Producer = () => {
           onFxVolumeChange={setFxVolume}
           onMasterVolumeChange={setMasterVolume}
         />
-        <ExportSection 
-          onExportMelody={() => exportToMidi(melodyData, 'droplab-melody')}
-          onExportDrums={() => exportToMidi(drumData, 'droplab-drums')}
+        <ExportSection
+          onExportMelody={() => exportToMidi(lyria, 'droplab-melody')}
+          onExportDrums={() => exportToMidi(lyria, 'droplab-drums')}
           onExportAudio={exportToAudio}
-          onPlayTrack={isPlaying ? stopPlayback : playFullTrack}
-          hasGeneratedContent={!!(melodyData || drumData)}
+          onPlayTrack={handlePlay}
+          hasGeneratedContent={!!lyria}
           isPlaying={isPlaying}
           isRecording={isRecording}
         />
+        <section className="lyria-controls bg-gray-900/60 rounded-xl p-6 mb-8">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">Prompt</label>
+              <input
+                type="text"
+                value={promptText}
+                onChange={e => setPromptText(e.target.value)}
+                className="w-full bg-black border border-purple-500/50 rounded-lg px-4 py-2 text-white focus:border-purple-500 focus:outline-none"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">Prompt Weight</label>
+              <input
+                type="range"
+                min={0.01}
+                max={1.0}
+                step={0.01}
+                value={promptWeight}
+                onChange={e => setPromptWeight(Number(e.target.value))}
+                className="w-full"
+              />
+              <span className="text-xs text-purple-400 ml-2">{promptWeight.toFixed(2)}</span>
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">BPM</label>
+              <input
+                type="number"
+                min={60}
+                max={180}
+                value={bpm}
+                onChange={e => setBpm(Number(e.target.value))}
+                className="w-full bg-black border border-purple-500/50 rounded-lg px-4 py-2 text-white focus:border-purple-500 focus:outline-none"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">Temperature</label>
+              <input
+                type="range"
+                min={0.1}
+                max={2.0}
+                step={0.01}
+                value={temperature}
+                onChange={e => setTemperature(Number(e.target.value))}
+                className="w-full"
+              />
+              <span className="text-xs text-purple-400 ml-2">{temperature.toFixed(2)}</span>
+            </div>
+            <button
+              onClick={isPlaying ? handleStop : handlePlay}
+              className="px-6 py-3 bg-purple-600 rounded-lg text-white font-semibold hover:bg-purple-500 transition-all"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Loading...' : isPlaying ? 'Stop' : 'Play'}
+            </button>
+          </div>
+          {error && <div className="text-red-500 mt-2">{error}</div>}
+        </section>
+        <section className="audio-status text-center mt-4">
+          {isPlaying && <span className="text-green-400">Music is playing from Lyria!</span>}
+          {!isPlaying && !isLoading && <span className="text-gray-400">Press Play to generate music.</span>}
+        </section>
       </main>
     </div>
   );
