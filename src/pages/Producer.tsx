@@ -523,19 +523,6 @@ const Producer = () => {
               />
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-300 mb-1">Prompt Weight</label>
-              <input
-                type="range"
-                min={0.01}
-                max={1.0}
-                step={0.01}
-                value={promptWeight}
-                onChange={e => setPromptWeight(Number(e.target.value))}
-                className="w-full"
-              />
-              <span className="text-xs text-purple-400 ml-2">{promptWeight.toFixed(2)}</span>
-            </div>
-            <div className="flex-1">
               <label className="block text-sm font-medium text-gray-300 mb-1">BPM</label>
               <input
                 type="number"
