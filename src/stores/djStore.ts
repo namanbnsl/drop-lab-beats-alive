@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { DeckAudioEngine } from '../lib/audioEngine';
+import { DeckAudioEngine } from '../lib/deckAudioEngine';
 import * as Tone from 'tone';
 
 interface Track {
