@@ -30,7 +30,6 @@ const Producer = () => {
 
   // Export state
   const [hasGeneratedContent, setHasGeneratedContent] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
 
   // Audio state
   const [drumPattern, setDrumPattern] = useState({
@@ -61,6 +60,13 @@ const Producer = () => {
     { id: 'fx', name: 'Effects', icon: '🎛️' },
     { id: 'export', name: 'Export', icon: '💾' }
   ];
+
+  // Check if content has been generated
+  useEffect(() => {
+    const hasDrums = Object.values(drumPattern).some(pattern => pattern.some(step => step));
+    const hasMelody = melodyNotes.length > 0;
+    setHasGeneratedContent(hasDrums || hasMelody);
+  }, [drumPattern, melodyNotes]);
 
   // Initialize all synths once
   useEffect(() => {
@@ -452,7 +458,10 @@ const Producer = () => {
             onPlayTrack={handleMasterPlayPause}
             hasGeneratedContent={hasGeneratedContent}
             isPlaying={isPlaying}
-            isRecording={isRecording}
+            isRecording={false}
+            melodyNotes={melodyNotes}
+            drumPattern={drumPattern}
+            tempo={tempo}
           />
         );
       default:

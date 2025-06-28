@@ -1,7 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Send, FileAudio, Music, Play, Pause } from 'lucide-react';
+import { Download, Send, FileAudio, Music, Play, Pause, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { MIDIExporter } from '../../lib/midiExporter';
+import { AudioRecorder } from '../../lib/audioRecorder';
+
+interface Note {
+  pitch: number;
+  velocity: number;
+  startTime: number;
+  duration: number;
+}
+
+interface DrumPattern {
+  kick: boolean[];
+  snare: boolean[];
+  hihat: boolean[];
+  crash: boolean[];
+}
 
 interface ExportSectionProps {
   onExportMelody: () => void;
@@ -11,22 +27,161 @@ interface ExportSectionProps {
   hasGeneratedContent: boolean;
   isPlaying: boolean;
   isRecording: boolean;
+  melodyNotes?: Note[];
+  drumPattern?: DrumPattern;
+  tempo?: number;
 }
 
 const ExportSection: React.FC<ExportSectionProps> = ({
-  onExportMelody,
-  onExportDrums,
-  onExportAudio,
   onPlayTrack,
   hasGeneratedContent,
   isPlaying,
-  isRecording
+  melodyNotes = [],
+  drumPattern = { kick: [], snare: [], hihat: [], crash: [] },
+  tempo = 120
 }) => {
   const navigate = useNavigate();
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingProgress, setRecordingProgress] = useState(0);
+  const [exportStatus, setExportStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' });
+  
+  const audioRecorderRef = useRef<AudioRecorder | null>(null);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showStatus = (type: 'success' | 'error', message: string) => {
+    setExportStatus({ type, message });
+    setTimeout(() => {
+      setExportStatus({ type: null, message: '' });
+    }, 3000);
+  };
+
+  const handleExportMelody = () => {
+    try {
+      if (melodyNotes.length === 0) {
+        showStatus('error', 'No melody notes to export. Create some notes first!');
+        return;
+      }
+
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `droplab-melody-${timestamp}`;
+      
+      MIDIExporter.exportMelody(melodyNotes, tempo, filename);
+      showStatus('success', 'Melody exported successfully as MIDI!');
+    } catch (error) {
+      console.error('Failed to export melody:', error);
+      showStatus('error', 'Failed to export melody. Please try again.');
+    }
+  };
+
+  const handleExportDrums = () => {
+    try {
+      const hasAnyDrums = Object.values(drumPattern).some(pattern => 
+        pattern.some(step => step)
+      );
+
+      if (!hasAnyDrums) {
+        showStatus('error', 'No drum pattern to export. Create a drum pattern first!');
+        return;
+      }
+
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `droplab-drums-${timestamp}`;
+      
+      MIDIExporter.exportDrums(drumPattern, tempo, filename);
+      showStatus('success', 'Drum pattern exported successfully as MIDI!');
+    } catch (error) {
+      console.error('Failed to export drums:', error);
+      showStatus('error', 'Failed to export drums. Please try again.');
+    }
+  };
+
+  const handleExportAudio = async () => {
+    try {
+      if (!hasGeneratedContent) {
+        showStatus('error', 'No content to record. Create some music first!');
+        return;
+      }
+
+      setIsRecording(true);
+      setRecordingProgress(0);
+
+      // Initialize audio recorder
+      if (!audioRecorderRef.current) {
+        audioRecorderRef.current = new AudioRecorder();
+      }
+
+      // Start recording
+      await audioRecorderRef.current.startRecording();
+
+      // Start the track if not already playing
+      if (!isPlaying) {
+        onPlayTrack();
+      }
+
+      // Record for 8 seconds (2 bars at 120 BPM)
+      const recordingDuration = 8000; // 8 seconds
+      const progressInterval = 100; // Update every 100ms
+
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingProgress(prev => {
+          const newProgress = prev + (progressInterval / recordingDuration) * 100;
+          return Math.min(newProgress, 100);
+        });
+      }, progressInterval);
+
+      // Stop recording after duration
+      setTimeout(async () => {
+        try {
+          if (recordingIntervalRef.current) {
+            clearInterval(recordingIntervalRef.current);
+          }
+
+          const audioBlob = await audioRecorderRef.current!.stopRecording();
+          
+          // Generate filename with timestamp
+          const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+          const filename = `droplab-track-${timestamp}`;
+          
+          // Download the audio file
+          AudioRecorder.downloadAudio(audioBlob, filename);
+          
+          setIsRecording(false);
+          setRecordingProgress(0);
+          showStatus('success', 'Audio track exported successfully!');
+        } catch (error) {
+          console.error('Failed to export audio:', error);
+          setIsRecording(false);
+          setRecordingProgress(0);
+          showStatus('error', 'Failed to export audio. Please try again.');
+        }
+      }, recordingDuration);
+
+    } catch (error) {
+      console.error('Failed to start audio export:', error);
+      setIsRecording(false);
+      setRecordingProgress(0);
+      showStatus('error', 'Failed to start audio recording. Please try again.');
+    }
+  };
 
   const handleSendToDJ = () => {
     navigate('/dj');
   };
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+      if (audioRecorderRef.current) {
+        audioRecorderRef.current.dispose();
+      }
+    };
+  }, []);
 
   return (
     <section id="export" className="min-h-screen flex items-center justify-center px-4 py-8 sm:py-20">
@@ -46,8 +201,31 @@ const ExportSection: React.FC<ExportSectionProps> = ({
         </p>
         
         <p className="text-base sm:text-lg text-gray-400 mb-8 sm:mb-12">
-          Export your AI-generated masterpiece or take it straight to the DJ booth
+          Export your masterpiece or take it straight to the DJ booth
         </p>
+
+        {/* Status Messages */}
+        {exportStatus.type && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`mb-6 p-4 rounded-lg border ${
+              exportStatus.type === 'success' 
+                ? 'bg-green-900/20 border-green-500/30 text-green-400' 
+                : 'bg-red-900/20 border-red-500/30 text-red-400'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              {exportStatus.type === 'success' ? (
+                <CheckCircle className="w-5 h-5" />
+              ) : (
+                <AlertCircle className="w-5 h-5" />
+              )}
+              <span>{exportStatus.message}</span>
+            </div>
+          </motion.div>
+        )}
 
         {/* Play/Pause Button */}
         {hasGeneratedContent && (
@@ -95,12 +273,15 @@ const ExportSection: React.FC<ExportSectionProps> = ({
             <div className="mb-4 sm:mb-6">
               <Music className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
               <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Export Melody</h3>
-              <p className="text-gray-400 text-xs sm:text-sm">Download your AI-generated melody as MIDI</p>
+              <p className="text-gray-400 text-xs sm:text-sm">Download your melody as MIDI file</p>
+              <p className="text-purple-400 text-xs mt-1">
+                {melodyNotes.length} notes ready
+              </p>
             </div>
             
             <motion.button
-              onClick={onExportMelody}
-              disabled={!hasGeneratedContent}
+              onClick={handleExportMelody}
+              disabled={melodyNotes.length === 0}
               className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm touch-manipulation"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -123,12 +304,17 @@ const ExportSection: React.FC<ExportSectionProps> = ({
             <div className="mb-4 sm:mb-6">
               <Music className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
               <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Export Drums</h3>
-              <p className="text-gray-400 text-xs sm:text-sm">Download your AI-generated drums as MIDI</p>
+              <p className="text-gray-400 text-xs sm:text-sm">Download your drum pattern as MIDI</p>
+              <p className="text-purple-400 text-xs mt-1">
+                {Object.values(drumPattern).reduce((total, pattern) => 
+                  total + pattern.filter(Boolean).length, 0
+                )} hits ready
+              </p>
             </div>
             
             <motion.button
-              onClick={onExportDrums}
-              disabled={!hasGeneratedContent}
+              onClick={handleExportDrums}
+              disabled={!Object.values(drumPattern).some(pattern => pattern.some(step => step))}
               className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm touch-manipulation"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -140,7 +326,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
             </motion.button>
           </motion.div>
 
-          {/* Export as WAV - Now Functional */}
+          {/* Export as Audio */}
           <motion.div
             className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -151,11 +337,14 @@ const ExportSection: React.FC<ExportSectionProps> = ({
             <div className="mb-4 sm:mb-6">
               <FileAudio className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
               <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Export Audio</h3>
-              <p className="text-gray-400 text-xs sm:text-sm">High-quality audio file ready for streaming</p>
+              <p className="text-gray-400 text-xs sm:text-sm">High-quality WAV file ready for streaming</p>
+              <p className="text-purple-400 text-xs mt-1">
+                8-second recording
+              </p>
             </div>
             
             <motion.button
-              onClick={onExportAudio}
+              onClick={handleExportAudio}
               disabled={isRecording || !hasGeneratedContent}
               className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm touch-manipulation"
               whileHover={{ scale: 1.05 }}
@@ -180,6 +369,9 @@ const ExportSection: React.FC<ExportSectionProps> = ({
               <Send className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
               <h3 className="text-base sm:text-lg font-semibold text-white mb-2">DJ Mode</h3>
               <p className="text-gray-400 text-xs sm:text-sm">Take your track straight to the decks</p>
+              <p className="text-purple-400 text-xs mt-1">
+                Professional mixing
+              </p>
             </div>
             
             <motion.button
@@ -205,7 +397,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
           </div>
         )}
 
-        {/* Recording Indicator */}
+        {/* Recording Progress */}
         {isRecording && (
           <motion.div
             className="mt-6 sm:mt-8 bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
@@ -215,18 +407,48 @@ const ExportSection: React.FC<ExportSectionProps> = ({
           >
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="w-4 h-4 sm:w-6 sm:h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-purple-400 font-semibold text-sm sm:text-base">Recording your AI-generated track...</span>
+              <span className="text-purple-400 font-semibold text-sm sm:text-base">Recording your track...</span>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
               <motion.div
                 className="bg-purple-500 h-2 rounded-full"
-                initial={{ width: '0%' }}
-                animate={{ width: '100%' }}
-                transition={{ duration: 8, ease: 'easeInOut' }}
+                style={{ width: `${recordingProgress}%` }}
+                transition={{ duration: 0.1 }}
               />
             </div>
+            <p className="text-gray-400 text-xs">
+              {Math.round(recordingProgress)}% complete • High-quality WAV recording
+            </p>
           </motion.div>
         )}
+
+        {/* Export Info */}
+        <motion.div
+          className="mt-8 sm:mt-12 bg-gray-900/30 rounded-xl p-4 sm:p-6 border border-purple-500/20"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          viewport={{ once: true }}
+        >
+          <h3 className="text-lg font-semibold text-purple-400 mb-4">Export Information</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <div className="text-center">
+              <p className="text-white font-medium">MIDI Files</p>
+              <p className="text-gray-400">Compatible with all DAWs</p>
+              <p className="text-purple-400 text-xs">Logic, Ableton, FL Studio</p>
+            </div>
+            <div className="text-center">
+              <p className="text-white font-medium">Audio Export</p>
+              <p className="text-gray-400">High-quality WAV format</p>
+              <p className="text-purple-400 text-xs">44.1kHz, 16-bit</p>
+            </div>
+            <div className="text-center">
+              <p className="text-white font-medium">DJ Integration</p>
+              <p className="text-gray-400">Seamless workflow</p>
+              <p className="text-purple-400 text-xs">Auto-sync to 128 BPM</p>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Footer */}
         <motion.div
@@ -237,7 +459,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
           viewport={{ once: true }}
         >
           <p className="text-gray-400 text-xs sm:text-sm mb-4">
-            🎉 Congratulations! You've created your first AI-powered DropLab track.
+            🎉 Congratulations! You've created your first DropLab track.
           </p>
           <p className="text-gray-500 text-xs">
             Ready to take it to the next level? Try DJ Mode and mix with other tracks.
