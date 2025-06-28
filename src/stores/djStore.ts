@@ -77,7 +77,7 @@ export const useDJStore = create<DJState>((set, get) => ({
   deckBState: defaultDeckState,
   
   crossfader: 50,
-  globalBPM: 128,
+  globalBPM: 128, // Fixed at 128 BPM for all tracks
   bpmSyncEnabled: true,
   isTransportRunning: false,
 
@@ -88,12 +88,12 @@ export const useDJStore = create<DJState>((set, get) => ({
       const deckA = new DeckAudioEngine();
       const deckB = new DeckAudioEngine();
       
-      // Initialize silent backend metronome (Tone.Transport)
+      // Initialize silent backend metronome at 128 BPM
       Tone.Transport.bpm.value = 128;
       
       set({ deckA, deckB });
       
-      console.log('🎧 DJ Audio System Initialized with Silent Backend Metronome at 128 BPM');
+      console.log('🎧 DJ Audio System Initialized - All tracks will auto-sync to 128 BPM');
     } catch (error) {
       console.error('Failed to initialize audio:', error);
     }
@@ -107,10 +107,10 @@ export const useDJStore = create<DJState>((set, get) => ({
     if (engine && engine.isLoaded) {
       // Start silent backend metronome if not already running
       if (!state.isTransportRunning) {
-        Tone.Transport.bpm.value = 128; // Fixed at 128 BPM
+        Tone.Transport.bpm.value = 128; // Always 128 BPM
         Tone.Transport.start();
         set({ isTransportRunning: true });
-        console.log('🎯 Silent Backend Metronome started at 128 BPM');
+        console.log('🎯 Master Transport started at 128 BPM');
       }
 
       // For Deck A or when no other deck is playing, start immediately
@@ -128,9 +128,9 @@ export const useDJStore = create<DJState>((set, get) => ({
           },
         });
         
-        console.log(`▶️ Deck ${deck} playing immediately`);
+        console.log(`▶️ Deck ${deck} playing at 128 BPM (auto-synced)`);
       } else {
-        // For secondary decks when another deck is playing, use bar-aligned playback
+        // For secondary decks, use bar-aligned playback for perfect sync
         get().playDeckOnNextBar(deck);
       }
     }
@@ -154,12 +154,12 @@ export const useDJStore = create<DJState>((set, get) => ({
     // Calculate current transport position and beats until next bar
     const position = Tone.Transport.position;
     const [bars, beats, sixteenths] = position.split(':').map(Number);
-    const currentBeat = beats + (sixteenths / 4); // Convert to decimal beats
+    const currentBeat = beats + (sixteenths / 4);
     const beatsUntilNextBar = 4 - (currentBeat % 4);
     
-    console.log(`⏱️ Current position: ${position}, waiting ${beatsUntilNextBar.toFixed(2)} beats for next bar`);
+    console.log(`⏱️ Syncing Deck ${deck} to next bar in ${beatsUntilNextBar.toFixed(2)} beats`);
 
-    // Schedule playback to start on the next bar (first beat)
+    // Schedule playback to start on the next bar
     Tone.Transport.scheduleOnce(() => {
       if (engine.isLoaded) {
         engine.play();
@@ -175,11 +175,9 @@ export const useDJStore = create<DJState>((set, get) => ({
           },
         });
         
-        console.log(`🎯 Deck ${deck} started on bar boundary - Perfect sync achieved!`);
+        console.log(`🎯 Deck ${deck} synced perfectly to 128 BPM on bar boundary!`);
       }
     }, `+${beatsUntilNextBar}n`);
-
-    console.log(`🔄 Deck ${deck} will start in ${beatsUntilNextBar.toFixed(2)} beats on next bar`);
   },
 
   pauseDeck: (deck) => {
@@ -204,17 +202,20 @@ export const useDJStore = create<DJState>((set, get) => ({
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
     if (engine && track.url) {
-      // Auto-detect BPM from track metadata or use default
-      const originalBPM = track.bpm || 128;
+      // Use the provided BPM as the original BPM for auto-sync calculation
+      const originalBPM = track.bpm;
+      const targetBPM = 128; // Always sync to 128 BPM
       
-      // Create track with auto-detected original BPM
+      // Create track with original BPM
       const trackWithBPM = { ...track, originalBPM };
       
       const loaded = await engine.loadTrack(track.url, originalBPM);
       if (loaded) {
-        // Auto-sync to 128 BPM immediately
-        engine.setGlobalBPMSync(128, originalBPM);
-        console.log(`🎯 Auto-sync Deck ${deck}: ${originalBPM} BPM → 128 BPM`);
+        // Force auto-sync to 128 BPM immediately
+        engine.setGlobalBPMSync(targetBPM, originalBPM);
+        
+        const playbackRate = (targetBPM / originalBPM).toFixed(3);
+        console.log(`🎯 Auto-sync Deck ${deck}: ${originalBPM} BPM → ${targetBPM} BPM (${playbackRate}x rate)`);
         
         const bpmInfo = engine.getBPMInfo();
         
@@ -227,7 +228,7 @@ export const useDJStore = create<DJState>((set, get) => ({
           }
         });
         
-        console.log(`🎵 Auto-loaded "${track.name}" to Deck ${deck} - Auto-synced to 128 BPM`);
+        console.log(`✅ "${track.name}" loaded to Deck ${deck} and auto-synced to 128 BPM`);
       }
     }
   },
@@ -350,7 +351,7 @@ export const useDJStore = create<DJState>((set, get) => ({
     
     if (engine && engine.isLoaded) {
       engine.bendTempo(rate);
-      console.log(`⏩ Tempo bend Deck ${deck}: ${rate}x`);
+      console.log(`⏩ Tempo bend Deck ${deck}: ${rate}x (temporary)`);
     }
   },
 
@@ -359,7 +360,7 @@ export const useDJStore = create<DJState>((set, get) => ({
     const { deckA, deckB, deckBState } = state;
     
     if (deckA && deckB && deckBState.track) {
-      // Set transport BPM to 128 BPM
+      // Ensure transport is at 128 BPM
       Tone.Transport.bpm.value = 128;
       
       if (!state.isTransportRunning) {
@@ -367,8 +368,9 @@ export const useDJStore = create<DJState>((set, get) => ({
         set({ isTransportRunning: true });
       }
 
-      // Use bar-aligned playback for perfect sync
+      // Use bar-aligned playback for perfect sync at 128 BPM
       get().playDeckOnNextBar('B');
+      console.log('🎯 Syncing Deck B to 128 BPM on next bar');
     }
   },
 
