@@ -93,7 +93,7 @@ export const useDJStore = create<DJState>((set, get) => ({
       
       set({ deckA, deckB });
       
-      console.log('🎧 DJ Audio System Initialized with Silent Backend Metronome');
+      console.log('🎧 DJ Audio System Initialized with Silent Backend Metronome at 128 BPM');
     } catch (error) {
       console.error('Failed to initialize audio:', error);
     }
@@ -107,10 +107,10 @@ export const useDJStore = create<DJState>((set, get) => ({
     if (engine && engine.isLoaded) {
       // Start silent backend metronome if not already running
       if (!state.isTransportRunning) {
-        Tone.Transport.bpm.value = state.globalBPM;
+        Tone.Transport.bpm.value = 128; // Fixed at 128 BPM
         Tone.Transport.start();
         set({ isTransportRunning: true });
-        console.log(`🎯 Silent Backend Metronome started at ${state.globalBPM} BPM`);
+        console.log('🎯 Silent Backend Metronome started at 128 BPM');
       }
 
       // For Deck A or when no other deck is playing, start immediately
@@ -212,9 +212,9 @@ export const useDJStore = create<DJState>((set, get) => ({
       
       const loaded = await engine.loadTrack(track.url, originalBPM);
       if (loaded) {
-        // Auto-sync to global BPM immediately
-        engine.setGlobalBPMSync(state.globalBPM, originalBPM);
-        console.log(`🎯 Auto-sync Deck ${deck}: ${originalBPM} BPM → ${state.globalBPM} BPM`);
+        // Auto-sync to 128 BPM immediately
+        engine.setGlobalBPMSync(128, originalBPM);
+        console.log(`🎯 Auto-sync Deck ${deck}: ${originalBPM} BPM → 128 BPM`);
         
         const bpmInfo = engine.getBPMInfo();
         
@@ -227,7 +227,7 @@ export const useDJStore = create<DJState>((set, get) => ({
           }
         });
         
-        console.log(`🎵 Auto-loaded "${track.name}" to Deck ${deck} - Auto-synced to ${state.globalBPM} BPM`);
+        console.log(`🎵 Auto-loaded "${track.name}" to Deck ${deck} - Auto-synced to 128 BPM`);
       }
     }
   },
@@ -359,8 +359,8 @@ export const useDJStore = create<DJState>((set, get) => ({
     const { deckA, deckB, deckBState } = state;
     
     if (deckA && deckB && deckBState.track) {
-      // Set transport BPM to global BPM
-      Tone.Transport.bpm.value = state.globalBPM;
+      // Set transport BPM to 128 BPM
+      Tone.Transport.bpm.value = 128;
       
       if (!state.isTransportRunning) {
         Tone.Transport.start();

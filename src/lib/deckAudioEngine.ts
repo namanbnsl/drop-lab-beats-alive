@@ -12,9 +12,9 @@ export class DeckAudioEngine {
   private backspinPlayer: Tone.Player;
   public isLoaded: boolean = false;
   public isPlaying: boolean = false;
-  private currentBPM: number = 120;
-  private originalBPM: number = 120;
-  private globalBPM: number = 120;
+  private currentBPM: number = 128;
+  private originalBPM: number = 128;
+  private globalBPM: number = 128;
   private trackDuration: number = 0;
   private startTime: number = 0;
   private pausedAt: number = 0;
@@ -77,14 +77,15 @@ export class DeckAudioEngine {
       this.pausedAt = 0;
       this.cuePoint = 0;
 
-      // Use user-defined BPM
+      // Use user-defined BPM and auto-sync to 128 BPM
       this.originalBPM = userDefinedBPM;
-      this.currentBPM = userDefinedBPM;
+      this.globalBPM = 128; // Always sync to 128 BPM
+      this.currentBPM = this.globalBPM;
       
-      // Set initial playback rate
+      // Set initial playback rate for auto-sync
       this.updatePlaybackRate();
       
-      console.log(`✅ Track loaded: ${url} (${this.trackDuration.toFixed(2)}s, ${this.originalBPM} BPM)`);
+      console.log(`✅ Track loaded: ${url} (${this.trackDuration.toFixed(2)}s, ${this.originalBPM} BPM → ${this.globalBPM} BPM)`);
       return true;
     } catch (error) {
       console.error('❌ Failed to load track:', error);
@@ -112,6 +113,7 @@ export class DeckAudioEngine {
     if (this.player && this.originalBPM > 0) {
       this.basePlaybackRate = calculatePlaybackRate(this.originalBPM, this.globalBPM);
       this.player.playbackRate = this.basePlaybackRate;
+      console.log(`🔄 Playback rate updated: ${this.basePlaybackRate.toFixed(3)}x (${this.originalBPM} → ${this.globalBPM} BPM)`);
     }
   }
 
@@ -125,6 +127,10 @@ export class DeckAudioEngine {
   play(fromCue: boolean = false) {
     if (this.player && this.isLoaded && !this.isPlaying) {
       const startPosition = fromCue ? this.cuePoint : this.pausedAt;
+      
+      // Ensure playback rate is correct before starting
+      this.updatePlaybackRate();
+      
       this.startTime = Tone.now() - startPosition;
       this.player.start(0, startPosition);
       this.isPlaying = true;
@@ -213,7 +219,7 @@ export class DeckAudioEngine {
   getCurrentTime(): number {
     if (this.player && this.isLoaded) {
       if (this.isPlaying) {
-        return Tone.now() - this.startTime;
+        return (Tone.now() - this.startTime) * this.basePlaybackRate;
       } else {
         return this.pausedAt;
       }
