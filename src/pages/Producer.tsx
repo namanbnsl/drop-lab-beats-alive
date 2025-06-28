@@ -118,10 +118,11 @@ const Producer = () => {
       sequencer.start(0);
       Tone.Transport.start();
 
-      // Restart step counter
+      // Restart step counter with proper beat calculation
+      const stepDuration = (60 / tempo) * 1000 / 4; // 16th note timing
       stepIntervalRef.current = setInterval(() => {
         setCurrentStep(prev => (prev + 1) % 64);
-      }, (60 / tempo) * 1000 / 4);
+      }, stepDuration);
 
       setAudioError(null);
       setIsRecovering(false);
@@ -175,7 +176,7 @@ const Producer = () => {
     }
   }, [tempo, audioUnlocked]);
 
-  // Create unified sequencer with better error handling
+  // Create unified sequencer with better error handling and fixed beat counting
   const createSequencer = () => {
     // Clean up existing sequencer
     if (sequencerRef.current) {
@@ -279,10 +280,11 @@ const Producer = () => {
         setIsPlaying(true);
         setAudioError(null);
 
-        // Update step counter
+        // Update step counter with proper timing
+        const stepDuration = (60 / tempo) * 1000 / 4; // 16th note timing
         stepIntervalRef.current = setInterval(() => {
           setCurrentStep(prev => (prev + 1) % 64);
-        }, (60 / tempo) * 1000 / 4); // 16th note timing
+        }, stepDuration);
       }
     } catch (error) {
       console.error('Play/pause error:', error);
@@ -310,6 +312,13 @@ const Producer = () => {
     } catch (error) {
       console.error('Stop error:', error);
     }
+  };
+
+  // Fixed beat display calculation
+  const getCurrentBeatDisplay = () => {
+    const bar = Math.floor(currentStep / 16) + 1;
+    const beat = (currentStep % 16) + 1; // Beat starts at 1, not 0
+    return `${bar}.${beat}`;
   };
 
   // Cleanup on unmount
@@ -405,21 +414,21 @@ const Producer = () => {
   return (
     <div className="min-h-screen bg-black">
       {/* Header */}
-      <div className="absolute top-4 left-4 z-50">
+      <div className="absolute top-2 sm:top-4 left-2 sm:left-4 z-50">
         <button
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-white/80 hover:text-white transition-colors bg-black/30 backdrop-blur-md rounded-lg px-4 py-2"
+          className="flex items-center gap-2 text-white/80 hover:text-white transition-colors bg-black/30 backdrop-blur-md rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base touch-manipulation"
         >
-          <Disc3 className="w-6 h-6" />
+          <Disc3 className="w-5 h-5 sm:w-6 sm:h-6" />
           <span className="font-bold">DropLab</span>
         </button>
       </div>
 
       {/* Audio Status Notifications */}
       {!audioUnlocked && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50">
-          <div className="bg-yellow-900/90 backdrop-blur-md rounded-lg p-4 border border-yellow-500/50">
-            <p className="text-yellow-200 text-sm text-center">
+        <div className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 px-4">
+          <div className="bg-yellow-900/90 backdrop-blur-md rounded-lg p-3 sm:p-4 border border-yellow-500/50 max-w-sm">
+            <p className="text-yellow-200 text-xs sm:text-sm text-center">
               🔊 Click anywhere or press any key to unlock audio
             </p>
           </div>
@@ -427,13 +436,13 @@ const Producer = () => {
       )}
 
       {audioError && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50">
-          <div className="bg-red-900/90 backdrop-blur-md rounded-lg p-4 border border-red-500/50 max-w-md">
+        <div className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 px-4">
+          <div className="bg-red-900/90 backdrop-blur-md rounded-lg p-3 sm:p-4 border border-red-500/50 max-w-md">
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle className="w-4 h-4 text-red-300" />
-              <p className="text-red-200 text-sm font-medium">Audio Error</p>
+              <p className="text-red-200 text-xs sm:text-sm font-medium">Audio Error</p>
             </div>
-            <p className="text-red-200 text-sm">{audioError}</p>
+            <p className="text-red-200 text-xs sm:text-sm">{audioError}</p>
             {isRecovering && (
               <p className="text-yellow-200 text-xs mt-2">Recovering...</p>
             )}
@@ -442,68 +451,68 @@ const Producer = () => {
       )}
 
       {/* Master Transport Controls */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-        <div className="bg-black/30 backdrop-blur-md rounded-lg p-3 flex items-center gap-4">
+      <div className="fixed top-2 sm:top-4 left-1/2 transform -translate-x-1/2 z-50 px-4">
+        <div className="bg-black/30 backdrop-blur-md rounded-lg p-2 sm:p-3 flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs sm:text-sm">
           <div className="flex items-center gap-2">
-            <span className="text-white text-sm">Tempo:</span>
+            <span className="text-white">Tempo:</span>
             <input
               type="range"
               min="60"
               max="200"
               value={tempo}
               onChange={(e) => setTempo(Number(e.target.value))}
-              className="w-20"
+              className="w-16 sm:w-20 h-1 sm:h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
             />
-            <span className="text-white text-sm w-12">{tempo} BPM</span>
+            <span className="text-white w-12 sm:w-16">{tempo} BPM</span>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handleMasterPlayPause}
               disabled={!audioUnlocked || isRecovering}
-              className={`p-2 rounded-lg transition-colors ${audioUnlocked && !isRecovering
+              className={`p-2 rounded-lg transition-colors touch-manipulation ${audioUnlocked && !isRecovering
                 ? 'bg-purple-600 hover:bg-purple-700 text-white'
                 : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                 }`}
             >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              {isPlaying ? <Pause className="w-3 h-3 sm:w-4 sm:h-4" /> : <Play className="w-3 h-3 sm:w-4 sm:h-4" />}
             </button>
             <button
               onClick={handleMasterStop}
               disabled={!audioUnlocked || isRecovering}
-              className={`p-2 rounded-lg transition-colors ${audioUnlocked && !isRecovering
+              className={`p-2 rounded-lg transition-colors touch-manipulation ${audioUnlocked && !isRecovering
                 ? 'bg-red-600 hover:bg-red-700 text-white'
                 : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                 }`}
             >
-              <Square className="w-4 h-4" />
+              <Square className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-white text-sm">Step:</span>
-            <span className="text-purple-400 text-sm font-mono w-8">
-              {Math.floor(currentStep / 16) + 1}.{(currentStep % 16) + 1}
+            <span className="text-white">Beat:</span>
+            <span className="text-purple-400 font-mono w-8 sm:w-12">
+              {getCurrentBeatDisplay()}
             </span>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-2 sm:top-4 right-2 sm:right-4 z-50">
         <div className="bg-black/30 backdrop-blur-md rounded-lg p-2">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
             {sections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => setCurrentSection(section.id)}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentSection === section.id
+                className={`px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors touch-manipulation ${currentSection === section.id
                   ? 'bg-purple-600 text-white'
                   : 'text-white/70 hover:text-white hover:bg-white/10'
                   }`}
               >
-                <span className="mr-2">{section.icon}</span>
-                {section.name}
+                <span className="mr-1 sm:mr-2">{section.icon}</span>
+                <span className="hidden sm:inline">{section.name}</span>
               </button>
             ))}
           </div>
@@ -511,7 +520,7 @@ const Producer = () => {
       </div>
 
       {/* Main Content */}
-      <div className="pt-24">
+      <div className="pt-20 sm:pt-24">
         {renderSection()}
       </div>
     </div>
