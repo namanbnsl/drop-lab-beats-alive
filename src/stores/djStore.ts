@@ -38,7 +38,7 @@ interface DJState {
   globalBPM: number;
   bpmSyncEnabled: boolean;
   
-  // Transport for sync
+  // Transport for sync (Silent Backend Metronome)
   isTransportRunning: boolean;
   
   // BPM Input Modal State
@@ -65,6 +65,7 @@ interface DJState {
   syncDeckToGlobal: (deck: 'A' | 'B') => void;
   resetToOriginalBPMs: () => void;
   setShowBPMModal: (show: boolean) => void;
+  playDeckOnNextBar: (deck: 'A' | 'B') => void; // New method for bar-aligned playback
   cleanup: () => void;
 }
 
@@ -100,12 +101,12 @@ export const useDJStore = create<DJState>((set, get) => ({
       const deckA = new DeckAudioEngine();
       const deckB = new DeckAudioEngine();
       
-      // Initialize transport for sync
+      // Initialize silent backend metronome (Tone.Transport)
       Tone.Transport.bpm.value = 128;
       
       set({ deckA, deckB });
       
-      console.log('🎧 DJ Audio System Initialized with Global BPM Sync');
+      console.log('🎧 DJ Audio System Initialized with Silent Backend Metronome');
     } catch (error) {
       console.error('Failed to initialize audio:', error);
     }
@@ -117,26 +118,81 @@ export const useDJStore = create<DJState>((set, get) => ({
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
     if (engine && engine.isLoaded) {
-      engine.play();
-      
-      // Update BPM info
-      const bpmInfo = engine.getBPMInfo();
-      
-      // Start transport if not already running
+      // Start silent backend metronome if not already running
       if (!state.isTransportRunning) {
         Tone.Transport.bpm.value = state.globalBPM;
         Tone.Transport.start();
         set({ isTransportRunning: true });
+        console.log(`🎯 Silent Backend Metronome started at ${state.globalBPM} BPM`);
       }
-      
-      set({
-        [deckState]: {
-          ...state[deckState],
-          isPlaying: true,
-          bpmInfo
-        },
-      });
+
+      // For Deck A or when no other deck is playing, start immediately
+      const otherDeckState = deck === 'A' ? state.deckBState : state.deckAState;
+      if (deck === 'A' || !otherDeckState.isPlaying) {
+        engine.play();
+        
+        const bpmInfo = engine.getBPMInfo();
+        
+        set({
+          [deckState]: {
+            ...state[deckState],
+            isPlaying: true,
+            bpmInfo
+          },
+        });
+        
+        console.log(`▶️ Deck ${deck} playing immediately`);
+      } else {
+        // For secondary decks when another deck is playing, use bar-aligned playback
+        get().playDeckOnNextBar(deck);
+      }
     }
+  },
+
+  playDeckOnNextBar: (deck) => {
+    const state = get();
+    const engine = deck === 'A' ? state.deckA : state.deckB;
+    const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
+    
+    if (!engine || !engine.isLoaded) return;
+
+    // Set deck to syncing state
+    set({
+      [deckState]: {
+        ...state[deckState],
+        isSyncing: true,
+      },
+    });
+
+    // Calculate current transport position and beats until next bar
+    const position = Tone.Transport.position;
+    const [bars, beats, sixteenths] = position.split(':').map(Number);
+    const currentBeat = beats + (sixteenths / 4); // Convert to decimal beats
+    const beatsUntilNextBar = 4 - (currentBeat % 4);
+    
+    console.log(`⏱️ Current position: ${position}, waiting ${beatsUntilNextBar.toFixed(2)} beats for next bar`);
+
+    // Schedule playback to start on the next bar (first beat)
+    Tone.Transport.scheduleOnce(() => {
+      if (engine.isLoaded) {
+        engine.play();
+        
+        const bpmInfo = engine.getBPMInfo();
+        
+        set({
+          [deckState]: {
+            ...get()[deckState],
+            isPlaying: true,
+            isSyncing: false,
+            bpmInfo
+          },
+        });
+        
+        console.log(`🎯 Deck ${deck} started on bar boundary - Perfect sync achieved!`);
+      }
+    }, `+${beatsUntilNextBar}n`);
+
+    console.log(`🔄 Deck ${deck} will start in ${beatsUntilNextBar.toFixed(2)} beats on next bar`);
   },
 
   pauseDeck: (deck) => {
@@ -331,15 +387,7 @@ export const useDJStore = create<DJState>((set, get) => ({
     const state = get();
     const { deckA, deckB, deckAState, deckBState } = state;
     
-    if (deckA && deckB && deckAState.isPlaying && deckBState.track) {
-      // Set deck B to sync state
-      set({
-        deckBState: {
-          ...deckBState,
-          isSyncing: true,
-        },
-      });
-
+    if (deckA && deckB && deckBState.track) {
       // Sync deck B to global BPM
       get().syncDeckToGlobal('B');
       
@@ -351,28 +399,8 @@ export const useDJStore = create<DJState>((set, get) => ({
         set({ isTransportRunning: true });
       }
 
-      // Calculate beats until next bar (4/4 time)
-      const currentPosition = Tone.Transport.position;
-      const [bars, beats] = currentPosition.split(':').map(Number);
-      const beatsUntilNextBar = 4 - (beats % 4);
-      
-      // Schedule deck B to start at the next bar
-      Tone.Transport.scheduleOnce(() => {
-        if (deckB.isLoaded) {
-          deckB.play();
-          set({
-            deckBState: {
-              ...get().deckBState,
-              isPlaying: true,
-              isSyncing: false,
-              bpmInfo: deckB.getBPMInfo()
-            },
-          });
-          console.log(`🎯 Deck B synced to Global BPM: ${state.globalBPM}`);
-        }
-      }, `+${beatsUntilNextBar}n`);
-
-      console.log(`⏱️ Deck B will sync in ${beatsUntilNextBar} beats`);
+      // Use bar-aligned playback for perfect sync
+      get().playDeckOnNextBar('B');
     }
   },
 
@@ -382,7 +410,7 @@ export const useDJStore = create<DJState>((set, get) => ({
     
     set({ globalBPM: snappedBPM });
     
-    // Update transport BPM
+    // Update silent backend metronome BPM
     Tone.Transport.bpm.value = snappedBPM;
     
     // Update both decks if BPM sync is enabled
@@ -408,7 +436,7 @@ export const useDJStore = create<DJState>((set, get) => ({
       }
     }
     
-    console.log(`🎯 Global BPM set to ${snappedBPM}`);
+    console.log(`🎯 Global BPM set to ${snappedBPM} - Silent Metronome updated`);
   },
 
   toggleBPMSync: () => {
@@ -439,7 +467,7 @@ export const useDJStore = create<DJState>((set, get) => ({
         });
       }
       
-      console.log('🔄 Global BPM Sync enabled');
+      console.log('🔄 Global BPM Sync enabled with Silent Metronome');
     } else {
       // Disable sync - reset to original BPMs
       if (state.deckA && state.deckAState.track?.originalBPM) {
@@ -525,5 +553,6 @@ export const useDJStore = create<DJState>((set, get) => ({
     state.deckB?.dispose();
     Tone.Transport.stop();
     Tone.Transport.cancel();
+    set({ isTransportRunning: false });
   },
 }));
