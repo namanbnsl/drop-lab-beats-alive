@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, RefreshCw, Volume2, Save, Music } from 'lucide-react';
 import * as Tone from 'tone';
@@ -32,42 +32,10 @@ const MelodySection: React.FC<MelodySectionProps> = ({
   const [key, setKey] = useState('C');
   const [scale, setScale] = useState('major');
   const [octave, setOctave] = useState(4);
-  const [synth, setSynth] = useState<Tone.PolySynth | null>(null);
 
   const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const scales = ['major', 'minor', 'pentatonic', 'blues'];
   const octaves = [2, 3, 4, 5, 6];
-
-  useEffect(() => {
-    const polySynth = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: 'triangle' },
-      envelope: { attack: 0.1, decay: 0.2, sustain: 0.3, release: 0.8 }
-    }).toDestination();
-
-    setSynth(polySynth);
-
-    return () => {
-      polySynth.dispose();
-    };
-  }, []);
-
-  // Play notes at current step - Fixed beat indexing
-  useEffect(() => {
-    if (isPlaying && synth) {
-      const step = currentStep % 16; // Ensure step is 0-15
-      const stepTime = step * 0.25; // 16th note timing
-
-      // Find notes that should play at this step
-      const notesToPlay = notes.filter(note =>
-        Math.floor(note.startTime * 4) === step
-      );
-
-      notesToPlay.forEach(note => {
-        const noteName = Tone.Frequency(note.pitch, "midi").toNote();
-        synth.triggerAttackRelease(noteName, note.duration, undefined, note.velocity);
-      });
-    }
-  }, [currentStep, isPlaying, notes, synth]);
 
   const getScaleNotes = (rootKey: string, scaleType: string): number[] => {
     const noteToMidi = { 'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11 };
@@ -138,7 +106,7 @@ const MelodySection: React.FC<MelodySectionProps> = ({
   };
 
   const playMelody = () => {
-    if (synth && notes.length > 0) {
+    if (notes.length > 0) {
       onPlayMelody(notes);
     }
   };

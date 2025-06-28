@@ -41,6 +41,13 @@ const Producer = () => {
   });
   const [melodyNotes, setMelodyNotes] = useState([]);
 
+  // Centralized synth refs
+  const kickSynthRef = useRef<Tone.MembraneSynth | null>(null);
+  const snareSynthRef = useRef<Tone.NoiseSynth | null>(null);
+  const hihatSynthRef = useRef<Tone.MetalSynth | null>(null);
+  const crashSynthRef = useRef<Tone.MetalSynth | null>(null);
+  const melodySynthRef = useRef<Tone.PolySynth | null>(null);
+
   // Sequencer refs
   const sequencerRef = useRef<Tone.Sequence | null>(null);
   const stepIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -54,6 +61,64 @@ const Producer = () => {
     { id: 'fx', name: 'Effects', icon: '🎛️' },
     { id: 'export', name: 'Export', icon: '💾' }
   ];
+
+  // Initialize all synths once
+  useEffect(() => {
+    const initializeSynths = () => {
+      try {
+        // Initialize drum synths
+        kickSynthRef.current = new Tone.MembraneSynth({
+          pitchDecay: 0.05,
+          octaves: 10,
+          oscillator: { type: 'sine' },
+          envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
+        }).toDestination();
+
+        snareSynthRef.current = new Tone.NoiseSynth({
+          noise: { type: 'white' },
+          envelope: { attack: 0.005, decay: 0.1, sustain: 0.0, release: 0.4 }
+        }).toDestination();
+
+        hihatSynthRef.current = new Tone.MetalSynth({
+          envelope: { attack: 0.001, decay: 0.1, sustain: 0.0, release: 0.01 },
+          harmonicity: 5.1,
+          modulationIndex: 32,
+          resonance: 4000,
+          octaves: 1.5
+        }).toDestination();
+
+        crashSynthRef.current = new Tone.MetalSynth({
+          envelope: { attack: 0.001, decay: 0.4, sustain: 0.0, release: 0.8 },
+          harmonicity: 5.1,
+          modulationIndex: 32,
+          resonance: 4000,
+          octaves: 1.5
+        }).toDestination();
+
+        // Initialize melody synth
+        melodySynthRef.current = new Tone.PolySynth(Tone.Synth, {
+          oscillator: { type: 'triangle' },
+          envelope: { attack: 0.1, decay: 0.2, sustain: 0.3, release: 0.8 }
+        }).toDestination();
+
+        console.log('All synths initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize synths:', error);
+        setAudioError('Failed to initialize audio synths');
+      }
+    };
+
+    initializeSynths();
+
+    return () => {
+      // Cleanup synths on unmount
+      if (kickSynthRef.current) kickSynthRef.current.dispose();
+      if (snareSynthRef.current) snareSynthRef.current.dispose();
+      if (hihatSynthRef.current) hihatSynthRef.current.dispose();
+      if (crashSynthRef.current) crashSynthRef.current.dispose();
+      if (melodySynthRef.current) melodySynthRef.current.dispose();
+    };
+  }, []);
 
   // Audio context unlocking function with better error handling
   const unlockAudioContext = async () => {
@@ -181,7 +246,7 @@ const Producer = () => {
     }
   }, [tempo, audioUnlocked]);
 
-  // Create unified sequencer with better error handling and fixed beat counting
+  // Create unified sequencer with centralized synth management
   const createSequencer = () => {
     // Clean up existing sequencer
     if (sequencerRef.current) {
@@ -192,59 +257,41 @@ const Producer = () => {
       clearInterval(stepIntervalRef.current);
     }
 
-    // Create new sequencer with error handling
+    // Create new sequencer with error handling and proper timing
     const sequencer = new Tone.Sequence((time, step) => {
       try {
         setCurrentStep(step);
         lastAudioTimeRef.current = Tone.now();
 
-        // Play drums with error handling
-        if (drumPattern.kick[step % 16]) {
-          try {
-            const kickSynth = new Tone.MembraneSynth().toDestination();
-            kickSynth.triggerAttackRelease('C2', '16n', time);
-          } catch (error) {
-            console.warn('Failed to play kick:', error);
-          }
+        const stepIndex = step % 16;
+
+        // Play drums using centralized synths with proper timing
+        if (drumPattern.kick[stepIndex] && kickSynthRef.current) {
+          kickSynthRef.current.triggerAttackRelease('C2', '16n', time);
         }
-        if (drumPattern.snare[step % 16]) {
-          try {
-            const snareSynth = new Tone.NoiseSynth().toDestination();
-            snareSynth.triggerAttackRelease('16n', time);
-          } catch (error) {
-            console.warn('Failed to play snare:', error);
-          }
+        if (drumPattern.snare[stepIndex] && snareSynthRef.current) {
+          snareSynthRef.current.triggerAttackRelease('16n', time);
         }
-        if (drumPattern.hihat[step % 16]) {
-          try {
-            const hihatSynth = new Tone.MetalSynth().toDestination();
-            hihatSynth.triggerAttackRelease('C6', '16n', time);
-          } catch (error) {
-            console.warn('Failed to play hihat:', error);
-          }
+        if (drumPattern.hihat[stepIndex] && hihatSynthRef.current) {
+          hihatSynthRef.current.triggerAttackRelease('C6', '16n', time);
         }
-        if (drumPattern.crash[step % 16]) {
-          try {
-            const crashSynth = new Tone.MetalSynth().toDestination();
-            crashSynth.triggerAttackRelease('C5', '8n', time);
-          } catch (error) {
-            console.warn('Failed to play crash:', error);
-          }
+        if (drumPattern.crash[stepIndex] && crashSynthRef.current) {
+          crashSynthRef.current.triggerAttackRelease('C5', '8n', time);
         }
 
-        // Play melody notes with error handling
-        const stepTime = step * 0.25; // 16th note timing
+        // Play melody notes using centralized synth with proper timing
         const notesToPlay = melodyNotes.filter(note =>
-          Math.floor(note.startTime * 4) === (step % 16)
+          Math.floor(note.startTime * 4) === stepIndex
         );
 
         notesToPlay.forEach(note => {
-          try {
-            const melodySynth = new Tone.Synth().toDestination();
-            const noteName = Tone.Frequency(note.pitch, "midi").toNote();
-            melodySynth.triggerAttackRelease(noteName, note.duration, time, note.velocity);
-          } catch (error) {
-            console.warn('Failed to play melody note:', error);
+          if (melodySynthRef.current) {
+            try {
+              const noteName = Tone.Frequency(note.pitch, "midi").toNote();
+              melodySynthRef.current.triggerAttackRelease(noteName, note.duration, time, note.velocity);
+            } catch (error) {
+              console.warn('Failed to play melody note:', error);
+            }
           }
         });
       } catch (error) {

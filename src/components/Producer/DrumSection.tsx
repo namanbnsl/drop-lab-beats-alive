@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, RefreshCw, Volume2, Save } from 'lucide-react';
-import * as Tone from 'tone';
 
 interface DrumPattern {
   kick: boolean[];
@@ -30,79 +29,6 @@ const DrumSection: React.FC<DrumSectionProps> = ({
   onTempoChange
 }) => {
   const [volume, setVolume] = useState(80);
-
-  // Audio synths
-  const [synths, setSynths] = useState<{
-    kick: Tone.MembraneSynth | null;
-    snare: Tone.NoiseSynth | null;
-    hihat: Tone.MetalSynth | null;
-    crash: Tone.MetalSynth | null;
-  }>({
-    kick: null,
-    snare: null,
-    hihat: null,
-    crash: null
-  });
-
-  useEffect(() => {
-    // Initialize audio synths
-    const kickSynth = new Tone.MembraneSynth({
-      pitchDecay: 0.05,
-      octaves: 10,
-      oscillator: { type: 'sine' },
-      envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
-    }).toDestination();
-
-    const snareSynth = new Tone.NoiseSynth({
-      noise: { type: 'white' },
-      envelope: { attack: 0.005, decay: 0.1, sustain: 0.0, release: 0.4 }
-    }).toDestination();
-
-    const hihatSynth = new Tone.MetalSynth({
-      envelope: { attack: 0.001, decay: 0.1, sustain: 0.0, release: 0.01 },
-      harmonicity: 5.1,
-      modulationIndex: 32,
-      resonance: 4000,
-      octaves: 1.5
-    }).toDestination();
-
-    const crashSynth = new Tone.MetalSynth({
-      envelope: { attack: 0.001, decay: 0.4, sustain: 0.0, release: 0.8 },
-      harmonicity: 5.1,
-      modulationIndex: 32,
-      resonance: 4000,
-      octaves: 1.5
-    }).toDestination();
-
-    setSynths({ kick: kickSynth, snare: snareSynth, hihat: hihatSynth, crash: crashSynth });
-
-    return () => {
-      kickSynth.dispose();
-      snareSynth.dispose();
-      hihatSynth.dispose();
-      crashSynth.dispose();
-    };
-  }, []);
-
-  // Play current step when it changes - Fixed beat indexing
-  useEffect(() => {
-    if (isPlaying && synths.kick) {
-      const step = currentStep % 16; // Ensure step is 0-15
-
-      if (pattern.kick[step]) {
-        synths.kick.triggerAttackRelease('C2', '16n');
-      }
-      if (pattern.snare[step]) {
-        synths.snare.triggerAttackRelease('16n');
-      }
-      if (pattern.hihat[step]) {
-        synths.hihat.triggerAttackRelease('C6', '16n');
-      }
-      if (pattern.crash[step]) {
-        synths.crash.triggerAttackRelease('C5', '8n');
-      }
-    }
-  }, [currentStep, isPlaying, pattern, synths]);
 
   const toggleStep = (drumType: keyof DrumPattern, step: number) => {
     const newPattern = {
