@@ -85,29 +85,33 @@ const Producer = () => {
   // Mixer Volume Controls - Apply volume changes in real-time
   useEffect(() => {
     if (drumGainRef.current && audioUnlocked) {
-      drumGainRef.current.gain.rampTo(drumsVolume / 100, 0.1);
-      console.log(`🎚️ Drums volume: ${drumsVolume}%`);
+      const volume = drumsVolume / 100;
+      drumGainRef.current.gain.rampTo(volume, 0.1);
+      console.log(`🎚️ Drums volume: ${drumsVolume}% (${volume.toFixed(2)})`);
     }
   }, [drumsVolume, audioUnlocked]);
 
   useEffect(() => {
     if (melodyGainRef.current && audioUnlocked) {
-      melodyGainRef.current.gain.rampTo(melodyVolume / 100, 0.1);
-      console.log(`🎚️ Melody volume: ${melodyVolume}%`);
+      const volume = melodyVolume / 100;
+      melodyGainRef.current.gain.rampTo(volume, 0.1);
+      console.log(`🎚️ Melody volume: ${melodyVolume}% (${volume.toFixed(2)})`);
     }
   }, [melodyVolume, audioUnlocked]);
 
   useEffect(() => {
     if (fxGainRef.current && audioUnlocked) {
-      fxGainRef.current.gain.rampTo(fxVolume / 100, 0.1);
-      console.log(`🎚️ FX volume: ${fxVolume}%`);
+      const volume = fxVolume / 100;
+      fxGainRef.current.gain.rampTo(volume, 0.1);
+      console.log(`🎚️ FX volume: ${fxVolume}% (${volume.toFixed(2)})`);
     }
   }, [fxVolume, audioUnlocked]);
 
   useEffect(() => {
     if (masterGainRef.current && audioUnlocked) {
-      masterGainRef.current.gain.rampTo(masterVolume / 100, 0.1);
-      console.log(`🎚️ Master volume: ${masterVolume}%`);
+      const volume = masterVolume / 100;
+      masterGainRef.current.gain.rampTo(volume, 0.1);
+      console.log(`🎚️ Master volume: ${masterVolume}% (${volume.toFixed(2)})`);
     }
   }, [masterVolume, audioUnlocked]);
 
@@ -159,21 +163,24 @@ const Producer = () => {
         // Initialize individual track gains for mixer control
         drumGainRef.current = new Tone.Gain(0.8);
         melodyGainRef.current = new Tone.Gain(0.7);
-        fxGainRef.current = new Tone.Gain(0.5);
-
+        
         // Initialize FX chain
+        filterRef.current = new Tone.Filter(20000, 'lowpass');
+        distortionRef.current = new Tone.Distortion(0.4);
         reverbRef.current = new Tone.Reverb(2);
         delayRef.current = new Tone.FeedbackDelay('8n', 0.3);
-        distortionRef.current = new Tone.Distortion(0.4);
-        filterRef.current = new Tone.Filter(20000, 'lowpass');
+        fxGainRef.current = new Tone.Gain(0.5);
         masterGainRef.current = new Tone.Gain(0.75);
 
-        // Connect FX chain: Individual Gains -> Filter -> Distortion -> Reverb -> Delay -> Master Gain -> Output
-        const fxChain = new Tone.Gain(1);
-        drumGainRef.current.connect(fxChain);
-        melodyGainRef.current.connect(fxChain);
+        // Create a mixer bus that combines drum and melody signals
+        const mixerBus = new Tone.Gain(1);
         
-        fxChain.chain(
+        // Connect individual tracks to mixer bus
+        drumGainRef.current.connect(mixerBus);
+        melodyGainRef.current.connect(mixerBus);
+        
+        // Connect mixer bus through FX chain to master output
+        mixerBus.chain(
           filterRef.current,
           distortionRef.current,
           reverbRef.current,
@@ -225,7 +232,8 @@ const Producer = () => {
         }).connect(melodyGainRef.current);
 
         console.log('✅ All synths and FX chain initialized successfully');
-        console.log('🎛️ Audio routing: Drums/Melody → Individual Gains → Filter → Distortion → Reverb → Delay → FX Gain → Master Gain → Output');
+        console.log('🎛️ Audio routing: Drums/Melody → Individual Gains → Mixer Bus → Filter → Distortion → Reverb → Delay → FX Gain → Master Gain → Output');
+        console.log('🎚️ Mixer controls are now active and will affect audio levels');
       } catch (error) {
         console.error('Failed to initialize synths and FX:', error);
         setAudioError('Failed to initialize audio synths and effects');
@@ -269,6 +277,14 @@ const Producer = () => {
       console.log('Audio context unlocked successfully');
       setAudioUnlocked(true);
       setIsRecovering(false);
+      
+      // Apply current mixer settings after audio is unlocked
+      if (drumGainRef.current) drumGainRef.current.gain.value = drumsVolume / 100;
+      if (melodyGainRef.current) melodyGainRef.current.gain.value = melodyVolume / 100;
+      if (fxGainRef.current) fxGainRef.current.gain.value = fxVolume / 100;
+      if (masterGainRef.current) masterGainRef.current.gain.value = masterVolume / 100;
+      
+      console.log('🎚️ Mixer levels applied after audio unlock');
     } catch (error) {
       console.error('Failed to unlock audio context:', error);
       setAudioError('Failed to unlock audio. Please try clicking again.');
@@ -701,6 +717,14 @@ const Producer = () => {
             <span className="text-white">Beat:</span>
             <span className="text-purple-400 font-mono w-8 sm:w-12">
               {getCurrentBeatDisplay()}
+            </span>
+          </div>
+
+          {/* Mixer Status Indicator */}
+          <div className="flex items-center gap-2">
+            <span className="text-white">Mix:</span>
+            <span className="text-blue-400 font-mono text-xs">
+              D:{drumsVolume} M:{melodyVolume} F:{fxVolume} ⚡:{masterVolume}
             </span>
           </div>
 
