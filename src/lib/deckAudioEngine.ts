@@ -28,6 +28,8 @@ export class DeckAudioEngine {
   private nextBeatTime: number = 0;
   private beatInterval: number = 0;
   private gridUpdateInterval: NodeJS.Timeout | null = null;
+  private audioBuffer: AudioBuffer | null = null;
+  private waveformData: Float32Array | null = null;
 
   constructor() {
     // Initialize audio chain
@@ -79,6 +81,9 @@ export class DeckAudioEngine {
       
       await this.player.load(url);
       this.trackDuration = this.player.buffer.duration;
+      this.audioBuffer = this.player.buffer.get();
+      this.generateWaveformData();
+      
       this.isLoaded = true;
       this.isPlaying = false;
       this.pausedAt = 0;
@@ -93,10 +98,10 @@ export class DeckAudioEngine {
       // Set initial playback rate for auto-sync
       this.updatePlaybackRate();
       
-      // 🎯 ENHANCED BEAT SNAPPING: Immediate alignment
-      await this.snapToNextBeat();
+      // 🎯 SIMPLIFIED BEAT SNAPPING: Just mark as ready for sync
+      this.prepareForSync();
       
-      console.log(`✅ Track loaded and beat-snapped: ${url} (${this.trackDuration.toFixed(2)}s, ${this.originalBPM} BPM → ${this.globalBPM} BPM)`);
+      console.log(`✅ Track loaded: ${url} (${this.trackDuration.toFixed(2)}s, ${this.originalBPM} BPM → ${this.globalBPM} BPM)`);
       return true;
     } catch (error) {
       console.error('❌ Failed to load track:', error);
@@ -106,70 +111,47 @@ export class DeckAudioEngine {
   }
 
   /**
-   * 🎯 ENHANCED BEAT SNAPPING: Calculate and align to next beat
+   * Generate waveform data for accurate visualization
    */
-  private async snapToNextBeat(): Promise<void> {
-    if (!this.player || !this.isLoaded) return;
+  private generateWaveformData(): void {
+    if (!this.audioBuffer) return;
 
-    try {
-      // Ensure transport is running
-      if (Tone.Transport.state !== 'started') {
-        console.warn('Transport not running, starting it...');
-        Tone.Transport.start();
-        await new Promise(resolve => setTimeout(resolve, 100)); // Wait for transport to stabilize
+    const channelData = this.audioBuffer.getChannelData(0);
+    const samples = 1024; // Number of waveform points
+    const blockSize = Math.floor(channelData.length / samples);
+    
+    this.waveformData = new Float32Array(samples);
+    
+    for (let i = 0; i < samples; i++) {
+      let sum = 0;
+      for (let j = 0; j < blockSize; j++) {
+        sum += Math.abs(channelData[i * blockSize + j] || 0);
       }
-
-      // Get current transport time with high precision
-      const currentTime = Tone.Transport.seconds;
-      
-      // Calculate next beat boundary (align to 4-beat bars)
-      const beatsElapsed = currentTime / this.beatInterval;
-      const nextBeat = Math.ceil(beatsElapsed / 4) * 4; // Snap to next bar (4 beats)
-      this.nextBeatTime = nextBeat * this.beatInterval;
-      
-      // If next beat is too close (less than 0.5 seconds), move to next bar
-      if (this.nextBeatTime - currentTime < 0.5) {
-        this.nextBeatTime += this.beatInterval * 4; // Add one full bar
-      }
-      
-      // Sync player to transport timeline
-      this.player.sync();
-      
-      // Set up for queued playback
-      this.isQueued = true;
-      this.isGridAligned = true;
-      
-      // Start grid position monitoring
-      this.startGridMonitoring();
-      
-      const waitTime = this.nextBeatTime - currentTime;
-      console.log(`🎯 Track snapped to beat: ${this.nextBeatTime.toFixed(3)}s (wait: ${waitTime.toFixed(3)}s)`);
-      
-    } catch (error) {
-      console.error('Failed to snap to beat:', error);
-      this.isGridAligned = false;
-      this.isQueued = false;
+      this.waveformData[i] = sum / blockSize;
     }
   }
 
   /**
-   * Start monitoring grid position for real-time updates
+   * 🎯 SIMPLIFIED SYNC PREPARATION: Mark as ready for beat-aligned play
    */
-  private startGridMonitoring(): void {
-    if (this.gridUpdateInterval) {
-      clearInterval(this.gridUpdateInterval);
+  private prepareForSync(): void {
+    if (!this.player || !this.isLoaded) return;
+
+    try {
+      // Sync player to transport for beat-aligned playback
+      this.player.sync();
+      
+      // Mark as ready for sync
+      this.isQueued = true;
+      this.isGridAligned = true;
+      
+      console.log(`🎯 Track prepared for beat-sync play`);
+      
+    } catch (error) {
+      console.error('Failed to prepare sync:', error);
+      this.isGridAligned = false;
+      this.isQueued = false;
     }
-    
-    this.gridUpdateInterval = setInterval(() => {
-      if (this.isLoaded) {
-        // Update grid alignment status
-        const currentTime = Tone.Transport.seconds;
-        const timeDiff = Math.abs(currentTime - this.nextBeatTime);
-        
-        // Consider aligned if within 50ms of target beat
-        this.isGridAligned = timeDiff < 0.05 || this.isQueued;
-      }
-    }, 50); // Update every 50ms for smooth feedback
   }
 
   /**
@@ -183,9 +165,9 @@ export class DeckAudioEngine {
       this.pause();
     }
     
-    // Re-align to next beat
-    await this.snapToNextBeat();
-    console.log('🔄 Track re-snapped to next beat boundary');
+    // Re-prepare for sync
+    this.prepareForSync();
+    console.log('🔄 Track re-prepared for beat sync');
   }
 
   /**
@@ -219,9 +201,9 @@ export class DeckAudioEngine {
     this.beatInterval = 60 / globalBPM;
     this.updatePlaybackRate();
     
-    // Re-snap to grid with new BPM
+    // Re-prepare for sync with new BPM
     if (this.isLoaded) {
-      this.snapToNextBeat();
+      this.prepareForSync();
     }
     
     console.log(`🎯 Global BPM Sync: ${originalBPM} → ${globalBPM} BPM (rate: ${this.basePlaybackRate.toFixed(3)}x)`);
@@ -246,7 +228,7 @@ export class DeckAudioEngine {
   }
 
   /**
-   * ⚡ ENHANCED INSTANT PLAY: Start at precise beat time
+   * ⚡ SIMPLIFIED INSTANT PLAY: Start immediately with beat alignment
    */
   play(fromCue: boolean = false) {
     if (this.player && this.isLoaded && !this.isPlaying) {
@@ -254,21 +236,18 @@ export class DeckAudioEngine {
       this.updatePlaybackRate();
       
       if (this.isQueued && this.isGridAligned && !fromCue) {
-        // 🎯 PRECISE BEAT-SYNCED PLAY
+        // 🎯 BEAT-ALIGNED INSTANT PLAY
+        // Calculate next beat boundary for immediate sync
         const currentTime = Tone.Transport.seconds;
-        const timeToNextBeat = this.nextBeatTime - currentTime;
+        const currentBeat = currentTime / this.beatInterval;
+        const nextBeat = Math.ceil(currentBeat);
+        const nextBeatTime = nextBeat * this.beatInterval;
         
-        if (timeToNextBeat > 0 && timeToNextBeat < 2) {
-          // Start at the precise next beat time
-          this.player.start(this.nextBeatTime);
-          this.startTime = this.nextBeatTime;
-          console.log(`⚡ Queued for beat-sync play in ${timeToNextBeat.toFixed(3)}s`);
-        } else {
-          // If beat time has passed or is too far, start immediately
-          this.player.start();
-          this.startTime = Tone.now();
-          console.log(`▶️ Immediate play (beat time passed)`);
-        }
+        // Start at next beat (very small delay for perfect sync)
+        this.player.start(nextBeatTime, this.pausedAt);
+        this.startTime = nextBeatTime - this.pausedAt;
+        
+        console.log(`⚡ Beat-sync play at next beat: ${nextBeatTime.toFixed(3)}s`);
         
         this.isQueued = false;
         this.isPlaying = true;
@@ -317,24 +296,40 @@ export class DeckAudioEngine {
         this.play();
       }
       
-      console.log(`🎯 Seeked to ${clampedPosition.toFixed(2)}s (grid alignment lost)`);
+      console.log(`🎯 Seeked to ${clampedPosition.toFixed(2)}s`);
     }
   }
 
+  /**
+   * 🎛️ ENHANCED SCRUBBING: Proper directional scrubbing with audio feedback
+   */
   scrub(velocity: number) {
     if (this.player && this.isLoaded) {
       const currentTime = this.getCurrentTime();
-      const scrubAmount = velocity * 0.1;
+      
+      // Enhanced scrub sensitivity and range
+      const scrubSensitivity = 0.05; // Reduced for finer control
+      const scrubAmount = velocity * scrubSensitivity;
       const newTime = Math.max(0, Math.min(currentTime + scrubAmount, this.trackDuration));
       
+      // Update position
       this.pausedAt = newTime;
       this.isGridAligned = false; // Lose grid alignment when scrubbing
       this.isQueued = false;
       
-      if (!this.isPlaying) {
-        this.seek(newTime);
-      } else {
+      // If playing, update the playback position in real-time
+      if (this.isPlaying) {
+        // Stop current playback
+        this.player.stop();
+        
+        // Start from new position immediately
+        this.player.start(0, newTime);
         this.startTime = Tone.now() - newTime;
+        
+        console.log(`🎛️ Live scrub to ${newTime.toFixed(3)}s (velocity: ${velocity.toFixed(3)})`);
+      } else {
+        // When not playing, just update the position
+        console.log(`🎛️ Scrub to ${newTime.toFixed(3)}s (velocity: ${velocity.toFixed(3)})`);
       }
     }
   }
@@ -475,13 +470,28 @@ export class DeckAudioEngine {
     }
   }
 
+  /**
+   * 📊 ENHANCED WAVEFORM: Generate accurate waveform based on actual audio data
+   */
   getWaveform(): Float32Array {
+    if (this.waveformData) {
+      // Return actual waveform data from the audio buffer
+      return this.waveformData;
+    }
+    
+    // Fallback to generated waveform
     const waveform = new Float32Array(128);
     const time = this.getCurrentTime();
+    const progress = time / this.trackDuration;
     
     for (let i = 0; i < waveform.length; i++) {
+      const position = i / waveform.length;
       const amplitude = this.isPlaying ? 0.5 : 0.1;
-      waveform[i] = Math.sin((i + time * 10) * 0.1) * amplitude;
+      
+      // Create a more realistic waveform pattern
+      const frequency = 0.1 + (position * 0.2);
+      const phase = time * 10 + position * Math.PI * 2;
+      waveform[i] = Math.sin(phase * frequency) * amplitude * (1 - Math.abs(position - progress));
     }
     
     return waveform;
