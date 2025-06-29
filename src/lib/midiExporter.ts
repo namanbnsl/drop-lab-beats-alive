@@ -31,17 +31,21 @@ export class MIDIExporter {
    * Export drum pattern as MIDI file
    */
   static exportDrums(pattern: DrumPattern, tempo: number = 120, filename: string = 'drums'): void {
-    const drumNotes = this.convertDrumPatternToNotes(pattern);
+    const drumNotes = this.convertDrumPatternToNotes(pattern, tempo);
     const midiData = this.createMIDIFile(drumNotes, tempo, 'drums');
     this.downloadMIDI(midiData, `${filename}.mid`);
   }
 
   /**
-   * Convert drum pattern to MIDI notes
+   * FIXED: Convert drum pattern to MIDI notes with proper tempo-based timing
    */
-  private static convertDrumPatternToNotes(pattern: DrumPattern): MIDINote[] {
+  private static convertDrumPatternToNotes(pattern: DrumPattern, tempo: number): MIDINote[] {
     const notes: MIDINote[] = [];
-    const stepDuration = 0.25; // 16th notes
+    
+    // FIXED: Calculate step duration based on tempo
+    // 16 steps per bar, 4 beats per bar = 4 steps per beat
+    // Step duration = (60 / tempo) / 4 seconds per step
+    const stepDurationInSeconds = (60 / tempo) / 4; // Quarter note / 4 = 16th note
 
     // MIDI drum mapping (General MIDI standard)
     const drumMap = {
@@ -51,19 +55,29 @@ export class MIDIExporter {
       crash: 49   // C#3 - Crash Cymbal 1
     };
 
+    console.log(`🥁 Converting drum pattern to MIDI at ${tempo} BPM`);
+    console.log(`📏 Step duration: ${stepDurationInSeconds.toFixed(4)}s per step`);
+
     Object.entries(pattern).forEach(([drumType, steps]) => {
+      const activeSteps: number[] = [];
       steps.forEach((active, stepIndex) => {
         if (active) {
+          activeSteps.push(stepIndex);
           notes.push({
             pitch: drumMap[drumType as keyof typeof drumMap],
             velocity: 0.8,
-            startTime: stepIndex * stepDuration,
-            duration: 0.1
+            startTime: stepIndex * stepDurationInSeconds, // FIXED: Use tempo-based timing
+            duration: 0.1 // Short duration for drum hits
           });
         }
       });
+      
+      if (activeSteps.length > 0) {
+        console.log(`🥁 ${drumType}: steps [${activeSteps.join(', ')}] → times [${activeSteps.map(s => (s * stepDurationInSeconds).toFixed(3)).join(', ')}]s`);
+      }
     });
 
+    console.log(`✅ Converted drum pattern to ${notes.length} MIDI notes`);
     return notes;
   }
 
@@ -138,14 +152,18 @@ export class MIDIExporter {
     const sortedNotes = [...notes].sort((a, b) => a.startTime - b.startTime);
     
     let currentTime = 0;
-    const activeNotes = new Map<number, number>(); // pitch -> start time
 
     // Process all note events
     const allEvents: Array<{time: number, type: 'on' | 'off', pitch: number, velocity: number}> = [];
     
     sortedNotes.forEach(note => {
-      const startTicks = Math.round(note.startTime * this.TICKS_PER_QUARTER);
-      const endTicks = Math.round((note.startTime + note.duration) * this.TICKS_PER_QUARTER);
+      // FIXED: Convert seconds to MIDI ticks properly using the actual tempo
+      const startBeats = note.startTime * (tempo / 60); // Convert seconds to beats at current tempo
+      const startTicks = Math.round(startBeats * this.TICKS_PER_QUARTER);
+      
+      const durationBeats = note.duration * (tempo / 60); // Convert duration seconds to beats
+      const durationTicks = Math.round(durationBeats * this.TICKS_PER_QUARTER);
+      const endTicks = startTicks + durationTicks;
       
       allEvents.push({
         time: startTicks,

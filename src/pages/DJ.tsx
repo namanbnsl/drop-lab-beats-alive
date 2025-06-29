@@ -5,14 +5,14 @@ import CDJDeck from '../components/DJ/CDJDeck';
 import MixerPanel from '../components/DJ/MixerPanel';
 import TrackLibrary from '../components/DJ/TrackLibrary';
 import FirstTimeOverlay from '../components/DJ/FirstTimeOverlay';
-import { Disc3 } from 'lucide-react';
+import { Disc3, ArrowLeft } from 'lucide-react';
 import { useDJStore } from '../stores/djStore';
 
 const DJ = () => {
   const navigate = useNavigate();
   const [showLibrary, setShowLibrary] = useState(true);
   const [showFirstTime, setShowFirstTime] = useState(false);
-  
+
   const { cleanup } = useDJStore();
 
   useEffect(() => {
@@ -38,29 +38,26 @@ const DJ = () => {
   return (
     <div className="min-h-screen bg-black text-white font-['Poppins'] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-purple-900/30">
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors"
-        >
-          <Disc3 className="w-8 h-8" />
-          <span className="text-xl font-bold">DropLab</span>
-        </button>
-        
-        <div className="flex flex-col items-center">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
-            DJ Mode
-          </h1>
+      <div className="flex items-center justify-between p-4 border-b border-blue-900/30">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-semibold">Back to Home</span>
+          </button>
         </div>
-        
-        <div className="flex gap-2">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+          DropLab DJ
+        </h1>
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setShowLibrary(!showLibrary)}
-            className={`px-4 py-2 rounded-lg border transition-all ${
-              showLibrary 
-                ? 'bg-purple-600 border-purple-400 text-white' 
-                : 'border-purple-500/30 hover:border-purple-500 text-purple-400'
-            }`}
+            className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${showLibrary
+                ? 'bg-blue-600 border-blue-400 text-white'
+                : 'border-blue-500/30 hover:border-blue-500 text-blue-400'
+              }`}
           >
             Library
           </button>
@@ -93,8 +90,8 @@ const DJ = () => {
       </div>
 
       {/* First Time Overlay */}
-      <FirstTimeOverlay 
-        isOpen={showFirstTime} 
+      <FirstTimeOverlay
+        isOpen={showFirstTime}
         onClose={handleFirstTimeClose}
       />
     </div>

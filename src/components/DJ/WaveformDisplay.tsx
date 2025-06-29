@@ -33,7 +33,7 @@ const WaveformDisplay = () => {
       const beatInterval = 60 / 128; // 128 BPM
       const pixelsPerSecond = width / 30; // Assuming 30 seconds visible
       const beatWidth = beatInterval * pixelsPerSecond;
-      
+
       ctx.strokeStyle = '#1f2937';
       ctx.lineWidth = 1;
       for (let i = 0; i < width; i += beatWidth) {
@@ -58,11 +58,11 @@ const WaveformDisplay = () => {
         ctx.strokeStyle = deckAState.isPlaying ? '#a259ff' : '#4b5563';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        
+
         for (let i = 0; i < waveformA.length; i++) {
           const x = (i / waveformA.length) * width;
           const y = height / 4 + (waveformA[i] * height) / 4;
-          
+
           if (i === 0) {
             ctx.moveTo(x, y);
           } else {
@@ -76,7 +76,7 @@ const WaveformDisplay = () => {
           const currentTime = deckA.getCurrentTime();
           const duration = deckA.getDuration();
           const playheadX = (currentTime / duration) * width;
-          
+
           ctx.strokeStyle = '#a259ff';
           ctx.lineWidth = 3;
           ctx.beginPath();
@@ -92,11 +92,11 @@ const WaveformDisplay = () => {
         ctx.strokeStyle = deckBState.isPlaying ? '#a259ff' : '#4b5563';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        
+
         for (let i = 0; i < waveformB.length; i++) {
           const x = (i / waveformB.length) * width;
           const y = (3 * height) / 4 + (waveformB[i] * height) / 4;
-          
+
           if (i === 0) {
             ctx.moveTo(x, y);
           } else {
@@ -110,7 +110,7 @@ const WaveformDisplay = () => {
           const currentTime = deckB.getCurrentTime();
           const duration = deckB.getDuration();
           const playheadX = (currentTime / duration) * width;
-          
+
           ctx.strokeStyle = '#a259ff';
           ctx.lineWidth = 3;
           ctx.beginPath();
@@ -125,7 +125,7 @@ const WaveformDisplay = () => {
         ctx.fillStyle = '#00ff88';
         ctx.fillRect(0, 0, 10, height / 2);
       }
-      
+
       if (deckBState.gridPosition?.isQueued && deckBState.gridPosition?.isAligned) {
         ctx.fillStyle = '#00ff88';
         ctx.fillRect(0, height / 2, 10, height / 2);
@@ -144,7 +144,7 @@ const WaveformDisplay = () => {
   }, [deckA, deckB, deckAState, deckBState, masterGridPosition]);
 
   return (
-    <div className="bg-black rounded-lg p-4 border border-purple-500/30">
+    <div className="bg-black rounded-lg p-4 border border-blue-500/30">
       <canvas
         ref={canvasRef}
         width={400}

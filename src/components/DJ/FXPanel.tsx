@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import InfoTooltip from '../InfoTooltip';
@@ -7,14 +6,14 @@ import { useDJStore } from '../../stores/djStore';
 const FXPanel = () => {
   const { fx, setFX } = useDJStore();
 
-  const Knob = ({ 
-    value, 
-    onChange, 
+  const Knob = ({
+    value,
+    onChange,
     label,
     tooltip
-  }: { 
-    value: number; 
-    onChange: (value: number) => void; 
+  }: {
+    value: number;
+    onChange: (value: number) => void;
     label: string;
     tooltip: string;
   }) => {
@@ -23,8 +22,8 @@ const FXPanel = () => {
     return (
       <div className="flex flex-col items-center space-y-2">
         <div className="relative w-16 h-16">
-          <div 
-            className="w-16 h-16 rounded-full border-4 border-purple-500 bg-gray-800 relative cursor-pointer shadow-lg hover:shadow-purple-500/25 transition-all"
+          <div
+            className="w-16 h-16 rounded-full border-4 border-blue-500 bg-gray-800 relative cursor-pointer shadow-lg hover:shadow-blue-500/25 transition-all"
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const centerX = rect.left + rect.width / 2;
@@ -35,18 +34,18 @@ const FXPanel = () => {
               onChange(normalizedValue);
             }}
           >
-            <div 
-              className="absolute w-1 h-6 bg-purple-400 top-1 left-1/2 transform -translate-x-1/2 origin-bottom rounded-full transition-transform"
+            <div
+              className="absolute w-1 h-6 bg-blue-400 top-1 left-1/2 transform -translate-x-1/2 origin-bottom rounded-full transition-transform"
               style={{ transform: `translateX(-50%) rotate(${rotation}deg)` }}
             />
             {/* Glow effect when active */}
             {value > 10 && (
-              <div className="absolute inset-0 rounded-full bg-purple-500/20 animate-pulse" />
+              <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-pulse" />
             )}
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-sm text-purple-400 font-semibold">{label}</span>
+          <span className="text-sm text-blue-400 font-semibold">{label}</span>
           <InfoTooltip content={tooltip} />
         </div>
         <div className="text-xs text-gray-400">{Math.round(value)}%</div>
@@ -55,9 +54,9 @@ const FXPanel = () => {
   };
 
   return (
-    <div className="bg-gray-900 rounded-xl p-6 border border-purple-500/30">
+    <div className="bg-gray-900 rounded-xl p-6 border border-blue-500/30">
       <div className="text-center mb-6">
-        <h3 className="text-lg font-bold text-purple-400">FX Panel</h3>
+        <h3 className="text-lg font-bold text-blue-400">FX Panel</h3>
       </div>
 
       {/* FX Controls */}
@@ -84,7 +83,7 @@ const FXPanel = () => {
 
       {/* Assignment Buttons */}
       <div className="space-y-3">
-        <div className="text-xs text-purple-400 text-center font-semibold">ASSIGN FX TO:</div>
+        <div className="text-xs text-blue-400 text-center font-semibold">ASSIGN FX TO:</div>
         <div className="flex justify-center gap-2">
           {(['A', 'B', 'BOTH'] as const).map((option) => (
             <motion.button
@@ -92,11 +91,10 @@ const FXPanel = () => {
               onClick={() => setFX({ assignedTo: option })}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`px-4 py-2 rounded-lg border font-semibold transition-all ${
-                fx.assignedTo === option
-                  ? 'bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-500/25'
-                  : 'border-purple-500/30 text-purple-400 hover:border-purple-500 hover:bg-purple-600/10'
-              }`}
+              className={`px-4 py-2 rounded-lg border font-semibold transition-all ${fx.assignedTo === option
+                  ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/25'
+                  : 'border-blue-500/30 text-blue-400 hover:border-blue-500 hover:bg-blue-600/10'
+                }`}
             >
               {option}
             </motion.button>
@@ -109,9 +107,9 @@ const FXPanel = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mt-4 p-3 bg-purple-600/20 border border-purple-500/30 rounded-lg text-center"
+          className="mt-4 p-3 bg-blue-600/20 border border-blue-500/30 rounded-lg text-center"
         >
-          <div className="text-sm text-purple-400">
+          <div className="text-sm text-blue-400">
             FX Active on Deck {fx.assignedTo}
           </div>
           <div className="text-xs text-gray-400 mt-1">

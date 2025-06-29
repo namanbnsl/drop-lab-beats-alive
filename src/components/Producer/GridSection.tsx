@@ -14,13 +14,13 @@ const GridSection = () => {
   const toggleNote = (row: number, col: number) => {
     const noteId = `${row}-${col}`;
     const newActiveNotes = new Set(activeNotes);
-    
+
     if (newActiveNotes.has(noteId)) {
       newActiveNotes.delete(noteId);
     } else {
       newActiveNotes.add(noteId);
     }
-    
+
     setActiveNotes(newActiveNotes);
   };
 
@@ -37,10 +37,10 @@ const GridSection = () => {
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
           🧱 Shape the Rhythm
         </h2>
-        
+
         <p className="text-xl text-gray-300 mb-8">
           Tap to place notes. Make your melody yours.
         </p>
@@ -48,7 +48,7 @@ const GridSection = () => {
         {/* Controls */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           {/* Tempo */}
-          <div className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30">
+          <div className="bg-gray-900/50 rounded-xl p-6 border border-blue-500/30">
             <label className="block text-sm font-medium text-gray-300 mb-3">
               Tempo: {tempo} BPM
             </label>
@@ -63,7 +63,7 @@ const GridSection = () => {
           </div>
 
           {/* Swing */}
-          <div className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30">
+          <div className="bg-gray-900/50 rounded-xl p-6 border border-blue-500/30">
             <label className="block text-sm font-medium text-gray-300 mb-3">
               Swing: {swing}%
             </label>
@@ -78,12 +78,12 @@ const GridSection = () => {
           </div>
 
           {/* Scale */}
-          <div className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30">
+          <div className="bg-gray-900/50 rounded-xl p-6 border border-blue-500/30">
             <label className="block text-sm font-medium text-gray-300 mb-3">Scale</label>
             <select
               value={scale}
               onChange={(e) => setScale(e.target.value)}
-              className="w-full bg-black border border-purple-500/50 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+              className="w-full bg-black border border-blue-500/50 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none"
             >
               {scales.map((s) => (
                 <option key={s} value={s}>{s}</option>
@@ -96,7 +96,7 @@ const GridSection = () => {
         <div className="flex justify-center gap-4 mb-8">
           <motion.button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="flex items-center gap-2 px-6 py-3 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 rounded-full font-semibold text-white hover:bg-blue-500 transition-colors btn-glow btn-glow-blue"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -106,7 +106,7 @@ const GridSection = () => {
 
           <motion.button
             onClick={clearGrid}
-            className="flex items-center gap-2 px-6 py-3 bg-gray-700 rounded-full font-semibold text-white hover:bg-gray-600 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-gray-700 rounded-full font-semibold text-white hover:bg-gray-600 transition-colors btn-glow"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -117,7 +117,7 @@ const GridSection = () => {
 
         {/* 16x16 Grid */}
         <motion.div
-          className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30 max-w-4xl mx-auto"
+          className="bg-gray-900/50 rounded-xl p-6 border border-blue-500/30 max-w-4xl mx-auto"
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -128,19 +128,18 @@ const GridSection = () => {
               Array.from({ length: 16 }, (_, col) => {
                 const noteId = `${row}-${col}`;
                 const isActive = activeNotes.has(noteId);
-                
+
                 return (
                   <motion.button
                     key={noteId}
                     onClick={() => toggleNote(row, col)}
-                    className={`aspect-square rounded transition-all duration-200 ${
-                      isActive
-                        ? 'bg-purple-500 shadow-lg shadow-purple-500/25'
-                        : 'bg-gray-700 hover:bg-gray-600'
-                    }`}
+                    className={`aspect-square rounded transition-all duration-200 ${isActive
+                      ? 'bg-blue-500 shadow-lg shadow-blue-500/25'
+                      : 'bg-gray-700 hover:bg-gray-600'
+                      }`}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    animate={isActive ? { 
+                    animate={isActive ? {
                       boxShadow: ['0 0 0 rgba(162, 89, 255, 0)', '0 0 20px rgba(162, 89, 255, 0.5)', '0 0 0 rgba(162, 89, 255, 0)']
                     } : {}}
                     transition={{ duration: 0.5, repeat: isActive ? Infinity : 0 }}
@@ -149,7 +148,7 @@ const GridSection = () => {
               })
             )}
           </div>
-          
+
           <p className="text-sm text-gray-400">
             Click cells to create your pattern • {activeNotes.size} notes active
           </p>
