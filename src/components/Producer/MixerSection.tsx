@@ -14,6 +14,26 @@ interface MixerSectionProps {
   onDrumsVolumeChange: (value: number) => void;
   onFxVolumeChange: (value: number) => void;
   onMasterVolumeChange: (value: number) => void;
+  drumsMuted: boolean;
+  melodyMuted: boolean;
+  fxMuted: boolean;
+  masterMuted: boolean;
+  drumsSolo: boolean;
+  melodySolo: boolean;
+  fxSolo: boolean;
+  onDrumsMuteChange: (muted: boolean) => void;
+  onMelodyMuteChange: (muted: boolean) => void;
+  onFxMuteChange: (muted: boolean) => void;
+  onMasterMuteChange: (muted: boolean) => void;
+  onDrumsSoloChange: (solo: boolean) => void;
+  onMelodySoloChange: (solo: boolean) => void;
+  onFxSoloChange: (solo: boolean) => void;
+  drumsPan: number;
+  melodyPan: number;
+  fxPan: number;
+  onDrumsPanChange: (pan: number) => void;
+  onMelodyPanChange: (pan: number) => void;
+  onFxPanChange: (pan: number) => void;
 }
 
 interface ChannelStripProps {
@@ -23,22 +43,26 @@ interface ChannelStripProps {
   onVolumeChange: (value: number) => void;
   onMuteChange: (muted: boolean) => void;
   onSoloChange: (solo: boolean) => void;
+  onPanChange: (pan: number) => void;
   isMuted: boolean;
   isSolo: boolean;
+  pan: number;
+  showSolo?: boolean;
 }
 
-const ChannelStrip: React.FC<ChannelStripProps> = ({ 
-  label, 
-  color, 
-  volume, 
-  onVolumeChange, 
-  onMuteChange, 
+const ChannelStrip: React.FC<ChannelStripProps> = ({
+  label,
+  color,
+  volume,
+  onVolumeChange,
+  onMuteChange,
   onSoloChange,
+  onPanChange,
   isMuted,
-  isSolo
+  isSolo,
+  pan,
+  showSolo = true
 }) => {
-  const [pan, setPan] = useState(50);
-
   const mixerTooltips = {
     volume: "Adjusts how loud the track is in the final mix. Slide up to make it louder.",
     pan: "Moves the sound left or right in stereo. Use it to widen your mix.",
@@ -54,38 +78,54 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({
   const handleMuteToggle = () => {
     const newMuted = !isMuted;
     onMuteChange(newMuted);
-    
+
     if (newMuted && isSolo) {
       // If muting a solo'd track, turn off solo
       onSoloChange(false);
     }
-    
+
     console.log(`🔇 ${label} ${newMuted ? 'muted' : 'unmuted'}`);
   };
 
   const handleSoloToggle = () => {
     const newSolo = !isSolo;
     onSoloChange(newSolo);
-    
+
     if (newSolo && isMuted) {
       // If soloing a muted track, unmute it
       onMuteChange(false);
     }
-    
+
     console.log(`🎯 ${label} solo ${newSolo ? 'enabled' : 'disabled'}`);
+  };
+
+  const handlePanChange = (newPan: number) => {
+    onPanChange(newPan);
+    console.log(`🎛️ ${label} pan: ${newPan}`);
   };
 
   return (
     <div className="bg-gray-900/50 rounded-xl p-3 sm:p-4 border border-purple-500/30 w-full max-w-xs mx-auto">
       <h3 className={cn("text-base sm:text-lg font-semibold mb-4 text-center", color)}>{label}</h3>
-      
+
       {/* Pan Knob */}
       <div className="flex flex-col items-center mb-4 sm:mb-6">
         <div className="flex items-center gap-1 mb-2">
           <label className="text-xs text-gray-300">Pan</label>
           <InfoTooltip content={mixerTooltips.pan} />
         </div>
-        <div className="relative w-10 h-10 sm:w-12 sm:h-12 bg-gray-800 rounded-full border-2 border-purple-500/30 touch-manipulation">
+        <div
+          className="relative w-10 h-10 sm:w-12 sm:h-12 bg-gray-800 rounded-full border-2 border-purple-500/30 touch-manipulation cursor-pointer"
+          onClick={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+            const degrees = (angle * 180 / Math.PI + 90 + 360) % 360;
+            const newPan = Math.max(0, Math.min(100, (degrees / 360) * 100));
+            handlePanChange(Math.round(newPan));
+          }}
+        >
           <div
             className="absolute top-1 left-1/2 w-1 h-3 sm:h-4 bg-purple-400 rounded-full transform -translate-x-1/2 origin-bottom"
             style={{ transform: `translateX(-50%) rotate(${(pan - 50) * 2.7}deg)` }}
@@ -127,18 +167,20 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({
           </motion.button>
           <InfoTooltip content={mixerTooltips.muteSolo} />
         </div>
-        
-        <motion.button
-          onClick={handleSoloToggle}
-          className={cn(
-            "flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation",
-            isSolo ? 'bg-yellow-600 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-          )}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          SOLO
-        </motion.button>
+
+        {showSolo && (
+          <motion.button
+            onClick={handleSoloToggle}
+            className={cn(
+              "flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation",
+              isSolo ? 'bg-yellow-600 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            )}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            SOLO
+          </motion.button>
+        )}
       </div>
 
       {/* Status Indicators */}
@@ -160,45 +202,28 @@ const MixerSection: React.FC<MixerSectionProps> = ({
   onMelodyVolumeChange,
   onDrumsVolumeChange,
   onFxVolumeChange,
-  onMasterVolumeChange
+  onMasterVolumeChange,
+  drumsMuted,
+  melodyMuted,
+  fxMuted,
+  masterMuted,
+  drumsSolo,
+  melodySolo,
+  fxSolo,
+  onDrumsMuteChange,
+  onMelodyMuteChange,
+  onFxMuteChange,
+  onMasterMuteChange,
+  onDrumsSoloChange,
+  onMelodySoloChange,
+  onFxSoloChange,
+  drumsPan,
+  melodyPan,
+  fxPan,
+  onDrumsPanChange,
+  onMelodyPanChange,
+  onFxPanChange
 }) => {
-  // Mute/Solo states for each channel
-  const [drumsMuted, setDrumsMuted] = useState(false);
-  const [melodyMuted, setMelodyMuted] = useState(false);
-  const [fxMuted, setFxMuted] = useState(false);
-  const [masterMuted, setMasterMuted] = useState(false);
-
-  const [drumsSolo, setDrumsSolo] = useState(false);
-  const [melodySolo, setMelodySolo] = useState(false);
-  const [fxSolo, setFxSolo] = useState(false);
-
-  // Handle solo logic - when one channel is solo'd, others are effectively muted
-  const handleSoloChange = (channel: 'drums' | 'melody' | 'fx', solo: boolean) => {
-    switch (channel) {
-      case 'drums':
-        setDrumsSolo(solo);
-        if (solo) {
-          setMelodySolo(false);
-          setFxSolo(false);
-        }
-        break;
-      case 'melody':
-        setMelodySolo(solo);
-        if (solo) {
-          setDrumsSolo(false);
-          setFxSolo(false);
-        }
-        break;
-      case 'fx':
-        setFxSolo(solo);
-        if (solo) {
-          setDrumsSolo(false);
-          setMelodySolo(false);
-        }
-        break;
-    }
-  };
-
   // Calculate effective volume considering mute/solo states
   const getEffectiveVolume = (volume: number, isMuted: boolean, isSolo: boolean, anySolo: boolean) => {
     if (isMuted || masterMuted) return 0;
@@ -233,7 +258,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
         <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
           🎚 Balance the Mix
         </h2>
-        
+
         <p className="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-12">
           Fine-tune your track levels and create the perfect balance
         </p>
@@ -245,15 +270,17 @@ const MixerSection: React.FC<MixerSectionProps> = ({
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
           >
-            <ChannelStrip 
-              label="Drums" 
+            <ChannelStrip
+              label="Drums"
               color="text-red-400"
               volume={drumsVolume}
               onVolumeChange={onDrumsVolumeChange}
-              onMuteChange={setDrumsMuted}
-              onSoloChange={(solo) => handleSoloChange('drums', solo)}
+              onMuteChange={onDrumsMuteChange}
+              onSoloChange={onDrumsSoloChange}
+              onPanChange={onDrumsPanChange}
               isMuted={drumsMuted}
               isSolo={drumsSolo}
+              pan={drumsPan}
             />
           </motion.div>
 
@@ -263,15 +290,17 @@ const MixerSection: React.FC<MixerSectionProps> = ({
             transition={{ duration: 0.5, delay: 0.2 }}
             viewport={{ once: true }}
           >
-            <ChannelStrip 
-              label="Melody" 
+            <ChannelStrip
+              label="Melody"
               color="text-blue-400"
               volume={melodyVolume}
               onVolumeChange={onMelodyVolumeChange}
-              onMuteChange={setMelodyMuted}
-              onSoloChange={(solo) => handleSoloChange('melody', solo)}
+              onMuteChange={onMelodyMuteChange}
+              onSoloChange={onMelodySoloChange}
+              onPanChange={onMelodyPanChange}
               isMuted={melodyMuted}
               isSolo={melodySolo}
+              pan={melodyPan}
             />
           </motion.div>
 
@@ -281,15 +310,17 @@ const MixerSection: React.FC<MixerSectionProps> = ({
             transition={{ duration: 0.5, delay: 0.3 }}
             viewport={{ once: true }}
           >
-            <ChannelStrip 
-              label="FX" 
+            <ChannelStrip
+              label="FX"
               color="text-green-400"
               volume={fxVolume}
               onVolumeChange={onFxVolumeChange}
-              onMuteChange={setFxMuted}
-              onSoloChange={(solo) => handleSoloChange('fx', solo)}
+              onMuteChange={onFxMuteChange}
+              onSoloChange={onFxSoloChange}
+              onPanChange={onFxPanChange}
               isMuted={fxMuted}
               isSolo={fxSolo}
+              pan={fxPan}
             />
           </motion.div>
 
@@ -299,15 +330,18 @@ const MixerSection: React.FC<MixerSectionProps> = ({
             transition={{ duration: 0.5, delay: 0.4 }}
             viewport={{ once: true }}
           >
-            <ChannelStrip 
-              label="Master" 
+            <ChannelStrip
+              label="Master"
               color="text-purple-400"
               volume={masterVolume}
               onVolumeChange={onMasterVolumeChange}
-              onMuteChange={setMasterMuted}
-              onSoloChange={() => {}} // Master doesn't have solo
+              onMuteChange={onMasterMuteChange}
+              onSoloChange={() => { }} // Master doesn't have solo
+              onPanChange={() => { }} // Master doesn't have pan
               isMuted={masterMuted}
               isSolo={false}
+              pan={50}
+              showSolo={false}
             />
           </motion.div>
         </div>

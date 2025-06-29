@@ -34,6 +34,11 @@ const Producer = () => {
   const [melodySolo, setMelodySolo] = useState(false);
   const [fxSolo, setFxSolo] = useState(false);
 
+  // Pan states
+  const [drumsPan, setDrumsPan] = useState(50);
+  const [melodyPan, setMelodyPan] = useState(50);
+  const [fxPan, setFxPan] = useState(50);
+
   // FX state
   const [reverbAmount, setReverbAmount] = useState(0);
   const [delayAmount, setDelayAmount] = useState(0);
@@ -70,6 +75,11 @@ const Producer = () => {
   const drumGainRef = useRef<Tone.Gain | null>(null);
   const melodyGainRef = useRef<Tone.Gain | null>(null);
   const fxGainRef = useRef<Tone.Gain | null>(null);
+
+  // Pan refs for stereo positioning
+  const drumPanRef = useRef<Tone.Panner | null>(null);
+  const melodyPanRef = useRef<Tone.Panner | null>(null);
+  const fxPanRef = useRef<Tone.Panner | null>(null);
 
   // Sequencer refs
   const sequencerRef = useRef<Tone.Sequence | null>(null);
@@ -179,6 +189,34 @@ const Producer = () => {
     }
   }, [filterAmount, audioUnlocked]);
 
+  // Pan Control Effects - Apply pan changes in real-time
+  useEffect(() => {
+    if (drumPanRef.current && audioUnlocked) {
+      // Convert 0-100 range to -1 to 1 for stereo panning
+      const panValue = (drumsPan - 50) / 50;
+      drumPanRef.current.pan.rampTo(panValue, 0.1);
+      console.log(`🎛️ Drums pan: ${drumsPan}% (${panValue.toFixed(2)})`);
+    }
+  }, [drumsPan, audioUnlocked]);
+
+  useEffect(() => {
+    if (melodyPanRef.current && audioUnlocked) {
+      // Convert 0-100 range to -1 to 1 for stereo panning
+      const panValue = (melodyPan - 50) / 50;
+      melodyPanRef.current.pan.rampTo(panValue, 0.1);
+      console.log(`🎛️ Melody pan: ${melodyPan}% (${panValue.toFixed(2)})`);
+    }
+  }, [melodyPan, audioUnlocked]);
+
+  useEffect(() => {
+    if (fxPanRef.current && audioUnlocked) {
+      // Convert 0-100 range to -1 to 1 for stereo panning
+      const panValue = (fxPan - 50) / 50;
+      fxPanRef.current.pan.rampTo(panValue, 0.1);
+      console.log(`🎛️ FX pan: ${fxPan}% (${panValue.toFixed(2)})`);
+    }
+  }, [fxPan, audioUnlocked]);
+
   // Initialize all synths and FX chain once
   useEffect(() => {
     const initializeSynths = () => {
@@ -186,7 +224,12 @@ const Producer = () => {
         // Initialize individual track gains for mixer control
         drumGainRef.current = new Tone.Gain(0.8);
         melodyGainRef.current = new Tone.Gain(0.7);
-        
+
+        // Initialize pan controls
+        drumPanRef.current = new Tone.Panner(0);
+        melodyPanRef.current = new Tone.Panner(0);
+        fxPanRef.current = new Tone.Panner(0);
+
         // Initialize FX chain
         filterRef.current = new Tone.Filter(20000, 'lowpass');
         distortionRef.current = new Tone.Distortion(0.4);
@@ -197,11 +240,11 @@ const Producer = () => {
 
         // Create a mixer bus that combines drum and melody signals
         const mixerBus = new Tone.Gain(1);
-        
-        // Connect individual tracks to mixer bus
-        drumGainRef.current.connect(mixerBus);
-        melodyGainRef.current.connect(mixerBus);
-        
+
+        // Connect individual tracks with pan controls to mixer bus
+        drumGainRef.current.chain(drumPanRef.current, mixerBus);
+        melodyGainRef.current.chain(melodyPanRef.current, mixerBus);
+
         // Connect mixer bus through FX chain to master output
         mixerBus.chain(
           filterRef.current,
@@ -209,9 +252,10 @@ const Producer = () => {
           reverbRef.current,
           delayRef.current,
           fxGainRef.current,
+          fxPanRef.current,
           masterGainRef.current
         );
-        
+
         masterGainRef.current.toDestination();
 
         // Set initial FX values
@@ -255,8 +299,8 @@ const Producer = () => {
         }).connect(melodyGainRef.current);
 
         console.log('✅ All synths and FX chain initialized successfully');
-        console.log('🎛️ Audio routing: Drums/Melody → Individual Gains → Mixer Bus → Filter → Distortion → Reverb → Delay → FX Gain → Master Gain → Output');
-        console.log('🎚️ Mixer controls are now active and will affect audio levels');
+        console.log('🎛️ Audio routing: Drums/Melody → Individual Gains → Panners → Mixer Bus → Filter → Distortion → Reverb → Delay → FX Gain → FX Panner → Master Gain → Output');
+        console.log('🎚️ Mixer controls are now active and will affect audio levels and panning');
       } catch (error) {
         console.error('Failed to initialize synths and FX:', error);
         setAudioError('Failed to initialize audio synths and effects');
@@ -275,6 +319,9 @@ const Producer = () => {
       if (drumGainRef.current) drumGainRef.current.dispose();
       if (melodyGainRef.current) melodyGainRef.current.dispose();
       if (fxGainRef.current) fxGainRef.current.dispose();
+      if (drumPanRef.current) drumPanRef.current.dispose();
+      if (melodyPanRef.current) melodyPanRef.current.dispose();
+      if (fxPanRef.current) fxPanRef.current.dispose();
       if (reverbRef.current) reverbRef.current.dispose();
       if (delayRef.current) delayRef.current.dispose();
       if (distortionRef.current) distortionRef.current.dispose();
@@ -300,13 +347,13 @@ const Producer = () => {
       console.log('Audio context unlocked successfully');
       setAudioUnlocked(true);
       setIsRecovering(false);
-      
+
       // Apply current mixer settings after audio is unlocked
       if (drumGainRef.current) drumGainRef.current.gain.value = effectiveDrumsVolume / 100;
       if (melodyGainRef.current) melodyGainRef.current.gain.value = effectiveMelodyVolume / 100;
       if (fxGainRef.current) fxGainRef.current.gain.value = effectiveFxVolume / 100;
       if (masterGainRef.current) masterGainRef.current.gain.value = effectiveMasterVolume / 100;
-      
+
       console.log('🎚️ Mixer levels applied after audio unlock');
     } catch (error) {
       console.error('Failed to unlock audio context:', error);
@@ -351,7 +398,7 @@ const Producer = () => {
 
       // Start transport first to establish valid timeline
       Tone.Transport.start();
-      
+
       // Wait a small amount to ensure transport is running
       await new Promise(resolve => setTimeout(resolve, 10));
 
@@ -499,14 +546,14 @@ const Producer = () => {
 
         // Start transport first to establish valid timeline
         Tone.Transport.start();
-        
+
         // Wait a small amount to ensure transport is running
         await new Promise(resolve => setTimeout(resolve, 10));
 
         // Create and start sequencer after transport is running
         const sequencer = createSequencer();
         sequencer.start(0);
-        
+
         setIsPlaying(true);
         setAudioError(null);
 
@@ -574,13 +621,13 @@ const Producer = () => {
       status.push(`F:${effectiveFxVolume}`);
     }
     status.push(`⚡:${effectiveMasterVolume}`);
-    
+
     const muted = [];
     if (drumsMuted) muted.push('D:MUTE');
     if (melodyMuted) muted.push('M:MUTE');
     if (fxMuted) muted.push('F:MUTE');
     if (masterMuted) muted.push('⚡:MUTE');
-    
+
     return { levels: status.join(' '), muted: muted.join(' ') };
   };
 
@@ -636,6 +683,26 @@ const Producer = () => {
             onDrumsVolumeChange={setDrumsVolume}
             onFxVolumeChange={setFxVolume}
             onMasterVolumeChange={setMasterVolume}
+            drumsMuted={drumsMuted}
+            drumsSolo={drumsSolo}
+            melodyMuted={melodyMuted}
+            melodySolo={melodySolo}
+            fxMuted={fxMuted}
+            fxSolo={fxSolo}
+            masterMuted={masterMuted}
+            drumsPan={drumsPan}
+            melodyPan={melodyPan}
+            fxPan={fxPan}
+            onDrumsMuteChange={setDrumsMuted}
+            onDrumsSoloChange={setDrumsSolo}
+            onMelodyMuteChange={setMelodyMuted}
+            onMelodySoloChange={setMelodySolo}
+            onFxMuteChange={setFxMuted}
+            onFxSoloChange={setFxSolo}
+            onMasterMuteChange={setMasterMuted}
+            onDrumsPanChange={setDrumsPan}
+            onMelodyPanChange={setMelodyPan}
+            onFxPanChange={setFxPan}
           />
         );
       case 'fx':
