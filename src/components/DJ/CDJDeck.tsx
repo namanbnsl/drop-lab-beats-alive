@@ -215,9 +215,13 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   }, [isPlaying, isDragging, isCuePressed, scrubIndicator, cuePoint, tempoBend, deckState.track, gridPosition]);
 
   const handlePlayPause = () => {
+    console.log(`🎧 Deck ${side} - Current state: ${isPlaying ? 'Playing' : 'Stopped'}`);
+    
     if (isPlaying) {
+      console.log(`⏸️ Pausing Deck ${side}`);
       pauseDeck(side);
     } else {
+      console.log(`▶️ Playing Deck ${side}`);
       playDeck(side);
     }
   };
