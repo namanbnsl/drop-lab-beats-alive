@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Send, FileAudio, Music, Play, Pause, AlertCircle, CheckCircle } from 'lucide-react';
+import { Download, Send, FileAudio, Music, Play, Pause, AlertCircle, CheckCircle, Headphones } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MIDIExporter } from '../../lib/midiExporter';
 import { AudioRecorder } from '../../lib/audioRecorder';
@@ -358,15 +358,9 @@ const ExportSection: React.FC<ExportSectionProps> = ({
           </motion.div>
 
           {/* Send to DJ Mode */}
-          <motion.div
-            className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            viewport={{ once: true }}
-          >
+          <div className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30">
             <div className="mb-4 sm:mb-6">
-              <Send className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
+              <Headphones className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
               <h3 className="text-base sm:text-lg font-semibold text-white mb-2">DJ Mode</h3>
               <p className="text-gray-400 text-xs sm:text-sm">Take your track straight to the decks</p>
               <p className="text-purple-400 text-xs mt-1">
@@ -385,7 +379,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
                 Enter DJ Booth
               </span>
             </motion.button>
-          </motion.div>
+          </div>
         </div>
 
         {/* Content Status */}
