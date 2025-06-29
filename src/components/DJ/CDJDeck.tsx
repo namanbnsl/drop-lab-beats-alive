@@ -117,7 +117,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
                      (isPlaying ? '#10b981' : '#374151');
       ctx.fill();
 
-      // 🎯 Beat-snapped indicator ring with pulsing animation
+      // Beat-snapped indicator ring with pulsing animation
       if (gridPosition.isQueued && gridPosition.isAligned) {
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -250,13 +250,11 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       triggerBackspin(side);
       setBackspinCooldown(true);
       setTimeout(() => setBackspinCooldown(false), 1000);
-      console.log(`🌀 Double-click backspin triggered on Deck ${side}`);
     }
     
     lastClickRef.current = now;
   };
 
-  // 🎛️ ENHANCED DRAG TO SCRUB: Proper directional scrubbing
   const handlePlatterMouseDown = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const angle = getMouseAngle(e, rect);
@@ -297,15 +295,13 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     // Show scrub indicator with direction
     setScrubIndicator({ active: true, direction: velocity });
     
-    // 🎛️ ENHANCED SCRUBBING: Works in all states with proper direction
+    // Enhanced scrubbing
     scrubTrack(side, velocity);
 
     // Clear scrub indicator after a short delay
     setTimeout(() => {
       setScrubIndicator({ active: false, direction: 0 });
     }, 100);
-
-    console.log(`🎛️ Enhanced scrubbing Deck ${side}: ${velocity > 0 ? 'Clockwise (Forward)' : 'Counter-clockwise (Rewind)'} (${velocity.toFixed(3)})`);
   };
 
   const handlePlatterMouseUp = () => {
@@ -340,8 +336,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       bendTempo(side, 1.0); // Reset to normal tempo
       setTempoBend({ active: false, direction: 0 });
     }, 500);
-
-    console.log(`⏩ Tempo bend Deck ${side}: ${bendDirection > 0 ? 'Speed Up' : 'Slow Down'} (${bendAmount}x)`);
   };
 
   // Cue button handlers
@@ -393,38 +387,10 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     return 1;
   };
 
-  // Get sync status message
-  const getSyncStatusMessage = () => {
-    if (!deckState.track) return 'No Track Loaded';
-    
-    if (gridPosition.isQueued && gridPosition.isAligned) {
-      return '🎯 READY - Will start at next bar';
-    } else if (gridPosition.isQueued) {
-      return '⏳ Queued - Waiting for next bar...';
-    } else if (isPlaying) {
-      return '▶️ Playing';
-    } else {
-      return '⏸️ Stopped';
-    }
-  };
-
   return (
     <div className="bg-gray-900 rounded-xl p-6 border border-purple-500/30">
       <div className="text-center mb-4">
         <h3 className="text-lg font-bold text-purple-400">Deck {side}</h3>
-        {isTransportRunning && (
-          <div className="text-xs text-green-400 flex items-center justify-center gap-1 mt-1">
-            <Activity className="w-3 h-3" />
-            Backend Metronome @ 128 BPM • Bar {masterGridPosition.bar}, Beat {masterGridPosition.beat}
-            <button
-              onClick={toggleMetronomeClick}
-              className={`ml-2 p-1 rounded ${metronomeClickEnabled ? 'bg-green-600' : 'bg-gray-600'}`}
-              title="Toggle metronome click"
-            >
-              <Volume2 className="w-3 h-3" />
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Platter */}
@@ -438,18 +404,9 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             onMouseDown={handlePlatterMouseDown}
             onClick={handlePlatterClick}
             onWheel={handlePlatterWheel}
-            title="🎛️ Drag clockwise to fast-forward, counter-clockwise to rewind • Double-click for backspin • Scroll to bend tempo"
           />
           
-          {/* Enhanced status overlays */}
-          {gridPosition.isQueued && gridPosition.isAligned && (
-            <div className="absolute inset-0 rounded-full bg-green-500/20 animate-pulse pointer-events-none" />
-          )}
-          
-          {gridPosition.isQueued && !gridPosition.isAligned && (
-            <div className="absolute inset-0 rounded-full bg-orange-500/20 animate-pulse pointer-events-none" />
-          )}
-          
+          {/* Status overlays */}
           {isDragging && (
             <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full pointer-events-none">
               SCRUB
@@ -470,19 +427,13 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
 
           {tempoBend.active && (
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full pointer-events-none">
-              {tempoBend.direction > 0 ? '⏩ FASTER' : '⏪ SLOWER'}
+              {tempoBend.direction > 0 ? '⏩' : '⏪'}
             </div>
           )}
 
           {gridPosition.isQueued && gridPosition.isAligned && (
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-600 text-white text-xs px-2 py-1 rounded-full pointer-events-none animate-pulse">
-              🎯 NEXT BAR
-            </div>
-          )}
-
-          {gridPosition.isQueued && !gridPosition.isAligned && (
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-orange-600 text-white text-xs px-2 py-1 rounded-full pointer-events-none animate-pulse">
-              ⏳ WAITING
+              🎯
             </div>
           )}
 
@@ -497,62 +448,30 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       {/* Track Info */}
       <div className="bg-black rounded-lg p-3 mb-4 text-center">
         <div className="text-purple-400 font-semibold truncate">
-          {deckState.track?.name || 'No Track Loaded'}
+          {deckState.track?.name || 'No Track'}
         </div>
         <div className="text-sm text-gray-400 flex justify-between mt-1">
           <div className="flex items-center gap-1">
             {deckState.track?.originalBPM ? (
               <span className="flex items-center gap-1">
-                <span className="text-green-400">128 BPM</span>
+                <span className="text-green-400">128</span>
                 <Activity className="w-3 h-3 text-green-400" />
               </span>
             ) : (
-              <span>{deckState.track?.bpm || 0} BPM</span>
+              <span>{deckState.track?.bpm || 0}</span>
             )}
           </div>
-          <span>Key: {deckState.track?.key || '-'}</span>
+          <span>{deckState.track?.key || '-'}</span>
         </div>
         
-        {/* Enhanced Grid Position Display */}
-        <div className="text-xs mt-2 space-y-1">
+        {/* Grid Position */}
+        <div className="text-xs mt-2">
           <div className="flex items-center justify-center gap-2">
-            <span className="text-blue-400">Grid: Bar {gridPosition.bar}, Beat {gridPosition.beat}</span>
-            {gridPosition.isAligned && (
-              <Target className="w-3 h-3 text-green-400" />
-            )}
-            {gridPosition.isQueued && !gridPosition.isAligned && (
-              <Clock className="w-3 h-3 text-orange-400 animate-spin" />
-            )}
-          </div>
-          
-          {/* Enhanced status message */}
-          <div className={`font-semibold ${
-            gridPosition.isQueued && gridPosition.isAligned ? 'text-green-400 animate-pulse' :
-            gridPosition.isQueued ? 'text-orange-400 animate-pulse' :
-            isPlaying ? 'text-blue-400' : 'text-gray-400'
-          }`}>
-            {getSyncStatusMessage()}
+            <span className="text-blue-400">{gridPosition.bar}.{gridPosition.beat}</span>
+            {gridPosition.isAligned && <Target className="w-3 h-3 text-green-400" />}
+            {gridPosition.isQueued && !gridPosition.isAligned && <Clock className="w-3 h-3 text-orange-400 animate-spin" />}
           </div>
         </div>
-        
-        {/* Auto-sync info */}
-        {deckState.track?.originalBPM && (
-          <div className="text-xs text-green-400 mt-1 space-y-1">
-            <div className="flex items-center justify-center gap-1">
-              <span>🎯 Auto-synced to Backend Metronome</span>
-            </div>
-            <div className="text-blue-400">
-              Original: {deckState.track.originalBPM} BPM → Rate: {getPlaybackRate().toFixed(3)}x
-            </div>
-          </div>
-        )}
-        
-        {deckState.bpmInfo && deckState.bpmInfo.confidence > 0 && (
-          <div className="text-xs text-gray-500 mt-1">
-            Detected: {deckState.bpmInfo.original.toFixed(1)} BPM 
-            ({(deckState.bpmInfo.confidence * 100).toFixed(0)}% confidence)
-          </div>
-        )}
       </div>
 
       {/* Controls */}
@@ -589,7 +508,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
                 : 'bg-gray-800 text-gray-500 cursor-not-allowed'
             }`}
             disabled={!deckState.track}
-            title="Hold to preview from cue point"
           >
             CUE
           </motion.button>
@@ -599,12 +517,11 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             whileTap={{ scale: 0.95 }}
             className="p-3 rounded-full bg-gray-700 text-gray-300 hover:bg-gray-600 transition-all"
             onClick={() => setCuePoint(0)}
-            title="Reset cue point"
           >
             <RotateCcw className="w-6 h-6" />
           </motion.button>
 
-          {/* Enhanced Re-snap to Grid Button */}
+          {/* Re-snap Button */}
           <motion.button
             onClick={handleReSnap}
             whileHover={{ scale: 1.05 }}
@@ -614,7 +531,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
                 ? 'bg-green-600 text-white'
                 : 'bg-orange-600 text-white hover:bg-orange-500'
             }`}
-            title="Re-snap to beat grid"
             disabled={!deckState.track}
           >
             <Target className="w-6 h-6" />
@@ -626,7 +542,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="p-3 rounded-full bg-blue-600 text-white hover:bg-blue-500 transition-all"
-              title="Sync to backend metronome"
               disabled={!deckState.track}
             >
               <Zap className="w-6 h-6" />
@@ -637,7 +552,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         {/* Pitch Fader */}
         <div className="space-y-2">
           <div className="text-xs text-gray-400 text-center">
-            Pitch: {deckState.pitch > 0 ? '+' : ''}{deckState.pitch}%
+            {deckState.pitch > 0 ? '+' : ''}{deckState.pitch}%
           </div>
           <div className="flex justify-center">
             <input
@@ -649,55 +564,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
               className="w-32 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer pitch-slider"
             />
           </div>
-        </div>
-
-        {/* Enhanced Status Indicators */}
-        <div className="text-center space-y-1">
-          {scrubIndicator.active && (
-            <div className="text-xs text-red-400">
-              🎛️ Scrubbing: {scrubIndicator.direction > 0 ? '→ Clockwise (Forward)' : '← Counter-clockwise (Rewind)'}
-            </div>
-          )}
-          
-          {tempoBend.active && (
-            <div className="text-xs text-blue-400">
-              Tempo: {tempoBend.direction > 0 ? '⏩ +5%' : '⏪ -5%'}
-            </div>
-          )}
-          
-          {cuePoint > 0 && (
-            <div className="text-xs text-green-400">
-              Cue Point Set
-            </div>
-          )}
-          
-          {gridPosition.isQueued && gridPosition.isAligned && (
-            <div className="text-xs text-green-400 animate-pulse">
-              🎯 Ready for Next Bar • Press Play for Perfect Sync
-            </div>
-          )}
-
-          {gridPosition.isQueued && !gridPosition.isAligned && (
-            <div className="text-xs text-orange-400 animate-pulse">
-              ⏳ Waiting for Next Bar...
-            </div>
-          )}
-
-          {deckState.track?.originalBPM && (
-            <div className="text-xs text-green-400">
-              🎯 Auto-synced to Backend Metronome @ 128 BPM
-            </div>
-          )}
-        </div>
-
-        {/* Enhanced Instructions */}
-        <div className="text-xs text-gray-500 text-center space-y-1">
-          <div>🎛️ Drag clockwise to fast-forward, counter-clockwise to rewind</div>
-          <div>Double-click jogwheel for backspin • Scroll to bend tempo</div>
-          <div>🎯 Target button to re-snap to grid</div>
-          {deckState.track?.originalBPM && <div>🎯 Auto-sync to Backend Metronome Active</div>}
-          {isTransportRunning && <div>🎵 Backend Metronome @ 128 BPM</div>}
-          {gridPosition.isQueued && <div>⚡ Will start at next bar for perfect sync</div>}
         </div>
       </div>
     </div>
