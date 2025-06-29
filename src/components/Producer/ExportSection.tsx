@@ -408,11 +408,6 @@ const ExportSection: React.FC<ExportSectionProps> = ({
               <p className="text-gray-400">High-quality WAV format</p>
               <p className="text-purple-400 text-xs">44.1kHz, 16-bit</p>
             </div>
-            <div className="text-center">
-              <p className="text-white font-medium">DJ Integration</p>
-              <p className="text-gray-400">Seamless workflow</p>
-              <p className="text-purple-400 text-xs">Auto-sync to 128 BPM</p>
-            </div>
           </div>
         </motion.div>
 
