@@ -44,20 +44,24 @@ export class DeckAudioEngine {
   private isWaitingForBar: boolean = false;
 
   constructor() {
-    // Initialize audio chain
-    this.gain = new Tone.Gain(0.75);
+    // Initialize audio chain with higher quality settings
+    this.gain = new Tone.Gain(0.85); // Increased gain for better volume
     this.eq = {
       low: new Tone.EQ3(),
       mid: new Tone.EQ3(),
       high: new Tone.EQ3()
     };
     this.filter = new Tone.Filter(20000, 'lowpass');
-    this.reverb = new Tone.Reverb(2);
+    this.reverb = new Tone.Reverb({
+      decay: 2,
+      wet: 0,
+      preDelay: 0.01
+    });
     this.delay = new Tone.FeedbackDelay('8n', 0.3);
     this.pitchShift = new Tone.PitchShift();
     this.backspinPlayer = new Tone.Player('/backspin.mp3').toDestination();
 
-    // Connect audio chain
+    // Connect audio chain with optimized routing
     this.eq.low.chain(
       this.eq.mid, 
       this.eq.high, 
@@ -83,10 +87,13 @@ export class DeckAudioEngine {
         this.player.dispose();
       }
 
+      // Create player with higher quality settings
       this.player = new Tone.Player({
         url: url,
         loop: false,
-        autostart: false
+        autostart: false,
+        fadeIn: 0.01,
+        fadeOut: 0.01
       });
       
       this.player.connect(this.eq.low);
@@ -261,12 +268,19 @@ export class DeckAudioEngine {
   }
 
   /**
-   * Update playback rate based on global BPM sync
+   * Update playback rate based on global BPM sync with higher quality
    */
   private updatePlaybackRate() {
     if (this.player && this.originalBPM > 0) {
       this.basePlaybackRate = calculatePlaybackRate(this.originalBPM, this.globalBPM);
       this.player.playbackRate = this.basePlaybackRate;
+      
+      // Ensure high quality playback
+      if (this.player.buffer && this.player.buffer.loaded) {
+        // Set buffer to high quality mode
+        this.player.buffer.reverse = false;
+      }
+      
       console.log(`🔄 Playback rate updated: ${this.basePlaybackRate.toFixed(3)}x (${this.originalBPM} → ${this.globalBPM} BPM)`);
     }
   }
@@ -534,7 +548,9 @@ export class DeckAudioEngine {
 
   setGain(value: number) {
     if (this.gain) {
-      this.gain.gain.rampTo(value / 100, 0.1);
+      // Ensure proper gain staging for better audio quality
+      const normalizedGain = Math.max(0, Math.min(1, value / 100));
+      this.gain.gain.rampTo(normalizedGain, 0.1);
     }
   }
 

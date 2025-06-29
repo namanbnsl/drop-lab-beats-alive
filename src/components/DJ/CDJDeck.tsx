@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, RotateCcw, RefreshCw, Activity, Target, Zap, Clock, Volume2 } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
 
 interface CDJDeckProps {
@@ -29,16 +29,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     playDeck,
     pauseDeck,
     setPitch,
-    syncDecks,
     scrubTrack,
     triggerBackspin,
     bendTempo,
-    reSnapToGrid,
     initializeAudio,
     isTransportRunning,
     masterGridPosition,
-    metronomeClickEnabled,
-    toggleMetronomeClick,
   } = useDJStore();
 
   const deckState = side === 'A' ? deckAState : deckBState;
@@ -370,23 +366,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     }
   }, [isDragging, lastAngleRef.current]);
 
-  const handleSync = () => {
-    if (side === 'B') {
-      syncDecks();
-    }
-  };
-
-  const handleReSnap = () => {
-    reSnapToGrid(side);
-  };
-
-  const getPlaybackRate = () => {
-    if (deckState.track?.originalBPM) {
-      return 128 / deckState.track.originalBPM; // Auto-synced to 128 BPM
-    }
-    return 1;
-  };
-
   return (
     <div className="bg-gray-900 rounded-xl p-6 border border-purple-500/30">
       <div className="text-center mb-4">
@@ -455,22 +434,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             {deckState.track?.originalBPM ? (
               <span className="flex items-center gap-1">
                 <span className="text-green-400">128</span>
-                <Activity className="w-3 h-3 text-green-400" />
               </span>
             ) : (
               <span>{deckState.track?.bpm || 0}</span>
             )}
           </div>
           <span>{deckState.track?.key || '-'}</span>
-        </div>
-        
-        {/* Grid Position */}
-        <div className="text-xs mt-2">
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-blue-400">{gridPosition.bar}.{gridPosition.beat}</span>
-            {gridPosition.isAligned && <Target className="w-3 h-3 text-green-400" />}
-            {gridPosition.isQueued && !gridPosition.isAligned && <Clock className="w-3 h-3 text-orange-400 animate-spin" />}
-          </div>
         </div>
       </div>
 
@@ -511,48 +480,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           >
             CUE
           </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-3 rounded-full bg-gray-700 text-gray-300 hover:bg-gray-600 transition-all"
-            onClick={() => setCuePoint(0)}
-          >
-            <RotateCcw className="w-6 h-6" />
-          </motion.button>
-
-          {/* Re-snap Button */}
-          <motion.button
-            onClick={handleReSnap}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`p-3 rounded-full transition-all ${
-              gridPosition.isAligned
-                ? 'bg-green-600 text-white'
-                : 'bg-orange-600 text-white hover:bg-orange-500'
-            }`}
-            disabled={!deckState.track}
-          >
-            <Target className="w-6 h-6" />
-          </motion.button>
-
-          {side === 'B' && (
-            <motion.button
-              onClick={handleSync}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-3 rounded-full bg-blue-600 text-white hover:bg-blue-500 transition-all"
-              disabled={!deckState.track}
-            >
-              <Zap className="w-6 h-6" />
-            </motion.button>
-          )}
         </div>
 
-        {/* Pitch Fader */}
+        {/* Pitch Slider */}
         <div className="space-y-2">
           <div className="text-xs text-gray-400 text-center">
-            {deckState.pitch > 0 ? '+' : ''}{deckState.pitch}%
+            Pitch: {deckState.pitch > 0 ? '+' : ''}{deckState.pitch}%
           </div>
           <div className="flex justify-center">
             <input
