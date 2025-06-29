@@ -34,11 +34,6 @@ const Producer = () => {
   const [melodySolo, setMelodySolo] = useState(false);
   const [fxSolo, setFxSolo] = useState(false);
 
-  // Pan states
-  const [drumsPan, setDrumsPan] = useState(50);
-  const [melodyPan, setMelodyPan] = useState(50);
-  const [fxPan, setFxPan] = useState(50);
-
   // FX state
   const [reverbAmount, setReverbAmount] = useState(0);
   const [delayAmount, setDelayAmount] = useState(0);
@@ -64,7 +59,7 @@ const Producer = () => {
   const crashSynthRef = useRef<Tone.MetalSynth | null>(null);
   const melodySynthRef = useRef<Tone.PolySynth | null>(null);
 
-  // FIXED: Separate audio routing for proper mixer control
+  // FIXED: Proper effects chain for working FX
   const reverbRef = useRef<Tone.Reverb | null>(null);
   const delayRef = useRef<Tone.FeedbackDelay | null>(null);
   const distortionRef = useRef<Tone.Distortion | null>(null);
@@ -76,12 +71,7 @@ const Producer = () => {
   const melodyGainRef = useRef<Tone.Gain | null>(null);
   const fxGainRef = useRef<Tone.Gain | null>(null);
 
-  // Pan refs for stereo positioning
-  const drumPanRef = useRef<Tone.Panner | null>(null);
-  const melodyPanRef = useRef<Tone.Panner | null>(null);
-  const fxPanRef = useRef<Tone.Panner | null>(null);
-
-  // FIXED: Add separate wet gain for FX send control
+  // FIXED: Separate wet gain for FX send control
   const melodyWetGainRef = useRef<Tone.Gain | null>(null);
 
   // Sequencer refs
@@ -154,26 +144,34 @@ const Producer = () => {
     }
   }, [effectiveMasterVolume, masterMuted, audioUnlocked]);
 
-  // FX Control Effects - Apply FX changes in real-time
+  // FIXED: FX Control Effects - Apply FX changes in real-time with proper values
   useEffect(() => {
     if (reverbRef.current && audioUnlocked) {
-      reverbRef.current.wet.rampTo(reverbAmount, 0.1);
-      console.log(`🎛️ Reverb: ${Math.round(reverbAmount * 100)}%`);
+      // Convert 0-100 to 0-1 for wet amount
+      const wetAmount = reverbAmount / 100;
+      reverbRef.current.wet.rampTo(wetAmount, 0.1);
+      console.log(`🎛️ Reverb: ${reverbAmount}% (wet: ${wetAmount.toFixed(2)})`);
     }
   }, [reverbAmount, audioUnlocked]);
 
   useEffect(() => {
     if (delayRef.current && audioUnlocked) {
-      delayRef.current.wet.rampTo(delayAmount, 0.1);
-      console.log(`🎛️ Delay: ${Math.round(delayAmount * 100)}%`);
+      // Convert 0-100 to 0-1 for wet amount
+      const wetAmount = delayAmount / 100;
+      delayRef.current.wet.rampTo(wetAmount, 0.1);
+      console.log(`🎛️ Delay: ${delayAmount}% (wet: ${wetAmount.toFixed(2)})`);
     }
   }, [delayAmount, audioUnlocked]);
 
   useEffect(() => {
     if (distortionRef.current && audioUnlocked) {
-      distortionRef.current.wet.rampTo(distortionAmount / 100, 0.1);
-      distortionRef.current.distortion = Math.max(0.01, distortionAmount / 100);
-      console.log(`🎛️ Distortion: ${distortionAmount}%`);
+      // Convert 0-100 to 0-1 for distortion amount
+      const distAmount = Math.max(0.01, distortionAmount / 100);
+      distortionRef.current.distortion = distAmount;
+      // Also control wet amount
+      const wetAmount = distortionAmount > 0 ? 1 : 0;
+      distortionRef.current.wet.rampTo(wetAmount, 0.1);
+      console.log(`🎛️ Distortion: ${distortionAmount}% (amount: ${distAmount.toFixed(2)})`);
     }
   }, [distortionAmount, audioUnlocked]);
 
@@ -181,8 +179,8 @@ const Producer = () => {
     if (filterRef.current && audioUnlocked) {
       // Filter sweep: 0-50 = low-pass sweep, 50-100 = high-pass sweep
       if (filterAmount <= 50) {
-        // Low-pass filter: 20Hz to 20kHz
-        const frequency = 20 + ((filterAmount / 50) * 19980);
+        // Low-pass filter: 20kHz to 200Hz
+        const frequency = 20000 - ((filterAmount / 50) * 19800);
         filterRef.current.type = 'lowpass';
         filterRef.current.frequency.rampTo(frequency, 0.1);
       } else {
@@ -191,37 +189,11 @@ const Producer = () => {
         filterRef.current.type = 'highpass';
         filterRef.current.frequency.rampTo(frequency, 0.1);
       }
-      console.log(`🎛️ Filter: ${filterAmount}% (${filterRef.current.type})`);
+      console.log(`🎛️ Filter: ${filterAmount}% (${filterRef.current.type} @ ${filterRef.current.frequency.value.toFixed(0)}Hz)`);
     }
   }, [filterAmount, audioUnlocked]);
 
-  // Pan Control Effects - Apply pan changes in real-time
-  useEffect(() => {
-    if (drumPanRef.current && audioUnlocked) {
-      // Convert 0-100 range to -1 to 1 for stereo panning
-      const panValue = (drumsPan - 50) / 50;
-      drumPanRef.current.pan.rampTo(panValue, 0.1);
-      console.log(`🎛️ Drums pan: ${drumsPan}% (${panValue.toFixed(2)})`);
-    }
-  }, [drumsPan, audioUnlocked]);
-
-  useEffect(() => {
-    if (melodyPanRef.current && audioUnlocked) {
-      const panValue = (melodyPan - 50) / 50;
-      melodyPanRef.current.pan.rampTo(panValue, 0.1);
-      console.log(`🎛️ Melody pan: ${melodyPan}% (${panValue.toFixed(2)})`);
-    }
-  }, [melodyPan, audioUnlocked]);
-
-  useEffect(() => {
-    if (fxPanRef.current && audioUnlocked) {
-      const panValue = (fxPan - 50) / 50;
-      fxPanRef.current.pan.rampTo(panValue, 0.1);
-      console.log(`🎛️ FX pan: ${fxPan}% (${panValue.toFixed(2)})`);
-    }
-  }, [fxPan, audioUnlocked]);
-
-  // FIXED: Initialize audio system with proper routing
+  // FIXED: Initialize audio system with proper effects routing
   const initializeSynths = () => {
     // Create master gain for overall volume control
     masterGainRef.current = new Tone.Gain(0.75).toDestination();
@@ -229,34 +201,46 @@ const Producer = () => {
     // Create individual track gains for mixer control
     drumGainRef.current = new Tone.Gain(0.8).connect(masterGainRef.current);
     melodyGainRef.current = new Tone.Gain(0.7).connect(masterGainRef.current); // DRY path
-    fxGainRef.current = new Tone.Gain(0.5).connect(masterGainRef.current);     // WET path
 
-    // Create pan controls for stereo positioning
-    drumPanRef.current = new Tone.Panner(0).connect(drumGainRef.current);
-    melodyPanRef.current = new Tone.Panner(0).connect(melodyGainRef.current); // DRY
-    fxPanRef.current = new Tone.Panner(0).connect(fxGainRef.current);         // WET
+    // FIXED: Create FX chain (WET path) - properly connected
+    reverbRef.current = new Tone.Reverb({
+      roomSize: 0.8,
+      dampening: 3000,
+      wet: 0
+    }).connect(masterGainRef.current);
 
-    // FIXED: Create FX chain (WET path) - completely separate from melody dry path
-    reverbRef.current = new Tone.Reverb(2).connect(fxPanRef.current);
-    delayRef.current = new Tone.FeedbackDelay("8n", 0.5).connect(reverbRef.current);
-    distortionRef.current = new Tone.Distortion(0.15).connect(delayRef.current);
-    filterRef.current = new Tone.Filter(2000, "lowpass").connect(distortionRef.current);
+    delayRef.current = new Tone.FeedbackDelay({
+      delayTime: "8n",
+      feedback: 0.4,
+      wet: 0
+    }).connect(reverbRef.current);
+
+    distortionRef.current = new Tone.Distortion({
+      distortion: 0.4,
+      wet: 0
+    }).connect(delayRef.current);
+
+    filterRef.current = new Tone.Filter({
+      frequency: 20000,
+      type: "lowpass",
+      rolloff: -24
+    }).connect(distortionRef.current);
 
     // FIXED: Create wet gain for FX send control - this controls how much melody goes to FX
     melodyWetGainRef.current = new Tone.Gain(0.5).connect(filterRef.current);
 
-    // Create drum synths - connect to dry path only
+    // Create drum synths - connect to dry path only (no effects on drums)
     kickSynthRef.current = new Tone.MembraneSynth({
       pitchDecay: 0.05,
       octaves: 10,
       oscillator: { type: "sine" },
       envelope: { decay: 0.2, sustain: 0.2, release: 1.2 }
-    }).connect(drumPanRef.current);
+    }).connect(drumGainRef.current);
 
     snareSynthRef.current = new Tone.NoiseSynth({
       noise: { type: "white" },
       envelope: { decay: 0.1, sustain: 0.1, release: 0.2 }
-    }).connect(drumPanRef.current);
+    }).connect(drumGainRef.current);
 
     hihatSynthRef.current = new Tone.MetalSynth({
       envelope: { attack: 0.001, decay: 0.08, release: 0.08 },
@@ -264,7 +248,7 @@ const Producer = () => {
       modulationIndex: 12,
       resonance: 1200,
       octaves: 1.5
-    }).connect(drumPanRef.current);
+    }).connect(drumGainRef.current);
 
     crashSynthRef.current = new Tone.MetalSynth({
       envelope: { attack: 0.001, decay: 0.25, release: 0.18 },
@@ -272,7 +256,7 @@ const Producer = () => {
       modulationIndex: 18,
       resonance: 1000,
       octaves: 2
-    }).connect(drumPanRef.current);
+    }).connect(drumGainRef.current);
 
     // FIXED: Create melody synth with proper dry/wet routing
     melodySynthRef.current = new Tone.PolySynth(Tone.Synth, {
@@ -281,10 +265,11 @@ const Producer = () => {
     });
 
     // FIXED: Connect melody synth to BOTH dry and wet paths independently
-    melodySynthRef.current.connect(melodyPanRef.current);    // DRY path (controlled by melody volume)
+    melodySynthRef.current.connect(melodyGainRef.current);    // DRY path (controlled by melody volume)
     melodySynthRef.current.connect(melodyWetGainRef.current); // WET path (controlled by FX volume)
 
-    console.log("🎵 Audio system initialized with proper dry/wet routing!");
+    console.log("🎵 Audio system initialized with working effects chain!");
+    console.log("🎛️ Effects order: Melody → Filter → Distortion → Delay → Reverb → Master");
   };
 
   // Unlock audio context
@@ -468,8 +453,8 @@ const Producer = () => {
   // Get FX status
   const getFXStatus = () => {
     const activeFX = [];
-    if (reverbAmount > 0) activeFX.push(`R${Math.round(reverbAmount * 100)}`);
-    if (delayAmount > 0) activeFX.push(`D${Math.round(delayAmount * 100)}`);
+    if (reverbAmount > 0) activeFX.push(`R${Math.round(reverbAmount)}`);
+    if (delayAmount > 0) activeFX.push(`D${Math.round(delayAmount)}`);
     if (distortionAmount > 0) activeFX.push(`X${distortionAmount}`);
     if (filterAmount !== 50) activeFX.push(`F${filterAmount}`);
     return activeFX.length > 0 ? activeFX.join(' ') : null;
@@ -552,9 +537,6 @@ const Producer = () => {
             fxMuted={fxMuted}
             fxSolo={fxSolo}
             masterMuted={masterMuted}
-            drumsPan={drumsPan}
-            melodyPan={melodyPan}
-            fxPan={fxPan}
             onDrumsMuteChange={setDrumsMuted}
             onDrumsSoloChange={setDrumsSolo}
             onMelodyMuteChange={setMelodyMuted}
@@ -562,9 +544,6 @@ const Producer = () => {
             onFxMuteChange={setFxMuted}
             onFxSoloChange={setFxSolo}
             onMasterMuteChange={setMasterMuted}
-            onDrumsPanChange={setDrumsPan}
-            onMelodyPanChange={setMelodyPan}
-            onFxPanChange={setFxPan}
           />
         );
       case 'export':

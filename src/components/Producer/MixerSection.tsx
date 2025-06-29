@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Volume2, VolumeX } from 'lucide-react';
 import InfoTooltip from '../InfoTooltip';
@@ -28,12 +28,6 @@ interface MixerSectionProps {
   onDrumsSoloChange: (solo: boolean) => void;
   onMelodySoloChange: (solo: boolean) => void;
   onFxSoloChange: (solo: boolean) => void;
-  drumsPan: number;
-  melodyPan: number;
-  fxPan: number;
-  onDrumsPanChange: (pan: number) => void;
-  onMelodyPanChange: (pan: number) => void;
-  onFxPanChange: (pan: number) => void;
 }
 
 interface ChannelStripProps {
@@ -43,10 +37,8 @@ interface ChannelStripProps {
   onVolumeChange: (value: number) => void;
   onMuteChange: (muted: boolean) => void;
   onSoloChange: (solo: boolean) => void;
-  onPanChange: (pan: number) => void;
   isMuted: boolean;
   isSolo: boolean;
-  pan: number;
   showSolo?: boolean;
 }
 
@@ -57,15 +49,12 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({
   onVolumeChange,
   onMuteChange,
   onSoloChange,
-  onPanChange,
   isMuted,
   isSolo,
-  pan,
   showSolo = true
 }) => {
   const mixerTooltips = {
     volume: "Adjusts how loud the track is in the final mix. Slide up to make it louder.",
-    pan: "Moves the sound left or right in stereo. Use it to widen your mix.",
     muteSolo: "Mute silences a track. Solo lets you isolate it for focused listening."
   };
 
@@ -99,42 +88,9 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({
     console.log(`🎯 ${label} solo ${newSolo ? 'enabled' : 'disabled'}`);
   };
 
-  const handlePanChange = (newPan: number) => {
-    onPanChange(newPan);
-    console.log(`🎛️ ${label} pan: ${newPan}`);
-  };
-
   return (
     <div className="bg-gray-900/50 rounded-xl p-3 sm:p-4 border border-blue-500/30 w-full max-w-xs mx-auto">
       <h3 className={cn("text-base sm:text-lg font-semibold mb-4 text-center", color)}>{label}</h3>
-
-      {/* Pan Knob */}
-      <div className="flex flex-col items-center mb-4 sm:mb-6">
-        <div className="flex items-center gap-1 mb-2">
-          <label className="text-xs text-gray-300">Pan</label>
-          <InfoTooltip content={mixerTooltips.pan} />
-        </div>
-        <div
-          className="relative w-10 h-10 sm:w-12 sm:h-12 bg-gray-800 rounded-full border-2 border-blue-500/30 touch-manipulation cursor-pointer"
-          onClick={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-            const degrees = (angle * 180 / Math.PI + 90 + 360) % 360;
-            const newPan = Math.max(0, Math.min(100, (degrees / 360) * 100));
-            handlePanChange(Math.round(newPan));
-          }}
-        >
-          <div
-            className="absolute top-1 left-1/2 w-1 h-3 sm:h-4 bg-blue-400 rounded-full transform -translate-x-1/2 origin-bottom"
-            style={{ transform: `translateX(-50%) rotate(${(pan - 50) * 2.7}deg)` }}
-          />
-          <div className="absolute inset-2 bg-gray-900 rounded-full flex items-center justify-center">
-            <span className="text-xs text-white font-mono">{pan}</span>
-          </div>
-        </div>
-      </div>
 
       {/* Volume Fader */}
       <div className="flex flex-col items-center mb-4 sm:mb-6">
@@ -216,13 +172,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
   onMasterMuteChange,
   onDrumsSoloChange,
   onMelodySoloChange,
-  onFxSoloChange,
-  drumsPan,
-  melodyPan,
-  fxPan,
-  onDrumsPanChange,
-  onMelodyPanChange,
-  onFxPanChange
+  onFxSoloChange
 }) => {
   // Calculate effective volume considering mute/solo states
   const getEffectiveVolume = (volume: number, isMuted: boolean, isSolo: boolean, anySolo: boolean) => {
@@ -242,7 +192,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
   const balanceTooltips = {
     drums: "Controls the overall loudness of your drum tracks.",
     melody: "Adjusts the level of your generated or composed melodies.",
-    fx: "Controls how present your added effects are in the mix.",
+    fx: "Controls the master dry/wet balance for all effects. 0% = completely dry (no effects), 100% = maximum wet signal (full effects).",
     master: "Controls the final output volume of the entire track."
   };
 
@@ -277,10 +227,8 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               onVolumeChange={onDrumsVolumeChange}
               onMuteChange={onDrumsMuteChange}
               onSoloChange={onDrumsSoloChange}
-              onPanChange={onDrumsPanChange}
               isMuted={drumsMuted}
               isSolo={drumsSolo}
-              pan={drumsPan}
             />
           </motion.div>
 
@@ -297,10 +245,8 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               onVolumeChange={onMelodyVolumeChange}
               onMuteChange={onMelodyMuteChange}
               onSoloChange={onMelodySoloChange}
-              onPanChange={onMelodyPanChange}
               isMuted={melodyMuted}
               isSolo={melodySolo}
-              pan={melodyPan}
             />
           </motion.div>
 
@@ -311,16 +257,14 @@ const MixerSection: React.FC<MixerSectionProps> = ({
             viewport={{ once: true }}
           >
             <ChannelStrip
-              label="FX"
+              label="FX Dry/Wet"
               color="text-green-400"
               volume={fxVolume}
               onVolumeChange={onFxVolumeChange}
               onMuteChange={onFxMuteChange}
               onSoloChange={onFxSoloChange}
-              onPanChange={onFxPanChange}
               isMuted={fxMuted}
               isSolo={fxSolo}
-              pan={fxPan}
             />
           </motion.div>
 
@@ -337,10 +281,8 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               onVolumeChange={onMasterVolumeChange}
               onMuteChange={onMasterMuteChange}
               onSoloChange={() => { }} // Master doesn't have solo
-              onPanChange={() => { }} // Master doesn't have pan
               isMuted={masterMuted}
               isSolo={false}
-              pan={50}
               showSolo={false}
             />
           </motion.div>
@@ -386,7 +328,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
 
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-1 mb-2">
-                <span className="text-xs sm:text-sm text-green-400 font-semibold">FX</span>
+                <span className="text-xs sm:text-sm text-green-400 font-semibold">FX Dry/Wet</span>
                 <InfoTooltip content={balanceTooltips.fx} />
               </div>
               <VerticalFader
@@ -412,7 +354,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               />
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Mixer Status Display */}
         {(anySolo || drumsMuted || melodyMuted || fxMuted || masterMuted) && (
