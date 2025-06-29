@@ -352,6 +352,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
               </span>
             </motion.button>
           </motion.div>
+        </div>
 
         {/* Content Status */}
         {!hasGeneratedContent && (
