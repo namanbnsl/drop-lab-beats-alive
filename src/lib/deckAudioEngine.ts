@@ -1,4 +1,49 @@
-pause() {
+import * as Tone from 'tone';
+
+export class DeckAudioEngine {
+  private player: Tone.Player | null = null;
+  private isPlaying: boolean = false;
+  private isLoaded: boolean = false;
+  private isQueued: boolean = false;
+  private isGridAligned: boolean = false;
+  private isWaitingForBar: boolean = false;
+  private pausedAt: number = 0;
+  private scheduledStartTime: number = 0;
+  private beatSyncSequence: Tone.Sequence | null = null;
+
+  constructor() {
+    // Initialize the audio engine
+  }
+
+  async loadTrack(url: string): Promise<void> {
+    try {
+      if (this.player) {
+        this.player.dispose();
+      }
+      
+      this.player = new Tone.Player(url);
+      await Tone.loaded();
+      this.isLoaded = true;
+      console.log('Track loaded successfully');
+    } catch (error) {
+      console.error('Failed to load track:', error);
+      this.isLoaded = false;
+    }
+  }
+
+  play(): void {
+    if (this.player && this.isLoaded && !this.isPlaying) {
+      try {
+        this.player.start();
+        this.isPlaying = true;
+        console.log('Track started playing');
+      } catch (error) {
+        console.error('Failed to play track:', error);
+      }
+    }
+  }
+
+  pause(): void {
     console.log(`⏸️ Pause called - Player: ${!!this.player}, isPlaying: ${this.isPlaying}, isLoaded: ${this.isLoaded}`);
     
     if (this.player && this.isPlaying) {
@@ -60,3 +105,54 @@ pause() {
       }
     }
   }
+
+  stop(): void {
+    if (this.player) {
+      try {
+        this.player.stop();
+        this.isPlaying = false;
+        this.pausedAt = 0;
+        console.log('Track stopped');
+      } catch (error) {
+        console.error('Failed to stop track:', error);
+      }
+    }
+  }
+
+  getCurrentTime(): number {
+    // Return current playback position
+    return this.pausedAt;
+  }
+
+  setVolume(volume: number): void {
+    if (this.player) {
+      this.player.volume.value = volume;
+    }
+  }
+
+  dispose(): void {
+    if (this.player) {
+      this.player.dispose();
+      this.player = null;
+    }
+    if (this.beatSyncSequence) {
+      this.beatSyncSequence.dispose();
+      this.beatSyncSequence = null;
+    }
+    this.isLoaded = false;
+    this.isPlaying = false;
+  }
+
+  // Getters for state
+  get loaded(): boolean {
+    return this.isLoaded;
+  }
+
+  get playing(): boolean {
+    return this.isPlaying;
+  }
+
+  get queued(): boolean {
+    return this.isQueued;
+  }
+}
