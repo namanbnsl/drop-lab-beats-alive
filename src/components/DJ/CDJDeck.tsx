@@ -254,7 +254,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     lastClickRef.current = now;
   };
 
-  // Drag to scrub functionality
+  // 🎛️ ENHANCED DRAG TO SCRUB: Proper directional scrubbing
   const handlePlatterMouseDown = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const angle = getMouseAngle(e, rect);
@@ -278,28 +278,32 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     const rect = canvas.getBoundingClientRect();
     const currentAngle = getMouseAngle(e, rect);
     
-    // Calculate angular velocity
+    // Calculate angular velocity with proper direction
     let angleDelta = currentAngle - lastAngleRef.current;
     
-    // Handle angle wrap-around
+    // Handle angle wrap-around properly
     if (angleDelta > Math.PI) angleDelta -= 2 * Math.PI;
     if (angleDelta < -Math.PI) angleDelta += 2 * Math.PI;
     
-    const velocity = angleDelta * 15; // Increased sensitivity for better scrubbing
+    // Enhanced sensitivity for better scrubbing control
+    const velocity = angleDelta * 25; // Increased sensitivity
     
     // Update visual rotation
     rotationRef.current += angleDelta;
     lastAngleRef.current = currentAngle;
 
-    // Show scrub indicator
+    // Show scrub indicator with direction
     setScrubIndicator({ active: true, direction: velocity });
     
-    // Scrub the track (works when paused or cueing)
-    if (!isPlaying || isCuePressed) {
-      scrubTrack(side, velocity);
-    }
+    // 🎛️ ENHANCED SCRUBBING: Works in all states with proper direction
+    scrubTrack(side, velocity);
 
-    console.log(`🎛️ Scrubbing Deck ${side}: ${velocity > 0 ? 'Forward' : 'Rewind'} (${velocity.toFixed(3)})`);
+    // Clear scrub indicator after a short delay
+    setTimeout(() => {
+      setScrubIndicator({ active: false, direction: 0 });
+    }, 100);
+
+    console.log(`🎛️ Enhanced scrubbing Deck ${side}: ${velocity > 0 ? 'Clockwise (Forward)' : 'Counter-clockwise (Rewind)'} (${velocity.toFixed(3)})`);
   };
 
   const handlePlatterMouseUp = () => {
@@ -425,7 +429,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             onMouseDown={handlePlatterMouseDown}
             onClick={handlePlatterClick}
             onWheel={handlePlatterWheel}
-            title="Double-click for backspin • Drag to scrub • Scroll to bend tempo"
+            title="🎛️ Drag clockwise to fast-forward, counter-clockwise to rewind • Double-click for backspin • Scroll to bend tempo"
           />
           
           {/* Enhanced status overlays */}
@@ -642,7 +646,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         <div className="text-center space-y-1">
           {scrubIndicator.active && (
             <div className="text-xs text-red-400">
-              Scrubbing: {scrubIndicator.direction > 0 ? '→ Forward' : '← Rewind'}
+              🎛️ Scrubbing: {scrubIndicator.direction > 0 ? '→ Clockwise (Forward)' : '← Counter-clockwise (Rewind)'}
             </div>
           )}
           
@@ -679,8 +683,8 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
 
         {/* Enhanced Instructions */}
         <div className="text-xs text-gray-500 text-center space-y-1">
-          <div>Double-click jogwheel for backspin</div>
-          <div>Drag to scrub • Scroll to bend tempo</div>
+          <div>🎛️ Drag clockwise to fast-forward, counter-clockwise to rewind</div>
+          <div>Double-click jogwheel for backspin • Scroll to bend tempo</div>
           <div>🎯 Target button to re-snap to grid</div>
           {deckState.track?.originalBPM && <div>🎯 Auto-sync to 128 BPM Active</div>}
           {isTransportRunning && <div>🎵 Master Grid @ 128 BPM</div>}
