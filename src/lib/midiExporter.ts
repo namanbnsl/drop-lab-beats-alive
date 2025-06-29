@@ -143,9 +143,8 @@ export class MIDIExporter {
     const allEvents: Array<{time: number, type: 'on' | 'off', pitch: number, velocity: number}> = [];
     
     sortedNotes.forEach(note => {
-      // FIXED: Convert seconds to MIDI ticks properly
-      // startTime is in seconds, convert to beats, then to ticks
-      const startBeats = note.startTime * (tempo / 60); // Convert seconds to beats
+      // FIXED: Convert seconds to MIDI ticks properly using the actual tempo
+      const startBeats = note.startTime * (tempo / 60); // Convert seconds to beats at current tempo
       const startTicks = Math.round(startBeats * this.TICKS_PER_QUARTER);
       
       const durationBeats = note.duration * (tempo / 60); // Convert duration seconds to beats

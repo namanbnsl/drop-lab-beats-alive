@@ -249,10 +249,9 @@ export class MIDIParser {
     return notes
       .filter(note => note.duration !== undefined)
       .map(note => {
-        // FIXED: Convert MIDI ticks to seconds properly
-        // time is in MIDI ticks, convert to beats, then to seconds
+        // FIXED: Convert MIDI ticks to seconds properly using the actual tempo
         const timeInBeats = note.time / 480; // 480 ticks per quarter note
-        const startTimeInSeconds = timeInBeats * (60 / tempo); // Convert beats to seconds
+        const startTimeInSeconds = timeInBeats * (60 / tempo); // Convert beats to seconds at current tempo
         
         const durationInBeats = note.duration! / 480;
         const durationInSeconds = Math.max(0.1, durationInBeats * (60 / tempo)); // Minimum duration

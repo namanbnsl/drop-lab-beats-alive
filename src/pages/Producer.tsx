@@ -64,7 +64,7 @@ const Producer = () => {
   const crashSynthRef = useRef<Tone.MetalSynth | null>(null);
   const melodySynthRef = useRef<Tone.PolySynth | null>(null);
 
-  // FIXED: Separate dry and wet paths for proper mixer control
+  // FIXED: Separate audio routing for proper mixer control
   const reverbRef = useRef<Tone.Reverb | null>(null);
   const delayRef = useRef<Tone.FeedbackDelay | null>(null);
   const distortionRef = useRef<Tone.Distortion | null>(null);
@@ -243,13 +243,13 @@ const Producer = () => {
     melodyPanRef.current = new Tone.Panner(0).connect(melodyGainRef.current); // DRY
     fxPanRef.current = new Tone.Panner(0).connect(fxGainRef.current);         // WET
 
-    // FIXED: Create FX chain (WET path) - separate from melody dry path
+    // FIXED: Create FX chain (WET path) - completely separate from melody dry path
     reverbRef.current = new Tone.Reverb(2).connect(fxPanRef.current);
     delayRef.current = new Tone.FeedbackDelay("8n", 0.5).connect(reverbRef.current);
     distortionRef.current = new Tone.Distortion(0.15).connect(delayRef.current);
     filterRef.current = new Tone.Filter(2000, "lowpass").connect(distortionRef.current);
 
-    // FIXED: Create wet gain for FX send control
+    // FIXED: Create wet gain for FX send control - this controls how much melody goes to FX
     melodyWetGainRef.current = new Tone.Gain(0.5).connect(filterRef.current);
 
     // Create drum synths - connect to dry path only
@@ -287,7 +287,7 @@ const Producer = () => {
       envelope: { attack: 0.02, decay: 0.1, sustain: 0.3, release: 1 }
     });
     
-    // Connect melody synth to BOTH dry and wet paths independently
+    // FIXED: Connect melody synth to BOTH dry and wet paths independently
     melodySynthRef.current.connect(melodyPanRef.current);    // DRY path (controlled by melody volume)
     melodySynthRef.current.connect(melodyWetGainRef.current); // WET path (controlled by FX volume)
 
@@ -616,6 +616,29 @@ const Producer = () => {
         <div className="scattered-icon bottom-10 right-10">🎹</div>
         <div className="scattered-icon top-1/2 left-5">🎤</div>
         <div className="scattered-icon top-1/3 right-5">🎧</div>
+      </div>
+
+      {/* Hand-drawn background elements */}
+      <div className="fixed inset-0 pointer-events-none opacity-10">
+        <svg className="absolute inset-0 w-full h-full">
+          <g className="animate-pulse">
+            <path
+              d="M100,100 Q120,80 140,100 Q160,120 180,100"
+              stroke="#10b981"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+            />
+            <circle cx="200" cy="110" r="6" fill="#f59e0b" />
+            <path
+              d="M300,200 Q320,180 340,200 Q360,220 380,200"
+              stroke="#3b82f6"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+            />
+          </g>
+        </svg>
       </div>
 
       {/* Header */}
