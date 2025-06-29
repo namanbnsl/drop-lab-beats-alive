@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, RotateCcw, RefreshCw, Activity, Target, Zap, Clock } from 'lucide-react';
+import { Play, Pause, RotateCcw, RefreshCw, Activity, Target, Zap, Clock, Volume2 } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
 
 interface CDJDeckProps {
@@ -37,6 +37,8 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     initializeAudio,
     isTransportRunning,
     masterGridPosition,
+    metronomeClickEnabled,
+    toggleMetronomeClick,
   } = useDJStore();
 
   const deckState = side === 'A' ? deckAState : deckBState;
@@ -414,6 +416,13 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           <div className="text-xs text-green-400 flex items-center justify-center gap-1 mt-1">
             <Activity className="w-3 h-3" />
             Backend Metronome @ 128 BPM • Bar {masterGridPosition.bar}, Beat {masterGridPosition.beat}
+            <button
+              onClick={toggleMetronomeClick}
+              className={`ml-2 p-1 rounded ${metronomeClickEnabled ? 'bg-green-600' : 'bg-gray-600'}`}
+              title="Toggle metronome click"
+            >
+              <Volume2 className="w-3 h-3" />
+            </button>
           </div>
         )}
       </div>
