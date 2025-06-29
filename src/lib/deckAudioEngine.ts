@@ -383,22 +383,29 @@ export class DeckAudioEngine {
   }
 
   pause() {
+    console.log(`⏸️ Pause called - Player: ${!!this.player}, isPlaying: ${this.isPlaying}, isLoaded: ${this.isLoaded}`);
+    
     if (this.player && this.isPlaying) {
       this.pausedAt = this.getCurrentTime();
       
       // Stop the player if it's currently playing
       if (this.player.state === 'started') {
+        console.log(`⏸️ Stopping player - current state: ${this.player.state}`);
         this.player.stop();
+      } else {
+        console.log(`⏸️ Player not started - current state: ${this.player.state}`);
       }
       
       // Cancel any scheduled starts
       if (this.scheduledStartTime > 0) {
+        console.log(`⏸️ Cancelling scheduled start at ${this.scheduledStartTime}`);
         Tone.Transport.cancel(this.scheduledStartTime);
         this.scheduledStartTime = 0;
       }
       
       // Cancel any beat sync sequences
       if (this.beatSyncSequence) {
+        console.log(`⏸️ Stopping beat sync sequence`);
         this.beatSyncSequence.stop();
         this.beatSyncSequence.dispose();
         this.beatSyncSequence = null;
@@ -409,7 +416,9 @@ export class DeckAudioEngine {
       this.isGridAligned = false; // Lose grid alignment when paused manually
       this.isWaitingForBar = false;
       
-      console.log(`⏸️ Track paused at ${this.pausedAt.toFixed(2)}s`);
+      console.log(`⏸️ Track paused at ${this.pausedAt.toFixed(2)}s - isPlaying set to: ${this.isPlaying}`);
+    } else {
+      console.log(`⏸️ Cannot pause - Player: ${!!this.player}, isPlaying: ${this.isPlaying}, isLoaded: ${this.isLoaded}`);
     }
   }
 

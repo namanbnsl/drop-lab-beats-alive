@@ -231,77 +231,44 @@ export const useDJStore = create<DJState>((set, get) => ({
 
   playDeck: (deck) => {
     const state = get();
-    
-    // Check if audio is unlocked
-    if (!state.audioUnlocked) {
-      console.log("🔒 Audio not unlocked, cannot play deck");
-      return;
-    }
-    
+    if (!state.audioUnlocked) return;
+
     const engine = deck === 'A' ? state.deckA : state.deckB;
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
-    
-    if (engine && engine.isLoaded) {
-      // Ensure backend metronome is running
-      if (!state.isTransportRunning || Tone.Transport.state !== 'started') {
-        Tone.Transport.bpm.value = 128;
-        if (Tone.Transport.state !== 'started') {
-          Tone.Transport.start();
-        }
-        set({ isTransportRunning: true });
-        get().updateGridPositions();
-        console.log('🎯 Backend Metronome ensured running at 128 BPM');
-      }
 
-      // ⚡ BEAT-ALIGNED PLAY: Engine will wait for next bar to start
+    if (engine && engine.isLoaded && !engine.isPlaying) {
+      // Start playback
       engine.play();
-      
-      const bpmInfo = engine.getBPMInfo();
-      const gridPosition = engine.getGridPosition();
-      
+      // After play, update UI state to match engine
       set({
         [deckState]: {
           ...state[deckState],
-          isPlaying: engine.isPlaying, // Use engine's actual playing state
-          bpmInfo,
-          gridPosition
+          isPlaying: engine.isPlaying,
+          bpmInfo: engine.getBPMInfo(),
+          gridPosition: engine.getGridPosition(),
         },
       });
-      
-      if (gridPosition.isQueued) {
-        console.log(`⚡ Deck ${deck} queued for next bar sync play`);
-      } else {
-        console.log(`▶️ Deck ${deck} manual play at 128 BPM`);
-      }
     }
   },
 
   pauseDeck: (deck) => {
     const state = get();
-    
-    // Check if audio is unlocked
-    if (!state.audioUnlocked) {
-      console.log("🔒 Audio not unlocked, cannot pause deck");
-      return;
-    }
-    
+    if (!state.audioUnlocked) return;
+
     const engine = deck === 'A' ? state.deckA : state.deckB;
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
-    
-    if (engine) {
-      console.log(`⏸️ Pausing Deck ${deck} - Engine playing state: ${engine.isPlaying}`);
+
+    if (engine && engine.isLoaded && engine.isPlaying) {
+      // Pause playback
       engine.pause();
-      const gridPosition = engine.getGridPosition();
-      
+      // After pause, update UI state to match engine
       set({
         [deckState]: {
           ...state[deckState],
-          isPlaying: engine.isPlaying, // Use engine's actual playing state
-          gridPosition
+          isPlaying: engine.isPlaying,
+          gridPosition: engine.getGridPosition(),
         },
       });
-      
-      console.log(`⏸️ Deck ${deck} paused - New state: ${engine.isPlaying}`);
     }
   },
 

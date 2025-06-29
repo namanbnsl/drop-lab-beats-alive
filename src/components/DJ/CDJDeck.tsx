@@ -22,8 +22,11 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   const [backspinCooldown, setBackspinCooldown] = useState(false);
   const [scrubIndicator, setScrubIndicator] = useState({ active: false, direction: 0 });
   const [tempoBend, setTempoBend] = useState({ active: false, direction: 0 });
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
   const {
+    deckA,
+    deckB,
     deckAState,
     deckBState,
     playDeck,
@@ -41,13 +44,19 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   } = useDJStore();
 
   const deckState = side === 'A' ? deckAState : deckBState;
+  const engine = side === 'A' ? deckA : deckB;
   const isPlaying = deckState.isPlaying;
   const gridPosition = deckState.gridPosition || { bar: 1, beat: 1, isAligned: false, isQueued: false };
 
   // Monitor isPlaying state changes for debugging
   useEffect(() => {
     console.log(`🎧 Deck ${side} - isPlaying state changed to: ${isPlaying}`);
-  }, [isPlaying, side]);
+    console.log(`🎧 Deck ${side} - Engine state:`, {
+      isLoaded: engine?.isLoaded,
+      engineIsPlaying: engine?.isPlaying,
+      hasPlayer: !!engine?.player
+    });
+  }, [isPlaying, side, engine]);
 
   // Handle user gesture for audio initialization
   useEffect(() => {
@@ -244,15 +253,13 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   }, [isPlaying, isDragging, isCuePressed, scrubIndicator, cuePoint, tempoBend, deckState.track, gridPosition]);
 
   const handlePlayPause = () => {
-    console.log(`🎧 Deck ${side} - Current state: ${isPlaying ? 'Playing' : 'Stopped'}`);
-    console.log(`🎧 Deck ${side} - Track loaded: ${!!deckState.track}`);
-    console.log(`🎧 Deck ${side} - Audio unlocked: ${audioUnlocked}`);
-    
-    if (isPlaying) {
-      console.log(`⏸️ Pausing Deck ${side}`);
+    // Always use the engine's actual state
+    const engine = side === 'A' ? deckA : deckB;
+    if (!engine || !engine.isLoaded) return;
+
+    if (engine.isPlaying) {
       pauseDeck(side);
     } else {
-      console.log(`▶️ Playing Deck ${side}`);
       playDeck(side);
     }
   };
@@ -484,13 +491,16 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         <div className="flex justify-center gap-3">
           <motion.button
             onClick={handlePlayPause}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`p-3 rounded-full transition-all ${isPlaying
-                ? 'bg-green-600 text-white shadow-lg shadow-green-500/25'
-                : gridPosition.isQueued && gridPosition.isAligned
-                  ? 'bg-green-600 text-white shadow-lg shadow-green-500/25 animate-pulse'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            disabled={isButtonDisabled}
+            whileHover={{ scale: isButtonDisabled ? 1 : 1.05 }}
+            whileTap={{ scale: isButtonDisabled ? 1 : 0.95 }}
+            className={`p-3 rounded-full transition-all ${isButtonDisabled 
+                ? 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50'
+                : isPlaying
+                  ? 'bg-green-600 text-white shadow-lg shadow-green-500/25'
+                  : gridPosition.isQueued && gridPosition.isAligned
+                    ? 'bg-green-600 text-white shadow-lg shadow-green-500/25 animate-pulse'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
           >
             {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
