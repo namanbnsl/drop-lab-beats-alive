@@ -52,7 +52,7 @@ export class MIDIParser {
       }
       
       // Convert MIDI notes to drum pattern
-      const pattern = this.convertNotesToDrumPattern(notes);
+      const pattern = this.convertNotesToDrumPattern(notes, tempo);
       
       return { pattern, tempo };
     } catch (error) {
@@ -211,7 +211,10 @@ export class MIDIParser {
     return { value, bytesRead };
   }
   
-  private static convertNotesToDrumPattern(notes: Array<{ pitch: number; time: number; velocity: number }>): DrumPattern {
+  /**
+   * FIXED: Convert MIDI notes to drum pattern with proper tempo-based timing
+   */
+  private static convertNotesToDrumPattern(notes: Array<{ pitch: number; time: number; velocity: number }>, tempo: number): DrumPattern {
     const pattern: DrumPattern = {
       kick: new Array(16).fill(false),
       snare: new Array(16).fill(false),
@@ -231,14 +234,34 @@ export class MIDIParser {
       57: 'crash'   // Crash Cymbal 2
     };
     
+    // FIXED: Calculate step duration based on tempo
+    // 16 steps per bar, 4 beats per bar = 4 steps per beat
+    // Step duration = (60 / tempo) / 4 seconds per step
+    const stepDurationInSeconds = (60 / tempo) / 4; // Quarter note / 4 = 16th note
+    
+    console.log(`🥁 Converting MIDI notes to drum pattern at ${tempo} BPM`);
+    console.log(`📏 Step duration: ${stepDurationInSeconds.toFixed(4)}s per step`);
+    
     notes.forEach(note => {
       const drumType = drumMap[note.pitch];
       if (drumType) {
-        // Convert time to 16th note steps (assuming 4/4 time)
-        const stepIndex = Math.floor((note.time / 480) * 4) % 16; // 480 ticks per quarter note
+        // FIXED: Convert MIDI ticks to seconds, then to step index
+        const timeInSeconds = (note.time / 480) * (60 / tempo); // Convert ticks to seconds
+        const stepIndex = Math.round(timeInSeconds / stepDurationInSeconds); // Convert to step index
+        
+        console.log(`🎵 Note: pitch=${note.pitch} (${drumType}), time=${note.time} ticks, timeInSeconds=${timeInSeconds.toFixed(4)}s, stepIndex=${stepIndex}`);
+        
         if (stepIndex >= 0 && stepIndex < 16) {
           pattern[drumType][stepIndex] = true;
         }
+      }
+    });
+    
+    // Log the final pattern
+    Object.entries(pattern).forEach(([drumType, steps]) => {
+      const activeSteps = steps.map((active, i) => active ? i : -1).filter(i => i >= 0);
+      if (activeSteps.length > 0) {
+        console.log(`🥁 ${drumType}: steps [${activeSteps.join(', ')}]`);
       }
     });
     

@@ -31,17 +31,21 @@ export class MIDIExporter {
    * Export drum pattern as MIDI file
    */
   static exportDrums(pattern: DrumPattern, tempo: number = 120, filename: string = 'drums'): void {
-    const drumNotes = this.convertDrumPatternToNotes(pattern);
+    const drumNotes = this.convertDrumPatternToNotes(pattern, tempo);
     const midiData = this.createMIDIFile(drumNotes, tempo, 'drums');
     this.downloadMIDI(midiData, `${filename}.mid`);
   }
 
   /**
-   * Convert drum pattern to MIDI notes
+   * Convert drum pattern to MIDI notes with proper tempo-based timing
    */
-  private static convertDrumPatternToNotes(pattern: DrumPattern): MIDINote[] {
+  private static convertDrumPatternToNotes(pattern: DrumPattern, tempo: number): MIDINote[] {
     const notes: MIDINote[] = [];
-    const stepDuration = 0.25; // 16th notes
+    
+    // FIXED: Calculate step duration based on tempo
+    // 16 steps per bar, 4 beats per bar = 4 steps per beat
+    // Step duration = (60 / tempo) / 4 seconds per step
+    const stepDurationInSeconds = (60 / tempo) / 4; // Quarter note / 4 = 16th note
 
     // MIDI drum mapping (General MIDI standard)
     const drumMap = {
@@ -57,12 +61,15 @@ export class MIDIExporter {
           notes.push({
             pitch: drumMap[drumType as keyof typeof drumMap],
             velocity: 0.8,
-            startTime: stepIndex * stepDuration,
-            duration: 0.1
+            startTime: stepIndex * stepDurationInSeconds, // FIXED: Use tempo-based timing
+            duration: 0.1 // Short duration for drum hits
           });
         }
       });
     });
+
+    console.log(`🥁 Converted drum pattern to ${notes.length} MIDI notes at ${tempo} BPM`);
+    console.log(`📏 Step duration: ${stepDurationInSeconds.toFixed(4)}s per step`);
 
     return notes;
   }
