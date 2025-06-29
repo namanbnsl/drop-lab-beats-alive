@@ -351,12 +351,14 @@ export class DeckAudioEngine {
             this.startTime = time - this.pausedAt;
             this.isQueued = false;
             this.isWaitingForBar = false;
+            this.isPlaying = true; // Set playing state here
             console.log(`⚡ Beat-sync play executed at: ${time.toFixed(3)}s (delay: ${delayMs.toFixed(0)}ms)`);
           }
         }, scheduledTime);
         
         console.log(`⚡ Beat-sync play scheduled for: ${scheduledTime.toFixed(3)}s (delay: ${delayMs.toFixed(0)}ms)`);
         
+        // Set playing state immediately for UI feedback
         this.isPlaying = true;
         
       } else {

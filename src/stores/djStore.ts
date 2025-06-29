@@ -245,7 +245,7 @@ export const useDJStore = create<DJState>((set, get) => ({
       set({
         [deckState]: {
           ...state[deckState],
-          isPlaying: true,
+          isPlaying: engine.isPlaying, // Use engine's actual playing state
           bpmInfo,
           gridPosition
         },
@@ -265,16 +265,19 @@ export const useDJStore = create<DJState>((set, get) => ({
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
     if (engine) {
+      console.log(`⏸️ Pausing Deck ${deck} - Engine playing state: ${engine.isPlaying}`);
       engine.pause();
       const gridPosition = engine.getGridPosition();
       
       set({
         [deckState]: {
           ...state[deckState],
-          isPlaying: false,
+          isPlaying: engine.isPlaying, // Use engine's actual playing state
           gridPosition
         },
       });
+      
+      console.log(`⏸️ Deck ${deck} paused - New state: ${engine.isPlaying}`);
     }
   },
 
@@ -316,7 +319,7 @@ export const useDJStore = create<DJState>((set, get) => ({
           [deckState]: {
             ...state[deckState],
             track: trackWithBPM,
-            isPlaying: false,
+            isPlaying: engine.isPlaying, // Use engine's actual playing state
             bpmInfo,
             gridPosition
           }
