@@ -33,6 +33,12 @@ export class DeckAudioEngine {
   private scheduledStartTime: number = 0;
   private scheduledOffset: number = 0;
 
+  // Scrubbing state
+  private isScrubbing: boolean = false;
+  private scrubStartTime: number = 0;
+  private scrubStartPosition: number = 0;
+  private wasPlayingBeforeScrub: boolean = false;
+
   constructor() {
     // Initialize audio chain
     this.gain = new Tone.Gain(0.75);
@@ -327,38 +333,75 @@ export class DeckAudioEngine {
   }
 
   /**
-   * 🎛️ ENHANCED SCRUBBING: Proper directional scrubbing with audio feedback
+   * 🎛️ FIXED SCRUBBING: Proper directional scrubbing with temporary playback rate changes
    */
   scrub(velocity: number) {
-    if (this.player && this.isLoaded) {
-      const currentTime = this.getCurrentTime();
+    if (!this.player || !this.isLoaded) return;
+
+    const currentTime = this.getCurrentTime();
+    
+    if (!this.isScrubbing) {
+      // Start scrubbing
+      this.isScrubbing = true;
+      this.scrubStartTime = Tone.now();
+      this.scrubStartPosition = currentTime;
+      this.wasPlayingBeforeScrub = this.isPlaying;
       
-      // Enhanced scrub sensitivity and range
-      const scrubSensitivity = 0.05; // Reduced for finer control
-      const scrubAmount = velocity * scrubSensitivity;
+      console.log(`🎛️ Scrub started at ${currentTime.toFixed(3)}s`);
+    }
+
+    // Calculate scrub sensitivity and direction
+    const scrubSensitivity = 2.0; // Increased for more responsive scrubbing
+    const scrubRate = 1 + (velocity * scrubSensitivity);
+    
+    // Apply temporary playback rate change for scrubbing effect
+    if (this.player && this.isPlaying) {
+      // Clamp scrub rate to reasonable bounds
+      const clampedRate = Math.max(0.1, Math.min(4.0, scrubRate));
+      this.player.playbackRate = this.basePlaybackRate * clampedRate;
+      
+      console.log(`🎛️ Scrubbing at ${clampedRate.toFixed(3)}x rate (velocity: ${velocity.toFixed(3)})`);
+    } else {
+      // If not playing, just update position
+      const scrubAmount = velocity * 0.1; // Reduced for finer control when not playing
       const newTime = Math.max(0, Math.min(currentTime + scrubAmount, this.trackDuration));
-      
-      // Update position
       this.pausedAt = newTime;
-      this.isGridAligned = false; // Lose grid alignment when scrubbing
-      this.isQueued = false;
       
-      // If playing, update the playback position in real-time
-      if (this.isPlaying) {
-        // Stop current playback
-        this.player.stop();
-        
-        // Start from new position immediately using current transport time
-        const startTime = Tone.Transport.now();
-        this.player.start(startTime, newTime);
-        this.startTime = startTime - newTime;
-        this.scheduledOffset = newTime;
-        
-        console.log(`🎛️ Live scrub to ${newTime.toFixed(3)}s (velocity: ${velocity.toFixed(3)}) at transport ${startTime.toFixed(3)}s`);
-      } else {
-        // When not playing, just update the position
-        console.log(`🎛️ Scrub to ${newTime.toFixed(3)}s (velocity: ${velocity.toFixed(3)})`);
-      }
+      console.log(`🎛️ Scrub position to ${newTime.toFixed(3)}s (not playing)`);
+    }
+
+    // Reset grid alignment during scrubbing
+    this.isGridAligned = false;
+    this.isQueued = false;
+
+    // Auto-stop scrubbing after a short delay
+    if (this.tempoBendTimeout) {
+      clearTimeout(this.tempoBendTimeout);
+    }
+    
+    this.tempoBendTimeout = setTimeout(() => {
+      this.stopScrubbing();
+    }, 100);
+  }
+
+  /**
+   * Stop scrubbing and return to normal playback
+   */
+  private stopScrubbing() {
+    if (!this.isScrubbing) return;
+    
+    this.isScrubbing = false;
+    
+    // Restore normal playback rate
+    if (this.player && this.isPlaying) {
+      this.player.playbackRate = this.basePlaybackRate;
+      console.log(`🎛️ Scrub ended, restored to ${this.basePlaybackRate.toFixed(3)}x rate`);
+    }
+    
+    // Clear timeout
+    if (this.tempoBendTimeout) {
+      clearTimeout(this.tempoBendTimeout);
+      this.tempoBendTimeout = null;
     }
   }
 
