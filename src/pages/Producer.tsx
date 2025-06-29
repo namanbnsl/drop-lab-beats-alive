@@ -25,8 +25,8 @@ const Producer = () => {
   const [masterVolume, setMasterVolume] = useState(75);
 
   // FX state
-  const [reverbAmount, setReverbAmount] = useState(0.3);
-  const [delayAmount, setDelayAmount] = useState(0.2);
+  const [reverbAmount, setReverbAmount] = useState(0);
+  const [delayAmount, setDelayAmount] = useState(0);
 
   // Export state
   const [hasGeneratedContent, setHasGeneratedContent] = useState(false);
@@ -46,6 +46,11 @@ const Producer = () => {
   const hihatSynthRef = useRef<Tone.MetalSynth | null>(null);
   const crashSynthRef = useRef<Tone.MetalSynth | null>(null);
   const melodySynthRef = useRef<Tone.PolySynth | null>(null);
+
+  // FX refs for proper audio routing
+  const reverbRef = useRef<Tone.Reverb | null>(null);
+  const delayRef = useRef<Tone.FeedbackDelay | null>(null);
+  const masterGainRef = useRef<Tone.Gain | null>(null);
 
   // Sequencer refs
   const sequencerRef = useRef<Tone.Sequence | null>(null);
@@ -68,22 +73,56 @@ const Producer = () => {
     setHasGeneratedContent(hasDrums || hasMelody);
   }, [drumPattern, melodyNotes]);
 
-  // Initialize all synths once
+  // FX Control Effects - Apply FX changes in real-time
+  useEffect(() => {
+    if (reverbRef.current && audioUnlocked) {
+      reverbRef.current.wet.rampTo(reverbAmount, 0.1);
+      console.log(`🎛️ Reverb updated: ${Math.round(reverbAmount * 100)}%`);
+    }
+  }, [reverbAmount, audioUnlocked]);
+
+  useEffect(() => {
+    if (delayRef.current && audioUnlocked) {
+      delayRef.current.wet.rampTo(delayAmount, 0.1);
+      console.log(`🎛️ Delay updated: ${Math.round(delayAmount * 100)}%`);
+    }
+  }, [delayAmount, audioUnlocked]);
+
+  useEffect(() => {
+    if (masterGainRef.current && audioUnlocked) {
+      masterGainRef.current.gain.rampTo(masterVolume / 100, 0.1);
+    }
+  }, [masterVolume, audioUnlocked]);
+
+  // Initialize all synths and FX chain once
   useEffect(() => {
     const initializeSynths = () => {
       try {
-        // Initialize drum synths
+        // Initialize FX chain first
+        masterGainRef.current = new Tone.Gain(0.75);
+        reverbRef.current = new Tone.Reverb(2);
+        delayRef.current = new Tone.FeedbackDelay('8n', 0.3);
+
+        // Connect FX chain: Reverb -> Delay -> Master Gain -> Output
+        reverbRef.current.chain(delayRef.current, masterGainRef.current);
+        masterGainRef.current.toDestination();
+
+        // Set initial FX values
+        reverbRef.current.wet.value = 0;
+        delayRef.current.wet.value = 0;
+
+        // Initialize drum synths and connect to FX chain
         kickSynthRef.current = new Tone.MembraneSynth({
           pitchDecay: 0.05,
           octaves: 10,
           oscillator: { type: 'sine' },
           envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
-        }).toDestination();
+        }).connect(reverbRef.current);
 
         snareSynthRef.current = new Tone.NoiseSynth({
           noise: { type: 'white' },
           envelope: { attack: 0.005, decay: 0.1, sustain: 0.0, release: 0.4 }
-        }).toDestination();
+        }).connect(reverbRef.current);
 
         hihatSynthRef.current = new Tone.MetalSynth({
           envelope: { attack: 0.001, decay: 0.1, sustain: 0.0, release: 0.01 },
@@ -91,7 +130,7 @@ const Producer = () => {
           modulationIndex: 32,
           resonance: 4000,
           octaves: 1.5
-        }).toDestination();
+        }).connect(reverbRef.current);
 
         crashSynthRef.current = new Tone.MetalSynth({
           envelope: { attack: 0.001, decay: 0.4, sustain: 0.0, release: 0.8 },
@@ -99,30 +138,34 @@ const Producer = () => {
           modulationIndex: 32,
           resonance: 4000,
           octaves: 1.5
-        }).toDestination();
+        }).connect(reverbRef.current);
 
-        // Initialize melody synth
+        // Initialize melody synth and connect to FX chain
         melodySynthRef.current = new Tone.PolySynth(Tone.Synth, {
           oscillator: { type: 'triangle' },
           envelope: { attack: 0.1, decay: 0.2, sustain: 0.3, release: 0.8 }
-        }).toDestination();
+        }).connect(reverbRef.current);
 
-        console.log('All synths initialized successfully');
+        console.log('✅ All synths and FX chain initialized successfully');
+        console.log('🎛️ Audio routing: Synths → Reverb → Delay → Master Gain → Output');
       } catch (error) {
-        console.error('Failed to initialize synths:', error);
-        setAudioError('Failed to initialize audio synths');
+        console.error('Failed to initialize synths and FX:', error);
+        setAudioError('Failed to initialize audio synths and effects');
       }
     };
 
     initializeSynths();
 
     return () => {
-      // Cleanup synths on unmount
+      // Cleanup synths and FX on unmount
       if (kickSynthRef.current) kickSynthRef.current.dispose();
       if (snareSynthRef.current) snareSynthRef.current.dispose();
       if (hihatSynthRef.current) hihatSynthRef.current.dispose();
       if (crashSynthRef.current) crashSynthRef.current.dispose();
       if (melodySynthRef.current) melodySynthRef.current.dispose();
+      if (reverbRef.current) reverbRef.current.dispose();
+      if (delayRef.current) delayRef.current.dispose();
+      if (masterGainRef.current) masterGainRef.current.dispose();
     };
   }, []);
 
@@ -386,6 +429,14 @@ const Producer = () => {
     return `${bar}.${beat}`;
   };
 
+  // Get FX status for display
+  const getFXStatus = () => {
+    const fxActive = [];
+    if (reverbAmount > 0.1) fxActive.push('REV');
+    if (delayAmount > 0.1) fxActive.push('DLY');
+    return fxActive.join(' + ');
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -563,6 +614,16 @@ const Producer = () => {
               {getCurrentBeatDisplay()}
             </span>
           </div>
+
+          {/* FX Status Indicator */}
+          {getFXStatus() && (
+            <div className="flex items-center gap-2">
+              <span className="text-white">FX:</span>
+              <span className="text-green-400 font-mono">
+                {getFXStatus()}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
