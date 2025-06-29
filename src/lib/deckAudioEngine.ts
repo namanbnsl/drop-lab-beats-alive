@@ -31,6 +31,7 @@ export class DeckAudioEngine {
   private audioBuffer: AudioBuffer | null = null;
   private waveformData: Float32Array | null = null;
   private scheduledStartTime: number = 0;
+  private scheduledOffset: number = 0;
 
   constructor() {
     // Initialize audio chain
@@ -89,6 +90,7 @@ export class DeckAudioEngine {
       this.isPlaying = false;
       this.pausedAt = 0;
       this.cuePoint = 0;
+      this.scheduledOffset = 0;
 
       // Use user-defined BPM and auto-sync to 128 BPM
       this.originalBPM = userDefinedBPM;
@@ -258,12 +260,17 @@ export class DeckAudioEngine {
         const currentBar = Math.floor(currentTime / barDuration);
         const nextBarTime = (currentBar + 1) * barDuration;
         
-        // Schedule start at next bar
-        this.scheduledStartTime = nextBarTime;
-        this.player.start(nextBarTime, this.pausedAt);
-        this.startTime = nextBarTime - this.pausedAt;
+        // Ensure the scheduled time is in the future
+        const minStartTime = Tone.Transport.now() + 0.01; // Add small buffer
+        const scheduledTime = Math.max(nextBarTime, minStartTime);
         
-        console.log(`⚡ Beat-sync play scheduled for next bar: ${nextBarTime.toFixed(3)}s (in ${(nextBarTime - currentTime).toFixed(3)}s)`);
+        // Schedule start at next bar or immediately if time has passed
+        this.scheduledStartTime = scheduledTime;
+        this.scheduledOffset = this.pausedAt;
+        this.player.start(scheduledTime, this.pausedAt);
+        this.startTime = scheduledTime - this.pausedAt;
+        
+        console.log(`⚡ Beat-sync play scheduled for: ${scheduledTime.toFixed(3)}s (transport: ${Tone.Transport.now().toFixed(3)}s)`);
         
         this.isQueued = false;
         this.isPlaying = true;
@@ -271,12 +278,15 @@ export class DeckAudioEngine {
       } else {
         // Traditional play from current position
         const startPosition = fromCue ? this.cuePoint : this.pausedAt;
-        this.startTime = Tone.now() - startPosition;
-        this.player.start(0, startPosition);
+        const startTime = Tone.Transport.now();
+        
+        this.startTime = startTime - startPosition;
+        this.scheduledOffset = startPosition;
+        this.player.start(startTime, startPosition);
         this.isPlaying = true;
         this.isGridAligned = false; // No longer grid-aligned after manual play
         
-        console.log(`▶️ Manual play from ${startPosition.toFixed(2)}s`);
+        console.log(`▶️ Manual play from ${startPosition.toFixed(2)}s at transport time ${startTime.toFixed(3)}s`);
       }
       
       const bpmInfo = this.getBPMInfo();
@@ -338,11 +348,13 @@ export class DeckAudioEngine {
         // Stop current playback
         this.player.stop();
         
-        // Start from new position immediately
-        this.player.start(0, newTime);
-        this.startTime = Tone.now() - newTime;
+        // Start from new position immediately using current transport time
+        const startTime = Tone.Transport.now();
+        this.player.start(startTime, newTime);
+        this.startTime = startTime - newTime;
+        this.scheduledOffset = newTime;
         
-        console.log(`🎛️ Live scrub to ${newTime.toFixed(3)}s (velocity: ${velocity.toFixed(3)})`);
+        console.log(`🎛️ Live scrub to ${newTime.toFixed(3)}s (velocity: ${velocity.toFixed(3)}) at transport ${startTime.toFixed(3)}s`);
       } else {
         // When not playing, just update the position
         console.log(`🎛️ Scrub to ${newTime.toFixed(3)}s (velocity: ${velocity.toFixed(3)})`);
@@ -387,7 +399,7 @@ export class DeckAudioEngine {
   getCurrentTime(): number {
     if (this.player && this.isLoaded) {
       if (this.isPlaying) {
-        return (Tone.now() - this.startTime) * this.basePlaybackRate;
+        return (Tone.Transport.now() - this.startTime) * this.basePlaybackRate;
       } else {
         return this.pausedAt;
       }
