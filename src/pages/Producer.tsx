@@ -143,22 +143,22 @@ const Producer = () => {
     }
   }, [effectiveMasterVolume, masterMuted, audioUnlocked]);
 
-  // FIXED: FX Control Effects - Apply FX changes in real-time with proper values
+  // FIXED: FX Control Effects - Apply FX changes in real-time with BOOSTED values
   useEffect(() => {
     if (reverbRef.current && audioUnlocked) {
-      // Convert 0-100 to 0-1 for wet amount
-      const wetAmount = reverbAmount / 100;
+      // BOOSTED: Convert 0-100 to 0-1 for wet amount with 3x multiplier for more audible reverb
+      const wetAmount = Math.min(1, (reverbAmount / 100) * 3);
       reverbRef.current.wet.rampTo(wetAmount, 0.1);
-      console.log(`🎛️ Reverb: ${reverbAmount}% (wet: ${wetAmount.toFixed(2)})`);
+      console.log(`🎛️ Reverb: ${reverbAmount}% (wet: ${wetAmount.toFixed(2)} - BOOSTED)`);
     }
   }, [reverbAmount, audioUnlocked]);
 
   useEffect(() => {
     if (delayRef.current && audioUnlocked) {
-      // Convert 0-100 to 0-1 for wet amount
-      const wetAmount = delayAmount / 100;
+      // BOOSTED: Convert 0-100 to 0-1 for wet amount with 2.5x multiplier for more audible delay
+      const wetAmount = Math.min(1, (delayAmount / 100) * 2.5);
       delayRef.current.wet.rampTo(wetAmount, 0.1);
-      console.log(`🎛️ Delay: ${delayAmount}% (wet: ${wetAmount.toFixed(2)})`);
+      console.log(`🎛️ Delay: ${delayAmount}% (wet: ${wetAmount.toFixed(2)} - BOOSTED)`);
     }
   }, [delayAmount, audioUnlocked]);
 
@@ -192,7 +192,7 @@ const Producer = () => {
     }
   }, [filterAmount, audioUnlocked]);
 
-  // FIXED: Initialize audio system with proper effects routing
+  // FIXED: Initialize audio system with BOOSTED effects settings
   const initializeSynths = () => {
     // Create master gain for overall volume control
     masterGainRef.current = new Tone.Gain(0.75).toDestination();
@@ -201,16 +201,16 @@ const Producer = () => {
     drumGainRef.current = new Tone.Gain(0.8).connect(masterGainRef.current);
     melodyGainRef.current = new Tone.Gain(0.7).connect(masterGainRef.current); // DRY path
 
-    // FIXED: Create FX chain (WET path) - properly connected
+    // FIXED: Create FX chain (WET path) with BOOSTED settings for audibility
     reverbRef.current = new Tone.Reverb({
-      roomSize: 0.8,
-      dampening: 3000,
+      roomSize: 0.9,      // BOOSTED: Larger room for more reverb
+      dampening: 1000,    // BOOSTED: Less dampening for longer reverb tail
       wet: 0
     }).connect(masterGainRef.current);
 
     delayRef.current = new Tone.FeedbackDelay({
       delayTime: "8n",
-      feedback: 0.4,
+      feedback: 0.6,      // BOOSTED: More feedback for more audible delay
       wet: 0
     }).connect(reverbRef.current);
 
@@ -267,8 +267,9 @@ const Producer = () => {
     melodySynthRef.current.connect(melodyGainRef.current);    // DRY path (controlled by melody volume)
     melodySynthRef.current.connect(melodyWetGainRef.current); // WET path (controlled by FX volume)
 
-    console.log("🎵 Audio system initialized with working effects chain!");
+    console.log("🎵 Audio system initialized with BOOSTED effects for better audibility!");
     console.log("🎛️ Effects order: Melody → Filter → Distortion → Delay → Reverb → Master");
+    console.log("🔊 Reverb & Delay are now 3x and 2.5x louder respectively!");
   };
 
   // Unlock audio context
@@ -530,12 +531,12 @@ const Producer = () => {
             onFxVolumeChange={setFxVolume}
             onMasterVolumeChange={setMasterVolume}
             drumsMuted={drumsMuted}
-            drumsSolo={drumsSolo}
             melodyMuted={melodyMuted}
-            melodySolo={melodySolo}
             fxMuted={fxMuted}
-            fxSolo={fxSolo}
             masterMuted={masterMuted}
+            drumsSolo={drumsSolo}
+            melodySolo={melodySolo}
+            fxSolo={fxSolo}
             onDrumsMuteChange={setDrumsMuted}
             onDrumsSoloChange={setDrumsSolo}
             onMelodyMuteChange={setMelodyMuted}
