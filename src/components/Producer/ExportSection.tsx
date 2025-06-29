@@ -167,10 +167,6 @@ const ExportSection: React.FC<ExportSectionProps> = ({
     }
   };
 
-  const handleSendToDJ = () => {
-    navigate('/dj');
-  };
-
   // Cleanup on unmount
   React.useEffect(() => {
     return () => {
@@ -201,7 +197,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
         </p>
         
         <p className="text-base sm:text-lg text-gray-400 mb-8 sm:mb-12">
-          Export your masterpiece or take it straight to the DJ booth
+          Export your masterpiece
         </p>
 
         {/* Status Messages */}
@@ -356,31 +352,6 @@ const ExportSection: React.FC<ExportSectionProps> = ({
               </span>
             </motion.button>
           </motion.div>
-
-          {/* Send to DJ Mode */}
-          <div className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30">
-            <div className="mb-4 sm:mb-6">
-              <Headphones className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-2">DJ Mode</h3>
-              <p className="text-gray-400 text-xs sm:text-sm">Take your track straight to the decks</p>
-              <p className="text-purple-400 text-xs mt-1">
-                Professional mixing
-              </p>
-            </div>
-            
-            <motion.button
-              onClick={handleSendToDJ}
-              className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-purple-500 rounded-full font-semibold text-white hover:from-purple-500 hover:to-purple-400 transition-all duration-300 shadow-lg shadow-purple-500/25 text-xs sm:text-sm touch-manipulation"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <span className="flex items-center gap-2 justify-center">
-                <Send className="w-3 h-3 sm:w-4 sm:h-4" />
-                Enter DJ Booth
-              </span>
-            </motion.button>
-          </div>
-        </div>
 
         {/* Content Status */}
         {!hasGeneratedContent && (
