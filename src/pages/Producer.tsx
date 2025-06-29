@@ -69,7 +69,6 @@ const Producer = () => {
   // Individual track gain refs for mixer control
   const drumGainRef = useRef<Tone.Gain | null>(null);
   const melodyGainRef = useRef<Tone.Gain | null>(null);
-  const fxGainRef = useRef<Tone.Gain | null>(null);
 
   // FIXED: Separate wet gain for FX send control
   const melodyWetGainRef = useRef<Tone.Gain | null>(null);
