@@ -229,46 +229,67 @@ export const useDJStore = create<DJState>((set, get) => ({
     }
   },
 
+  // FIXED: Simplified play/pause logic with immediate state synchronization
   playDeck: (deck) => {
     const state = get();
-    if (!state.audioUnlocked) return;
+    if (!state.audioUnlocked) {
+      console.log(`🔒 Audio not unlocked, cannot play Deck ${deck}`);
+      return;
+    }
 
     const engine = deck === 'A' ? state.deckA : state.deckB;
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
 
-    if (engine && engine.isLoaded && !engine.isPlaying) {
-      // Start playback
+    if (engine && engine.isLoaded) {
+      console.log(`▶️ Playing Deck ${deck} - Engine loaded: ${engine.isLoaded}, Current state: ${engine.isPlaying}`);
+      
+      // Call engine play method
       engine.play();
-      // After play, update UI state to match engine
+      
+      // FIXED: Immediately update state to match engine
       set({
         [deckState]: {
           ...state[deckState],
-          isPlaying: engine.isPlaying,
+          isPlaying: true, // Set to true immediately
           bpmInfo: engine.getBPMInfo(),
           gridPosition: engine.getGridPosition(),
         },
       });
+      
+      console.log(`✅ Deck ${deck} play command sent - UI state updated to playing`);
+    } else {
+      console.log(`❌ Cannot play Deck ${deck} - Engine: ${!!engine}, Loaded: ${engine?.isLoaded}`);
     }
   },
 
   pauseDeck: (deck) => {
     const state = get();
-    if (!state.audioUnlocked) return;
+    if (!state.audioUnlocked) {
+      console.log(`🔒 Audio not unlocked, cannot pause Deck ${deck}`);
+      return;
+    }
 
     const engine = deck === 'A' ? state.deckA : state.deckB;
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
 
-    if (engine && engine.isLoaded && engine.isPlaying) {
-      // Pause playback
+    if (engine && engine.isLoaded) {
+      console.log(`⏸️ Pausing Deck ${deck} - Engine loaded: ${engine.isLoaded}, Current state: ${engine.isPlaying}`);
+      
+      // Call engine pause method
       engine.pause();
-      // After pause, update UI state to match engine
+      
+      // FIXED: Immediately update state to match engine
       set({
         [deckState]: {
           ...state[deckState],
-          isPlaying: engine.isPlaying,
+          isPlaying: false, // Set to false immediately
           gridPosition: engine.getGridPosition(),
         },
       });
+      
+      console.log(`✅ Deck ${deck} pause command sent - UI state updated to paused`);
+    } else {
+      console.log(`❌ Cannot pause Deck ${deck} - Engine: ${!!engine}, Loaded: ${engine?.isLoaded}`);
     }
   },
 
@@ -317,7 +338,7 @@ export const useDJStore = create<DJState>((set, get) => ({
           [deckState]: {
             ...state[deckState],
             track: trackWithBPM,
-            isPlaying: engine.isPlaying, // Use engine's actual playing state
+            isPlaying: false, // Always start as paused when loading
             bpmInfo,
             gridPosition
           }
