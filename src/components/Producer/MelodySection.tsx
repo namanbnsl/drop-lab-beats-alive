@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, RefreshCw, Volume2, Save, Music } from 'lucide-react';
+import { Play, RefreshCw, Volume2, Save, FolderOpen, Music } from 'lucide-react';
+import { toast } from 'sonner';
 import * as Tone from 'tone';
 
 interface Note {
@@ -68,6 +69,7 @@ const MelodySection: React.FC<MelodySectionProps> = ({
 
   const clearMelody = () => {
     onNotesChange([]);
+    toast.success("Melody cleared successfully!");
   };
 
   const randomizeMelody = () => {
@@ -87,21 +89,90 @@ const MelodySection: React.FC<MelodySectionProps> = ({
     }
 
     onNotesChange(newNotes);
+    toast.success(`Melody randomized! (${newNotes.length} notes in ${key} ${scale})`);
   };
 
   const saveMelody = () => {
-    const melodyData = JSON.stringify({ notes, key, scale, octave });
-    localStorage.setItem('melodyData', melodyData);
+    try {
+      if (notes.length === 0) {
+        toast.error("Cannot save empty melody. Add some notes first!");
+        return;
+      }
+
+      const melodyData = {
+        notes,
+        key,
+        scale,
+        octave,
+        tempo,
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      };
+
+      localStorage.setItem('melodyData', JSON.stringify(melodyData));
+      
+      toast.success(`Melody saved! (${notes.length} notes in ${key} ${scale} at ${tempo} BPM)`);
+      console.log('✅ Melody saved to localStorage:', melodyData);
+    } catch (error) {
+      console.error('Failed to save melody:', error);
+      toast.error("Failed to save melody. Please try again.");
+    }
   };
 
   const loadMelody = () => {
-    const saved = localStorage.getItem('melodyData');
-    if (saved) {
-      const data = JSON.parse(saved);
-      onNotesChange(data.notes || []);
-      setKey(data.key || 'C');
-      setScale(data.scale || 'major');
-      setOctave(data.octave || 4);
+    try {
+      const saved = localStorage.getItem('melodyData');
+      
+      if (!saved) {
+        toast.error("No saved melody found!");
+        return;
+      }
+
+      const savedData = JSON.parse(saved);
+      
+      // Handle both old format (just data) and new format (with metadata)
+      let loadedNotes = savedData.notes || [];
+      let loadedKey = savedData.key || 'C';
+      let loadedScale = savedData.scale || 'major';
+      let loadedOctave = savedData.octave || 4;
+      let loadedTempo = savedData.tempo || tempo;
+
+      // Validate notes structure
+      const isValidNotes = Array.isArray(loadedNotes) && loadedNotes.every(note => 
+        typeof note === 'object' && 
+        typeof note.pitch === 'number' &&
+        typeof note.velocity === 'number' &&
+        typeof note.startTime === 'number' &&
+        typeof note.duration === 'number'
+      );
+
+      if (!isValidNotes) {
+        toast.error("Saved melody is corrupted or invalid!");
+        return;
+      }
+
+      // Validate other parameters
+      if (!keys.includes(loadedKey)) loadedKey = 'C';
+      if (!scales.includes(loadedScale)) loadedScale = 'major';
+      if (!octaves.includes(loadedOctave)) loadedOctave = 4;
+
+      onNotesChange(loadedNotes);
+      setKey(loadedKey);
+      setScale(loadedScale);
+      setOctave(loadedOctave);
+      onTempoChange(loadedTempo);
+      
+      toast.success(`Melody loaded! (${loadedNotes.length} notes in ${loadedKey} ${loadedScale} at ${loadedTempo} BPM)`);
+      console.log('✅ Melody loaded from localStorage:', {
+        notes: loadedNotes,
+        key: loadedKey,
+        scale: loadedScale,
+        octave: loadedOctave,
+        tempo: loadedTempo
+      });
+    } catch (error) {
+      console.error('Failed to load melody:', error);
+      toast.error("Failed to load melody. The saved data may be corrupted.");
     }
   };
 
@@ -297,7 +368,7 @@ const MelodySection: React.FC<MelodySectionProps> = ({
         <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-6 sm:mb-8">
           <button
             onClick={randomizeMelody}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation flex items-center gap-2"
           >
             🎲 Randomize
           </button>
@@ -309,15 +380,17 @@ const MelodySection: React.FC<MelodySectionProps> = ({
           </button>
           <button
             onClick={saveMelody}
-            className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation"
+            className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation flex items-center gap-2"
           >
-            💾 Save
+            <Save className="w-4 h-4" />
+            Save
           </button>
           <button
             onClick={loadMelody}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation"
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation flex items-center gap-2"
           >
-            📂 Load
+            <FolderOpen className="w-4 h-4" />
+            Load
           </button>
         </div>
 

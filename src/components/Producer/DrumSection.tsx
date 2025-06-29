@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, RefreshCw, Volume2, Save } from 'lucide-react';
+import { Play, RefreshCw, Volume2, Save, FolderOpen, AlertCircle, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface DrumPattern {
   kick: boolean[];
@@ -46,6 +47,7 @@ const DrumSection: React.FC<DrumSectionProps> = ({
       crash: new Array(16).fill(false)
     };
     onPatternChange(newPattern);
+    toast.success("Pattern cleared successfully!");
   };
 
   const randomizePattern = () => {
@@ -56,18 +58,86 @@ const DrumSection: React.FC<DrumSectionProps> = ({
       crash: Array.from({ length: 16 }, () => Math.random() > 0.9)
     };
     onPatternChange(newPattern);
+    toast.success("Pattern randomized!");
   };
 
   const savePattern = () => {
-    const patternData = JSON.stringify(pattern);
-    localStorage.setItem('drumPattern', patternData);
+    try {
+      // Check if pattern has any active steps
+      const hasActiveSteps = Object.values(pattern).some(drumTrack => 
+        drumTrack.some(step => step)
+      );
+
+      if (!hasActiveSteps) {
+        toast.error("Cannot save empty pattern. Add some drum hits first!");
+        return;
+      }
+
+      const patternData = {
+        pattern,
+        tempo,
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      };
+
+      localStorage.setItem('drumPattern', JSON.stringify(patternData));
+      
+      const totalHits = Object.values(pattern).reduce((total, drumTrack) => 
+        total + drumTrack.filter(Boolean).length, 0
+      );
+
+      toast.success(`Drum pattern saved! (${totalHits} hits at ${tempo} BPM)`);
+      console.log('✅ Drum pattern saved to localStorage:', patternData);
+    } catch (error) {
+      console.error('Failed to save drum pattern:', error);
+      toast.error("Failed to save pattern. Please try again.");
+    }
   };
 
   const loadPattern = () => {
-    const saved = localStorage.getItem('drumPattern');
-    if (saved) {
-      const loadedPattern = JSON.parse(saved);
+    try {
+      const saved = localStorage.getItem('drumPattern');
+      
+      if (!saved) {
+        toast.error("No saved drum pattern found!");
+        return;
+      }
+
+      const savedData = JSON.parse(saved);
+      
+      // Handle both old format (just pattern) and new format (with metadata)
+      let loadedPattern = savedData;
+      let loadedTempo = tempo;
+      
+      if (savedData.pattern) {
+        // New format with metadata
+        loadedPattern = savedData.pattern;
+        loadedTempo = savedData.tempo || tempo;
+      }
+
+      // Validate pattern structure
+      const requiredKeys = ['kick', 'snare', 'hihat', 'crash'];
+      const isValidPattern = requiredKeys.every(key => 
+        Array.isArray(loadedPattern[key]) && loadedPattern[key].length === 16
+      );
+
+      if (!isValidPattern) {
+        toast.error("Saved pattern is corrupted or invalid!");
+        return;
+      }
+
       onPatternChange(loadedPattern);
+      onTempoChange(loadedTempo);
+      
+      const totalHits = Object.values(loadedPattern).reduce((total: number, drumTrack: boolean[]) => 
+        total + drumTrack.filter(Boolean).length, 0
+      );
+
+      toast.success(`Drum pattern loaded! (${totalHits} hits at ${loadedTempo} BPM)`);
+      console.log('✅ Drum pattern loaded from localStorage:', { loadedPattern, loadedTempo });
+    } catch (error) {
+      console.error('Failed to load drum pattern:', error);
+      toast.error("Failed to load pattern. The saved data may be corrupted.");
     }
   };
 
@@ -185,21 +255,23 @@ const DrumSection: React.FC<DrumSectionProps> = ({
             <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-4">
               <button
                 onClick={randomizePattern}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation flex items-center gap-2"
               >
                 🎲 Randomize
               </button>
               <button
                 onClick={savePattern}
-                className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation"
+                className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation flex items-center gap-2"
               >
-                💾 Save
+                <Save className="w-4 h-4" />
+                Save
               </button>
               <button
                 onClick={loadPattern}
-                className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation"
+                className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation flex items-center gap-2"
               >
-                📂 Load
+                <FolderOpen className="w-4 h-4" />
+                Load
               </button>
             </div>
           </div>
