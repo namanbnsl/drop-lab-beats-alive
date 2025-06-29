@@ -5,12 +5,12 @@ import CDJDeck from '../components/DJ/CDJDeck';
 import MixerPanel from '../components/DJ/MixerPanel';
 import TrackLibrary from '../components/DJ/TrackLibrary';
 import FirstTimeOverlay from '../components/DJ/FirstTimeOverlay';
-import { Disc3, ArrowLeft, Zap, AlertCircle } from 'lucide-react';
+import { Disc3, ArrowLeft, Zap, AlertCircle, Sparkles, X } from 'lucide-react';
 import { useDJStore } from '../stores/djStore';
 
 const DJ = () => {
   const navigate = useNavigate();
-  const [showLibrary, setShowLibrary] = useState(true);
+  const [showLibrary, setShowLibrary] = useState(false);
   const [showFirstTime, setShowFirstTime] = useState(false);
 
   const { cleanup, audioUnlocked, audioError } = useDJStore();
@@ -36,35 +36,55 @@ const DJ = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-['Poppins'] overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-blue-900/30">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="font-semibold">Back to Home</span>
-          </button>
-        </div>
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-          DropLab DJ
-        </h1>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowLibrary(!showLibrary)}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${showLibrary
-                ? 'bg-blue-600 border-blue-400 text-white'
-                : 'border-blue-500/30 hover:border-blue-500 text-blue-400'
-              }`}
-          >
-            Library
-          </button>
-        </div>
+    <div className="min-h-screen bg-black text-white font-handwritten overflow-hidden relative grid-bg text-white">
+      {/* Scattered decorative elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="scattered-icon top-10 left-10">🎵</div>
+        <div className="scattered-icon top-20 right-20">🎶</div>
+        <div className="scattered-icon bottom-20 left-20">🎸</div>
+        <div className="scattered-icon bottom-10 right-10">🎹</div>
+        <div className="scattered-icon top-1/2 left-5">🎤</div>
+        <div className="scattered-icon top-1/3 right-5">🎧</div>
+        <div className="scattered-icon top-3/4 left-1/4">💿</div>
+        <div className="scattered-icon bottom-1/3 right-1/4">🎚️</div>
       </div>
 
-      {/* Audio Status Indicators */}
+      {/* Hand-drawn background elements */}
+      <div className="fixed inset-0 pointer-events-none opacity-10">
+        <svg className="absolute inset-0 w-full h-full">
+          <g className="animate-pulse">
+            <path
+              d="M100,100 Q120,80 140,100 Q160,120 180,100"
+              stroke="#10b981"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+            />
+            <circle cx="200" cy="110" r="6" fill="#f59e0b" />
+            <path
+              d="M300,200 Q320,180 340,200 Q360,220 380,200"
+              stroke="#3b82f6"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+            />
+          </g>
+        </svg>
+      </div>
+
+      {/* Header */}
+      <div className="absolute top-4 left-4 z-50">
+        <button
+          onClick={() => navigate('/')}
+          className="btn-fun-secondary flex items-center gap-3 px-4 py-3 text-white/90 hover:text-white transition-all duration-300 animate-scale-in btn-glow btn-glow-blue"
+        >
+          <Disc3 className="w-6 h-6 animate-bounce-gentle" />
+          <span className="font-display font-bold text-lg text-white">DropLab</span>
+          <Sparkles className="w-4 h-4 animate-pulse-glow" />
+        </button>
+      </div>
+
+      {/* Audio Status Notifications */}
       {!audioUnlocked && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4 animate-slide-in-up">
           <div className="card-fun-dark p-4 border-2 border-yellow-400/50 max-w-sm">
@@ -91,30 +111,45 @@ const DJ = () => {
         </div>
       )}
 
-      {/* Main DJ Layout */}
-      <div className="flex-1 p-4">
-        {/* Decks and Mixer Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <CDJDeck side="A" />
-          <MixerPanel />
-          <CDJDeck side="B" />
-        </div>
-
-        {/* Track Library */}
-        <AnimatePresence>
-          {showLibrary && (
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              transition={{ duration: 0.3 }}
-              className="max-w-4xl mx-auto"
-            >
-              <TrackLibrary />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Library Toggle Button */}
+      <div className="absolute top-4 right-4 z-50 animate-slide-in-up">
+        <button
+          onClick={() => setShowLibrary(true)}
+          className={`btn-fun-secondary px-4 py-3 rounded-xl font-display font-semibold transition-all duration-300 touch-manipulation btn-glow text-white shadow-lg scale-105 btn-glow-blue`}
+        >
+          <span className="mr-2 text-lg">📚</span>
+          <span className="hidden sm:inline">Library</span>
+        </button>
       </div>
+
+      {/* Main DJ Layout */}
+      <div className="pt-32 pb-8 px-4 min-h-0 flex flex-col justify-start">
+        <div className="max-w-7xl mx-auto w-full">
+          {/* Decks and Mixer Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 animate-scale-in">
+            <CDJDeck side="A" />
+            <MixerPanel />
+            <CDJDeck side="B" />
+          </div>
+        </div>
+      </div>
+
+      {/* Track Library Popup Modal */}
+      {showLibrary && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/80" onClick={() => setShowLibrary(false)} />
+          {/* Modal Content */}
+          <div className="relative z-10 max-w-3xl w-full mx-auto">
+            <div className="absolute top-4 right-4">
+              <button onClick={() => setShowLibrary(false)} className="p-2 rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <TrackLibrary />
+          </div>
+        </div>
+      )}
 
       {/* First Time Overlay */}
       <FirstTimeOverlay

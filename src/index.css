@@ -556,10 +556,6 @@ html {
   }
 }
 
-.knob-glow {
-  box-shadow: 0 0 20px rgba(162, 89, 255, 0.5);
-}
-
 .gradient-bg {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
@@ -808,4 +804,9 @@ html {
 .card-btn-glow:hover {
   box-shadow: 0 0 25px rgba(102, 126, 234, 0.3);
   transform: translateY(-3px);
+}
+
+/* DJ Knob Vibe Enhancements */
+.knob-vibe {
+  position: relative;
 }

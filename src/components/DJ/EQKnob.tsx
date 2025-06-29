@@ -80,30 +80,26 @@ const EQKnob = ({ label, value, onChange, color = 'purple' }: EQKnobProps) => {
   return (
     <div className="flex flex-col items-center space-y-1">
       <motion.div
-        className="relative w-12 h-12 cursor-pointer"
-        whileHover={{ scale: 1.05 }}
+        className="relative w-12 h-12 cursor-pointer knob-vibe"
+        whileHover={{ scale: 1.08 }}
         animate={{
           boxShadow: isDragging
-            ? `0 0 15px rgba(162, 89, 255, 0.8)`
-            : '0 0 5px rgba(162, 89, 255, 0.3)'
+            ? `0 0 20px 4px rgba(59,130,246,0.5)`
+            : '0 0 8px 2px rgba(59,130,246,0.15)'
         }}
         onMouseDown={handleMouseDown}
         onWheel={handleWheel}
         title={`EQ control for ${label}`}
       >
-        {/* Knob background */}
-        <div className={`w-12 h-12 bg-gray-800 rounded-full border-2 shadow-lg transition-all ${isDragging ? getColorClass(color) + ' bg-gray-700' : 'border-gray-600 ' + getColorClass(color)
-          }`}>
-          {/* Knob indicator */}
+        {/* Knob background with gradient and animated glow */}
+        <div className={`w-12 h-12 rounded-full border-2 shadow-lg transition-all duration-200 bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 knob-glow ${isDragging ? getColorClass(color) + ' ring-2 ring-blue-400/60' : 'border-gray-600 ' + getColorClass(color)}`}>
+          {/* Knob indicator - bolder */}
           <div
-            className={`absolute top-1 left-1/2 w-1 h-4 rounded-full transform -translate-x-1/2 origin-bottom transition-all ${getIndicatorColor(color)
-              }`}
+            className={`absolute top-1 left-1/2 w-1.5 h-5 rounded-full transform -translate-x-1/2 origin-bottom transition-all ${getIndicatorColor(color)} knob-indicator`}
             style={{ transform: `translateX(-50%) rotate(${rotation}deg)` }}
           />
-
           {/* Center dot */}
-          <div className={`absolute top-1/2 left-1/2 w-1.5 h-1.5 rounded-full transform -translate-x-1/2 -translate-y-1/2 ${getIndicatorColor(color)
-            }`} />
+          <div className={`absolute top-1/2 left-1/2 w-2 h-2 rounded-full transform -translate-x-1/2 -translate-y-1/2 bg-blue-400/80 shadow-md`} />
         </div>
       </motion.div>
 

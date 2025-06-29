@@ -81,17 +81,17 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-gray-900 rounded-xl border border-blue-500/30 p-6 max-w-md w-full">
+            <div className="bg-transparent rounded-xl border border-blue-500/30 p-6 max-w-md w-full">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
-                  <div className="text-lg font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                  <div className="text-lg font-bold text-white">
                     {steps[currentStep].title}
                   </div>
                 </div>
                 <button
                   onClick={handleClose}
-                  className="p-1 text-gray-400 hover:text-white transition-colors"
+                  className="p-1 text-white hover:text-white transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -99,7 +99,7 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
 
               {/* Content */}
               <div className="mb-6">
-                <p className="text-gray-300 leading-relaxed">
+                <p className="text-white leading-relaxed">
                   {steps[currentStep].content}
                 </p>
               </div>
@@ -110,12 +110,12 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
                   {steps.map((_, index) => (
                     <div
                       key={index}
-                      className={`h-2 rounded-full flex-1 transition-colors ${index <= currentStep ? 'bg-blue-500' : 'bg-gray-700'
+                      className={`h-2 rounded-full flex-1 transition-colors ${index <= currentStep ? 'bg-blue-500' : 'bg-white/20'
                         }`}
                     />
                   ))}
                 </div>
-                <div className="text-xs text-gray-400 text-center mt-2">
+                <div className="text-xs text-white text-center mt-2">
                   {currentStep + 1} of {steps.length}
                 </div>
               </div>
@@ -125,7 +125,7 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
                 <button
                   onClick={handlePrev}
                   disabled={currentStep === 0}
-                  className="flex items-center gap-1 px-3 py-2 text-sm text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1 px-3 py-2 text-sm text-white hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Back
@@ -133,7 +133,7 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
 
                 <div className="flex items-center gap-3">
                   {currentStep === steps.length - 1 && (
-                    <label className="flex items-center gap-2 text-sm text-gray-400">
+                    <label className="flex items-center gap-2 text-sm text-white">
                       <input
                         type="checkbox"
                         checked={dontShowAgain}

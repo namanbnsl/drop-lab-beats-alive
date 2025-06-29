@@ -21,7 +21,7 @@ const MixerPanel = () => {
   };
 
   return (
-    <div className="bg-gray-900 rounded-xl p-6 border border-blue-500/30">
+    <div className="rounded-xl p-6 border border-blue-500/30 bg-transparent">
       <div className="text-center mb-6">
         <h3 className="text-lg font-bold text-blue-400">Mixer</h3>
       </div>
@@ -54,7 +54,7 @@ const MixerPanel = () => {
           </div>
 
           {/* FX Section */}
-          <div className="space-y-3">
+          <div className="space-y-3 mt-6">
             <EQKnob
               label="Filter"
               value={deckAState.fx.filter}
@@ -74,24 +74,17 @@ const MixerPanel = () => {
               color="purple"
             />
           </div>
-
-          {/* Volume Fader */}
-          <VolumeFader
-            deck="A"
-            value={deckAState.volume}
-            onChange={(value) => setVolume('A', value)}
-          />
         </div>
 
-        {/* Center section with waveform */}
-        <div className="flex-1 space-y-6">
+        {/* Center section with waveform and crossfader */}
+        <div className="flex-1 flex flex-col items-center space-y-6">
           {/* Waveform Display */}
-          <div>
+          <div className="w-full">
             <WaveformDisplay />
           </div>
 
           {/* Crossfader */}
-          <div className="space-y-2">
+          <div className="space-y-2 w-full">
             <div className="text-xs text-blue-400 text-center font-semibold">CROSSFADER</div>
             <div className="relative">
               <input
@@ -112,6 +105,12 @@ const MixerPanel = () => {
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1 w-1 h-4 bg-blue-400 rounded-full" />
               )}
             </div>
+          </div>
+
+          {/* Volume Faders - side by side under crossfader */}
+          <div className="flex flex-row items-end justify-center gap-12 mt-4 w-full">
+            <VolumeFader deck="A" value={deckAState.volume} onChange={(value) => setVolume('A', value)} />
+            <VolumeFader deck="B" value={deckBState.volume} onChange={(value) => setVolume('B', value)} />
           </div>
         </div>
 
@@ -142,7 +141,7 @@ const MixerPanel = () => {
           </div>
 
           {/* FX Section */}
-          <div className="space-y-3">
+          <div className="space-y-3 mt-6">
             <EQKnob
               label="Filter"
               value={deckBState.fx.filter}
@@ -162,13 +161,6 @@ const MixerPanel = () => {
               color="purple"
             />
           </div>
-
-          {/* Volume Fader */}
-          <VolumeFader
-            deck="B"
-            value={deckBState.volume}
-            onChange={(value) => setVolume('B', value)}
-          />
         </div>
       </div>
     </div>

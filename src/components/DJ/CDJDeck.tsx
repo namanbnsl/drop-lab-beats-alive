@@ -413,7 +413,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   }, [isDragging, lastAngleRef.current]);
 
   return (
-    <div className="bg-gray-900 rounded-xl p-6 border border-blue-500/30">
+    <div className="rounded-xl p-6 border border-blue-500/30 bg-transparent">
       <div className="text-center mb-4">
         <h3 className="text-lg font-bold text-blue-400">Deck {side}</h3>
       </div>
@@ -425,7 +425,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             ref={canvasRef}
             width={200}
             height={200}
-            className="rounded-full bg-gray-800 shadow-lg cursor-pointer select-none"
+            className="rounded-full shadow-lg cursor-pointer select-none bg-transparent"
             onMouseDown={handlePlatterMouseDown}
             onClick={handlePlatterClick}
             onWheel={handlePlatterWheel}

@@ -205,21 +205,21 @@ const TrackLibrary = () => {
   }, [previewAudio, uploadedTracks]);
 
   return (
-    <div className="bg-gray-900 rounded-xl p-6 border border-blue-500/30">
+    <div className="bg-transparent rounded-xl p-6 border border-blue-500/30">
       <div className="text-center mb-6">
-        <h3 className="text-lg font-bold text-blue-400 flex items-center justify-center gap-2">
+        <h3 className="text-lg font-bold text-white flex items-center justify-center gap-2">
           <Music className="w-5 h-5" />
           Track Library - Auto-Sync to 128 BPM
         </h3>
-        <p className="text-xs text-green-400 mt-2">🎯 All tracks automatically sync to 128 BPM when loaded</p>
+        <p className="text-xs text-white mt-2">🎯 All tracks automatically sync to 128 BPM when loaded</p>
       </div>
 
       {/* Upload Section */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-semibold text-blue-400">Upload Your Music</h4>
+          <h4 className="text-sm font-semibold text-white">Upload Your Music</h4>
           {isUploading && (
-            <div className="flex items-center gap-2 text-xs text-yellow-400">
+            <div className="flex items-center gap-2 text-xs text-white">
               <div className="w-3 h-3 border border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
               Processing...
             </div>
@@ -227,11 +227,11 @@ const TrackLibrary = () => {
         </div>
 
         <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-blue-500/30 rounded-lg cursor-pointer hover:border-blue-500 transition-colors group">
-          <Upload className="w-6 h-6 text-blue-400 mb-2 group-hover:text-blue-300" />
-          <span className="text-sm text-gray-400 group-hover:text-gray-300">
+          <Upload className="w-6 h-6 text-white mb-2 group-hover:text-white" />
+          <span className="text-sm text-white group-hover:text-white">
             Drop MP3/WAV files here or click to browse
           </span>
-          <span className="text-xs text-gray-500 mt-1">
+          <span className="text-xs text-white mt-1">
             Supports multiple file upload
           </span>
           <input
@@ -249,7 +249,7 @@ const TrackLibrary = () => {
         {/* Demo Tracks Section */}
         {demoTracks.length > 0 && (
           <>
-            <div className="text-xs text-blue-400 font-semibold mb-2 flex items-center gap-2">
+            <div className="text-xs text-white font-semibold mb-2 flex items-center gap-2">
               <Music className="w-3 h-3" />
               Demo Tracks
             </div>
@@ -263,16 +263,16 @@ const TrackLibrary = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="group bg-black rounded-lg p-4 border border-blue-500/20 hover:border-blue-500 transition-all hover:shadow-lg hover:shadow-blue-500/10"
+                  className="group bg-transparent rounded-lg p-4 border border-blue-500/20 hover:border-blue-500 transition-all hover:shadow-lg hover:shadow-blue-500/10"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-white group-hover:text-blue-300 transition-colors">
+                        <h4 className="font-semibold text-white group-hover:text-white transition-colors">
                           {track.name}
                         </h4>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs px-2 py-1 bg-blue-600/20 text-blue-400 rounded-full">
+                          <span className="text-xs px-2 py-1 border border-blue-500/30 text-white rounded-full">
                             {track.duration}
                           </span>
                           <button
@@ -289,19 +289,19 @@ const TrackLibrary = () => {
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-400">{track.bpm} BPM</span>
-                          <span className="text-green-400">→ 128 BPM</span>
+                          <span className="text-white">{track.bpm} BPM</span>
+                          <span className="text-white">→ 128 BPM</span>
                           {!isAtTargetBPM && (
-                            <span className="text-xs text-blue-400">({playbackRate}x rate)</span>
+                            <span className="text-xs text-white">({playbackRate}x rate)</span>
                           )}
                         </div>
-                        <span className="text-gray-400">Key: {track.key}</span>
+                        <span className="text-white">Key: {track.key}</span>
                       </div>
 
                       {/* Auto-sync indicator */}
                       <div className="mt-2 flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span className="text-xs text-green-400">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                        <span className="text-xs text-white">
                           {isAtTargetBPM ? 'Already at 128 BPM' : `Auto-sync: ${track.bpm} → 128 BPM`}
                         </span>
                       </div>
@@ -313,7 +313,7 @@ const TrackLibrary = () => {
                       onClick={() => handleLoadTrack(track, 'A')}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="flex-1 px-3 py-2 bg-blue-600/20 border border-blue-500/30 rounded-lg text-blue-400 hover:bg-blue-600/30 transition-all text-sm font-medium"
+                      className="flex-1 px-3 py-2 border border-blue-500/30 rounded-lg text-white hover:bg-blue-600/30 transition-all text-sm font-medium bg-transparent"
                     >
                       Load to A
                     </motion.button>
@@ -321,14 +321,14 @@ const TrackLibrary = () => {
                       onClick={() => handleLoadTrack(track, 'B')}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="flex-1 px-3 py-2 bg-blue-600/20 border border-blue-500/30 rounded-lg text-blue-400 hover:bg-blue-600/30 transition-all text-sm font-medium"
+                      className="flex-1 px-3 py-2 border border-blue-500/30 rounded-lg text-white hover:bg-blue-600/30 transition-all text-sm font-medium bg-transparent"
                     >
                       Load to B
                     </motion.button>
                   </div>
 
                   {previewTrack === track.id && (
-                    <div className="mt-2 text-xs text-blue-400 text-center animate-pulse">
+                    <div className="mt-2 text-xs text-white text-center animate-pulse">
                       🎵 Preview playing...
                     </div>
                   )}
@@ -341,7 +341,7 @@ const TrackLibrary = () => {
         {/* Uploaded Tracks Section */}
         {uploadedTracks.length > 0 && (
           <>
-            <div className="text-xs text-blue-400 font-semibold mb-2 flex items-center gap-2 mt-4">
+            <div className="text-xs text-white font-semibold mb-2 flex items-center gap-2 mt-4">
               <File className="w-3 h-3" />
               Your Uploads ({uploadedTracks.length})
             </div>
@@ -355,16 +355,16 @@ const TrackLibrary = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="group bg-black rounded-lg p-4 border border-blue-500/20 hover:border-blue-500 transition-all hover:shadow-lg hover:shadow-blue-500/10"
+                  className="group bg-transparent rounded-lg p-4 border border-blue-500/20 hover:border-blue-500 transition-all hover:shadow-lg hover:shadow-blue-500/10"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-white group-hover:text-blue-300 transition-colors">
+                        <h4 className="font-semibold text-white group-hover:text-white transition-colors">
                           {track.name}
                         </h4>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs px-2 py-1 bg-blue-600/20 text-blue-400 rounded-full">
+                          <span className="text-xs px-2 py-1 border border-blue-500/30 text-white rounded-full">
                             {track.duration}
                           </span>
                           <button
@@ -387,19 +387,19 @@ const TrackLibrary = () => {
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-400">{track.bpm} BPM</span>
-                          <span className="text-green-400">→ 128 BPM</span>
+                          <span className="text-white">{track.bpm} BPM</span>
+                          <span className="text-white">→ 128 BPM</span>
                           {!isAtTargetBPM && (
-                            <span className="text-xs text-blue-400">({playbackRate}x rate)</span>
+                            <span className="text-xs text-white">({playbackRate}x rate)</span>
                           )}
                         </div>
-                        <span className="text-gray-400">Key: {track.key}</span>
+                        <span className="text-white">Key: {track.key}</span>
                       </div>
 
                       {/* Auto-sync indicator */}
                       <div className="mt-2 flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span className="text-xs text-green-400">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                        <span className="text-xs text-white">
                           {isAtTargetBPM ? 'Already at 128 BPM' : `Auto-sync: ${track.bpm} → 128 BPM`}
                         </span>
                       </div>
@@ -411,7 +411,7 @@ const TrackLibrary = () => {
                       onClick={() => handleLoadTrack(track, 'A')}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="flex-1 px-3 py-2 bg-blue-600/20 border border-blue-500/30 rounded-lg text-blue-400 hover:bg-blue-600/30 transition-all text-sm font-medium"
+                      className="flex-1 px-3 py-2 border border-blue-500/30 rounded-lg text-white hover:bg-blue-600/30 transition-all text-sm font-medium bg-transparent"
                     >
                       Load to A
                     </motion.button>
@@ -419,14 +419,14 @@ const TrackLibrary = () => {
                       onClick={() => handleLoadTrack(track, 'B')}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="flex-1 px-3 py-2 bg-blue-600/20 border border-blue-500/30 rounded-lg text-blue-400 hover:bg-blue-600/30 transition-all text-sm font-medium"
+                      className="flex-1 px-3 py-2 border border-blue-500/30 rounded-lg text-white hover:bg-blue-600/30 transition-all text-sm font-medium bg-transparent"
                     >
                       Load to B
                     </motion.button>
                   </div>
 
                   {previewTrack === track.id && (
-                    <div className="mt-2 text-xs text-blue-400 text-center animate-pulse">
+                    <div className="mt-2 text-xs text-white text-center animate-pulse">
                       🎵 Preview playing...
                     </div>
                   )}
