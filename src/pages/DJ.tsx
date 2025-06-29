@@ -5,7 +5,7 @@ import CDJDeck from '../components/DJ/CDJDeck';
 import MixerPanel from '../components/DJ/MixerPanel';
 import TrackLibrary from '../components/DJ/TrackLibrary';
 import FirstTimeOverlay from '../components/DJ/FirstTimeOverlay';
-import { Disc3, ArrowLeft } from 'lucide-react';
+import { Disc3, ArrowLeft, Zap, AlertCircle } from 'lucide-react';
 import { useDJStore } from '../stores/djStore';
 
 const DJ = () => {
@@ -13,7 +13,7 @@ const DJ = () => {
   const [showLibrary, setShowLibrary] = useState(true);
   const [showFirstTime, setShowFirstTime] = useState(false);
 
-  const { cleanup } = useDJStore();
+  const { cleanup, audioUnlocked, audioError } = useDJStore();
 
   useEffect(() => {
     // Check if first time visiting DJ mode
@@ -63,6 +63,33 @@ const DJ = () => {
           </button>
         </div>
       </div>
+
+      {/* Audio Status Indicators */}
+      {!audioUnlocked && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4 animate-slide-in-up">
+          <div className="card-fun-dark p-4 border-2 border-yellow-400/50 max-w-sm">
+            <div className="flex items-center gap-3 mb-2">
+              <Zap className="w-5 h-5 text-yellow-400 animate-pulse-glow" />
+              <p className="text-yellow-200 font-display font-semibold">DJ Audio Ready</p>
+            </div>
+            <p className="text-yellow-200/90 text-sm font-playful">
+              🎵 Click anywhere or press any key to unlock the DJ magic!
+            </p>
+          </div>
+        </div>
+      )}
+
+      {audioError && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4 animate-slide-in-up">
+          <div className="card-fun-dark p-4 border-2 border-red-400/50 max-w-md">
+            <div className="flex items-center gap-3 mb-2">
+              <AlertCircle className="w-5 h-5 text-red-400" />
+              <p className="text-red-200 font-display font-semibold">DJ Audio Error</p>
+            </div>
+            <p className="text-red-200/90 text-sm font-playful mb-3">{audioError}</p>
+          </div>
+        </div>
+      )}
 
       {/* Main DJ Layout */}
       <div className="flex-1 p-4">

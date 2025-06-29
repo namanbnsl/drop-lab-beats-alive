@@ -37,14 +37,14 @@ const Index = () => {
   const producerFeatures = [
     { icon: Music, title: "Melody Generator", doodle: "🎵", color: "highlighter-purple" },
     { icon: Zap, title: "Drum Pattern Builder", doodle: "⚡", color: "highlighter-yellow" },
-    { icon: Grid3X3, title: "Synth Grid Composer", doodle: "🎹", color: "highlighter-blue" },
+    { icon: Grid3X3, title: "Balance Your Mix", doodle: "🎹", color: "highlighter-blue" },
     { icon: Settings, title: "Modular FX Playground", doodle: "🔧", color: "highlighter-green" },
   ];
 
   const djFeatures = [
     { icon: Monitor, title: "Dual CDJs", doodle: "💿", color: "highlighter-orange" },
     { icon: Sliders, title: "3-Band EQ Mixer", doodle: "🎚️", color: "highlighter-pink" },
-    { icon: PlayCircle, title: "Launch Sim Mode", doodle: "▶️", color: "highlighter-teal" },
+    { icon: PlayCircle, title: "3 Effects on the Mixer", doodle: "▶️", color: "highlighter-teal" },
     { icon: Brain, title: "Tutorial + Tooltips", doodle: "💡", color: "highlighter-cyan" },
   ];
 

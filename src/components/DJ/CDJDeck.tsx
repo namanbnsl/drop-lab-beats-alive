@@ -22,6 +22,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   const [backspinCooldown, setBackspinCooldown] = useState(false);
   const [scrubIndicator, setScrubIndicator] = useState({ active: false, direction: 0 });
   const [tempoBend, setTempoBend] = useState({ active: false, direction: 0 });
+  const [toggle, setToggle] = useState(false);
 
   const {
     deckAState,
@@ -35,15 +36,39 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     initializeAudio,
     isTransportRunning,
     masterGridPosition,
+    audioUnlocked,
+    audioError,
+    unlockAudioContext,
   } = useDJStore();
 
   const deckState = side === 'A' ? deckAState : deckBState;
   const isPlaying = deckState.isPlaying;
   const gridPosition = deckState.gridPosition || { bar: 1, beat: 1, isAligned: false, isQueued: false };
 
+  // Handle user gesture for audio initialization
   useEffect(() => {
-    initializeAudio();
-  }, [initializeAudio]);
+    const handleUserGesture = async () => {
+      if (!audioUnlocked && !audioError) {
+        await unlockAudioContext();
+      }
+      // Remove event listeners after first interaction
+      document.removeEventListener('click', handleUserGesture);
+      document.removeEventListener('keydown', handleUserGesture);
+      document.removeEventListener('touchstart', handleUserGesture);
+    };
+
+    // Add event listeners for user interaction
+    document.addEventListener('click', handleUserGesture);
+    document.addEventListener('keydown', handleUserGesture);
+    document.addEventListener('touchstart', handleUserGesture);
+
+    // Cleanup function
+    return () => {
+      document.removeEventListener('click', handleUserGesture);
+      document.removeEventListener('keydown', handleUserGesture);
+      document.removeEventListener('touchstart', handleUserGesture);
+    };
+  }, [audioUnlocked, audioError, unlockAudioContext]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -216,13 +241,14 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
 
   const handlePlayPause = () => {
     console.log(`🎧 Deck ${side} - Current state: ${isPlaying ? 'Playing' : 'Stopped'}`);
-    
     if (isPlaying) {
       console.log(`⏸️ Pausing Deck ${side}`);
       pauseDeck(side);
+      setTimeout(() => setToggle(t => !t), 50); // Force UI update
     } else {
       console.log(`▶️ Playing Deck ${side}`);
       playDeck(side);
+      setTimeout(() => setToggle(t => !t), 50); // Force UI update
     }
   };
 

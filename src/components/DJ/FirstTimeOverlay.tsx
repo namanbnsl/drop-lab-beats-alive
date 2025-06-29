@@ -160,27 +160,6 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
               <div className="mt-6">
                 {/* Add any additional content here */}
               </div>
-
-              {/* User Name Input */}
-              <div className="mt-6">
-                <input
-                  type="text"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  placeholder="Enter your DJ name"
-                  className="rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
-                />
-              </div>
-
-              {/* Complete Button */}
-              <div className="mt-6">
-                <button
-                  onClick={handleComplete}
-                  className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Complete
-                </button>
-              </div>
             </div>
           </motion.div>
         </>

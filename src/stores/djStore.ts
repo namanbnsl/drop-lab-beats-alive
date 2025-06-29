@@ -57,8 +57,13 @@ interface DJState {
   // Metronome audio
   metronomeClick: Tone.Player | null;
   
+  // Audio context state
+  audioUnlocked: boolean;
+  audioError: string | null;
+  
   // Actions
   initializeAudio: () => Promise<void>;
+  unlockAudioContext: () => Promise<void>;
   playDeck: (deck: 'A' | 'B') => void;
   pauseDeck: (deck: 'A' | 'B') => void;
   loadTrack: (deck: 'A' | 'B', track: Track) => Promise<void>;
@@ -104,9 +109,17 @@ export const useDJStore = create<DJState>((set, get) => ({
   masterGridPosition: { bar: 1, beat: 1 },
   metronomeClickEnabled: false,
   metronomeClick: null,
+  audioUnlocked: false,
+  audioError: null,
 
   initializeAudio: async () => {
     try {
+      // Only proceed if audio context is unlocked
+      if (!get().audioUnlocked) {
+        console.log("🔒 Audio context not unlocked yet, waiting for user gesture");
+        return;
+      }
+
       // Ensure audio context is ready
       await Tone.start();
       
@@ -171,6 +184,7 @@ export const useDJStore = create<DJState>((set, get) => ({
       console.log('🔄 Metronome sequence started for continuous sync');
     } catch (error) {
       console.error('Failed to initialize audio:', error);
+      set({ audioError: "Failed to initialize audio system. Please try again." });
     }
   },
 
@@ -221,6 +235,13 @@ export const useDJStore = create<DJState>((set, get) => ({
 
   playDeck: (deck) => {
     const state = get();
+    
+    // Check if audio is unlocked
+    if (!state.audioUnlocked) {
+      console.log("🔒 Audio not unlocked, cannot play deck");
+      return;
+    }
+    
     const engine = deck === 'A' ? state.deckA : state.deckB;
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
@@ -261,6 +282,13 @@ export const useDJStore = create<DJState>((set, get) => ({
 
   pauseDeck: (deck) => {
     const state = get();
+    
+    // Check if audio is unlocked
+    if (!state.audioUnlocked) {
+      console.log("🔒 Audio not unlocked, cannot pause deck");
+      return;
+    }
+    
     const engine = deck === 'A' ? state.deckA : state.deckB;
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
@@ -283,6 +311,13 @@ export const useDJStore = create<DJState>((set, get) => ({
 
   loadTrack: async (deck, track) => {
     const state = get();
+    
+    // Check if audio is unlocked
+    if (!state.audioUnlocked) {
+      console.log("🔒 Audio not unlocked, cannot load track");
+      return;
+    }
+    
     const engine = deck === 'A' ? state.deckA : state.deckB;
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
@@ -533,5 +568,17 @@ export const useDJStore = create<DJState>((set, get) => ({
       Tone.Transport.cancel();
     }
     set({ isTransportRunning: false });
+  },
+
+  unlockAudioContext: async () => {
+    try {
+      await Tone.start();
+      console.log("🔊 DJ Audio context started");
+      set({ audioUnlocked: true, audioError: null });
+      await get().initializeAudio();
+    } catch (error) {
+      console.error("❌ Failed to start DJ audio context:", error);
+      set({ audioError: "Failed to start audio. Please try refreshing the page." });
+    }
   },
 }));

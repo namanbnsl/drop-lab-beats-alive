@@ -345,13 +345,12 @@ export class DeckAudioEngine {
         this.scheduledOffset = this.pausedAt;
         
         // Use Tone.Transport.schedule for precise timing
-        Tone.Transport.schedule((time) => {
-          if (this.player && this.isQueued) {
+        const scheduledEvent = Tone.Transport.schedule((time) => {
+          if (this.player && this.isQueued && this.isPlaying) {
             this.player.start(time, this.pausedAt);
             this.startTime = time - this.pausedAt;
             this.isQueued = false;
             this.isWaitingForBar = false;
-            this.isPlaying = true; // Set playing state here
             console.log(`⚡ Beat-sync play executed at: ${time.toFixed(3)}s (delay: ${delayMs.toFixed(0)}ms)`);
           }
         }, scheduledTime);
@@ -373,6 +372,7 @@ export class DeckAudioEngine {
         this.isGridAligned = false; // No longer grid-aligned after manual play
         this.isQueued = false;
         this.isWaitingForBar = false;
+        this.scheduledStartTime = 0; // Clear scheduled start time
         
         console.log(`▶️ Manual play from ${startPosition.toFixed(2)}s at transport time ${startTime.toFixed(3)}s`);
       }
@@ -385,14 +385,29 @@ export class DeckAudioEngine {
   pause() {
     if (this.player && this.isPlaying) {
       this.pausedAt = this.getCurrentTime();
-      this.player.stop();
+      
+      // Stop the player if it's currently playing
+      if (this.player.state === 'started') {
+        this.player.stop();
+      }
+      
+      // Cancel any scheduled starts
+      if (this.scheduledStartTime > 0) {
+        Tone.Transport.cancel(this.scheduledStartTime);
+        this.scheduledStartTime = 0;
+      }
+      
+      // Cancel any beat sync sequences
+      if (this.beatSyncSequence) {
+        this.beatSyncSequence.stop();
+        this.beatSyncSequence.dispose();
+        this.beatSyncSequence = null;
+      }
+      
       this.isPlaying = false;
       this.isQueued = false;
       this.isGridAligned = false; // Lose grid alignment when paused manually
       this.isWaitingForBar = false;
-      
-      // Cancel any scheduled starts
-      Tone.Transport.cancel();
       
       console.log(`⏸️ Track paused at ${this.pausedAt.toFixed(2)}s`);
     }
