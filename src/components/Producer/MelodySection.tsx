@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Play, RefreshCw, Volume2, Save, FolderOpen, Music, Download, Upload } from 'lucide-react';
+import { RefreshCw, Save, FolderOpen, Music, Download, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { MIDIExporter } from '../../lib/midiExporter';
 import { MIDIParser } from '../../lib/midiParser';
@@ -194,12 +194,6 @@ const MelodySection: React.FC<MelodySectionProps> = ({
     }
   };
 
-  const playMelody = () => {
-    if (notes.length > 0) {
-      onPlayMelody(notes);
-    }
-  };
-
   // Fixed beat display calculation
   const getCurrentBeatDisplay = () => {
     const bar = Math.floor(currentStep / 16) + 1;
@@ -296,7 +290,7 @@ const MelodySection: React.FC<MelodySectionProps> = ({
         </div>
 
         {/* Controls */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <motion.div
             className="card-fun-dark p-4 border-2 border-blue-400/30"
             whileHover={{ scale: 1.05 }}
@@ -376,59 +370,60 @@ const MelodySection: React.FC<MelodySectionProps> = ({
             />
             <span className="text-sm text-white">{tempo} BPM</span>
           </motion.div>
+        </div>
 
+        {/* Action Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <motion.button
-            onClick={playMelody}
-            disabled={notes.length === 0}
-            className="card-fun-dark p-4 border-2 border-blue-400/30 hover:border-blue-400/50 transition-all duration-300"
+            onClick={loadMelody}
+            className="card-fun-dark p-4 border-2 border-purple-400/30 hover:border-purple-400/50 transition-all duration-300 btn-glow btn-glow-purple card-btn-glow"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
             <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="text-lg">▶️</span>
-              <h3 className="font-display font-semibold text-white">Play</h3>
+              <Upload className="w-5 h-5 text-white" />
+              <h3 className="font-display font-semibold text-white">Load MIDI</h3>
             </div>
-            <p className="text-sm text-gray-300 font-playful">
-              {isPlaying ? '⏸️ Pause' : '▶️ Play'}
-            </p>
+            <p className="text-sm text-gray-300 font-playful">Import melody</p>
           </motion.button>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8">
-          <motion.button
-            onClick={randomizeMelody}
-            className="btn-fun-secondary px-3 sm:px-4 py-2 font-display font-semibold"
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.2 }}
-          >
-            🎲 Randomize
-          </motion.button>
           <motion.button
             onClick={clearMelody}
-            className="btn-fun-secondary px-3 sm:px-4 py-2 font-display font-semibold"
+            className="card-fun-dark p-4 border-2 border-red-400/30 hover:border-red-400/50 transition-all duration-300 btn-glow btn-glow-red card-btn-glow"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
-            🗑️ Clear
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <RefreshCw className="w-5 h-5 text-white" />
+              <h3 className="font-display font-semibold text-white">Clear</h3>
+            </div>
+            <p className="text-sm text-gray-300 font-playful">Reset melody</p>
           </motion.button>
+
+          <motion.button
+            onClick={randomizeMelody}
+            className="card-fun-dark p-4 border-2 border-green-400/30 hover:border-green-400/50 transition-all duration-300 btn-glow btn-glow-green card-btn-glow"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <span className="text-lg">🎲</span>
+              <h3 className="font-display font-semibold text-white">Random</h3>
+            </div>
+            <p className="text-sm text-gray-300 font-playful">Generate melody</p>
+          </motion.button>
+
           <motion.button
             onClick={saveMelody}
-            className="btn-fun-secondary px-3 sm:px-4 py-2 font-display font-semibold"
+            className="card-fun-dark p-4 border-2 border-blue-400/30 hover:border-blue-400/50 transition-all duration-300 btn-glow btn-glow-blue card-btn-glow"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
-            <Download className="w-4 h-4 mr-2" />
-            Save MIDI
-          </motion.button>
-          <motion.button
-            onClick={loadMelody}
-            className="btn-fun-secondary px-3 sm:px-4 py-2 font-display font-semibold"
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Load MIDI
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Download className="w-5 h-5 text-white" />
+              <h3 className="font-display font-semibold text-white">Save</h3>
+            </div>
+            <p className="text-sm text-gray-300 font-playful">Export MIDI</p>
           </motion.button>
         </div>
 

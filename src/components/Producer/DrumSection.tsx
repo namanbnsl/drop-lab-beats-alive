@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Play, RefreshCw, Volume2, Save, FolderOpen, AlertCircle, CheckCircle, Download, Upload } from 'lucide-react';
+import { Play, RefreshCw, Save, FolderOpen, AlertCircle, CheckCircle, Download, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { MIDIExporter } from '../../lib/midiExporter';
 import { MIDIParser } from '../../lib/midiParser';
@@ -31,7 +31,6 @@ const DrumSection: React.FC<DrumSectionProps> = ({
   tempo,
   onTempoChange
 }) => {
-  const [volume, setVolume] = useState(80);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleStep = (drumType: keyof DrumPattern, step: number) => {
@@ -198,29 +197,22 @@ const DrumSection: React.FC<DrumSectionProps> = ({
 
         {/* Controls */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <motion.div
-            className="card-fun-dark p-4 border-2 border-blue-400/30"
+          <motion.button
+            onClick={loadPattern}
+            className="card-fun-dark p-4 border-2 border-purple-400/30 hover:border-purple-400/50 transition-all duration-300 btn-glow btn-glow-purple card-btn-glow"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Volume2 className="w-5 h-5 text-white" />
-              <h3 className="font-display font-semibold text-white">Volume</h3>
+              <FolderOpen className="w-5 h-5 text-white" />
+              <h3 className="font-display font-semibold text-white">Load MIDI</h3>
             </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={volume}
-              onChange={(e) => setVolume(Number(e.target.value))}
-              className="slider-fun w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-            />
-            <div className="text-sm text-gray-300 mt-1 font-mono-fun">{volume}%</div>
-          </motion.div>
+            <p className="text-sm text-gray-300 font-playful">Import pattern</p>
+          </motion.button>
 
           <motion.button
             onClick={clearPattern}
-            className="card-fun-dark p-4 border-2 border-red-400/30 hover:border-red-400/50 transition-all duration-300"
+            className="card-fun-dark p-4 border-2 border-red-400/30 hover:border-red-400/50 transition-all duration-300 btn-glow btn-glow-red card-btn-glow"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
@@ -233,7 +225,7 @@ const DrumSection: React.FC<DrumSectionProps> = ({
 
           <motion.button
             onClick={randomizePattern}
-            className="card-fun-dark p-4 border-2 border-green-400/30 hover:border-green-400/50 transition-all duration-300"
+            className="card-fun-dark p-4 border-2 border-green-400/30 hover:border-green-400/50 transition-all duration-300 btn-glow btn-glow-green card-btn-glow"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
@@ -246,7 +238,7 @@ const DrumSection: React.FC<DrumSectionProps> = ({
 
           <motion.button
             onClick={savePattern}
-            className="card-fun-dark p-4 border-2 border-blue-400/30 hover:border-blue-400/50 transition-all duration-300"
+            className="card-fun-dark p-4 border-2 border-blue-400/30 hover:border-blue-400/50 transition-all duration-300 btn-glow btn-glow-blue card-btn-glow"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
@@ -257,17 +249,6 @@ const DrumSection: React.FC<DrumSectionProps> = ({
             <p className="text-sm text-gray-300 font-playful">Export MIDI</p>
           </motion.button>
         </div>
-
-        {/* Load Pattern Button */}
-        <motion.button
-          onClick={loadPattern}
-          className="btn-fun-secondary mb-8 px-6 py-3 font-display font-semibold"
-          whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.2 }}
-        >
-          <FolderOpen className="w-5 h-5 mr-2" />
-          Load MIDI Pattern
-        </motion.button>
 
         {/* Hidden file input */}
         <input

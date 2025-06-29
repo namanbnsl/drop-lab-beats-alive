@@ -157,8 +157,8 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({
           <motion.button
             onClick={handleMuteToggle}
             className={cn(
-              "flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation",
-              isMuted ? 'bg-red-600 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              "flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation btn-glow",
+              isMuted ? 'bg-red-600 text-white shadow-lg btn-glow-red' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
             )}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -172,8 +172,8 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({
           <motion.button
             onClick={handleSoloToggle}
             className={cn(
-              "flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation",
-              isSolo ? 'bg-yellow-600 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              "flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation btn-glow",
+              isSolo ? 'bg-yellow-600 text-white shadow-lg btn-glow-yellow' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
             )}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

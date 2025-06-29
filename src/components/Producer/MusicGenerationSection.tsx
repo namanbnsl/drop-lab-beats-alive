@@ -187,7 +187,7 @@ const MusicGenerationSection = () => {
           <motion.button
             onClick={handleMasterPlayPause}
             disabled={!selectedGenre}
-            className="w-20 h-20 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-20 h-20 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed btn-glow btn-glow-blue"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -222,13 +222,13 @@ const MusicGenerationSection = () => {
           {/* Export Button */}
           <motion.button
             onClick={handleExport}
-            disabled={!currentPattern}
-            className="flex items-center gap-2 px-6 py-3 bg-gray-700 rounded-full font-semibold text-white hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!selectedGenre || isPlaying}
+            className="px-6 py-3 bg-green-600 rounded-full font-semibold text-white hover:bg-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed btn-glow btn-glow-green"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Download className="w-5 h-5" />
-            Export
+            <Download className="w-5 h-5 mr-2" />
+            Export MIDI
           </motion.button>
         </motion.div>
 

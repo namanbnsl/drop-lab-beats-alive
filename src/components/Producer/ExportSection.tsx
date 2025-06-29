@@ -231,7 +231,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
           >
             <motion.button
               onClick={onPlayTrack}
-              className="group relative px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full font-bold text-lg sm:text-2xl text-white transition-all duration-300 hover:from-blue-500 hover:to-blue-400 hover:shadow-xl hover:shadow-blue-500/25 touch-manipulation"
+              className="group relative px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full font-bold text-lg sm:text-2xl text-white transition-all duration-300 hover:from-blue-500 hover:to-blue-400 hover:shadow-xl hover:shadow-blue-500/25 touch-manipulation btn-glow btn-glow-blue"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -277,7 +277,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
               <motion.button
                 onClick={handleExportMelody}
                 disabled={melodyNotes.length === 0}
-                className="w-full py-3 px-4 bg-blue-600 rounded-full font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm touch-manipulation"
+                className="w-full py-3 px-4 bg-blue-600 rounded-full font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm touch-manipulation btn-glow btn-glow-blue"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -310,7 +310,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
               <motion.button
                 onClick={handleExportDrums}
                 disabled={!Object.values(drumPattern).some(pattern => pattern.some(step => step))}
-                className="w-full py-3 px-4 bg-blue-600 rounded-full font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm touch-manipulation"
+                className="w-full py-3 px-4 bg-blue-600 rounded-full font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm touch-manipulation btn-glow btn-glow-blue"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -341,7 +341,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
               <motion.button
                 onClick={handleExportAudio}
                 disabled={isRecording || !hasGeneratedContent}
-                className="w-full py-3 px-4 bg-blue-600 rounded-full font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm touch-manipulation"
+                className="w-full py-3 px-4 bg-blue-600 rounded-full font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm touch-manipulation btn-glow btn-glow-blue"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >

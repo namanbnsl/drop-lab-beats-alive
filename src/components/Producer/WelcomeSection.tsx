@@ -33,7 +33,7 @@ const WelcomeSection = () => {
 
         <motion.button
           onClick={scrollToMelody}
-          className="group relative px-8 py-4 bg-black border-2 border-blue-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/25 hover:scale-105"
+          className="group relative px-8 py-4 bg-black border-2 border-blue-500 rounded-full font-semibold text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/25 hover:scale-105 btn-glow btn-glow-blue"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}

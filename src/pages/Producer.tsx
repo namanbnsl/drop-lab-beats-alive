@@ -286,7 +286,7 @@ const Producer = () => {
       oscillator: { type: "triangle" },
       envelope: { attack: 0.02, decay: 0.1, sustain: 0.3, release: 1 }
     });
-    
+
     // FIXED: Connect melody synth to BOTH dry and wet paths independently
     melodySynthRef.current.connect(melodyPanRef.current);    // DRY path (controlled by melody volume)
     melodySynthRef.current.connect(melodyWetGainRef.current); // WET path (controlled by FX volume)
@@ -645,7 +645,7 @@ const Producer = () => {
       <div className="absolute top-4 left-4 z-50">
         <button
           onClick={() => navigate('/')}
-          className="btn-fun-secondary flex items-center gap-3 px-4 py-3 text-white/90 hover:text-white transition-all duration-300 animate-scale-in"
+          className="btn-fun-secondary flex items-center gap-3 px-4 py-3 text-white/90 hover:text-white transition-all duration-300 animate-scale-in btn-glow btn-glow-blue"
         >
           <Disc3 className="w-6 h-6 animate-bounce-gentle" />
           <span className="font-display font-bold text-lg text-white">DropLab</span>
@@ -708,7 +708,7 @@ const Producer = () => {
             <button
               onClick={handleMasterPlayPause}
               disabled={!audioUnlocked || isRecovering}
-              className={`btn-fun p-3 rounded-xl transition-all duration-300 touch-manipulation ${audioUnlocked && !isRecovering
+              className={`btn-fun p-3 rounded-xl transition-all duration-300 touch-manipulation btn-glow btn-glow-blue ${audioUnlocked && !isRecovering
                 ? 'hover:scale-110 animate-pulse-glow'
                 : 'opacity-50 cursor-not-allowed'
                 }`}
@@ -718,7 +718,7 @@ const Producer = () => {
             <button
               onClick={handleMasterStop}
               disabled={!audioUnlocked || isRecovering}
-              className={`btn-fun-secondary p-3 rounded-xl transition-all duration-300 touch-manipulation ${audioUnlocked && !isRecovering
+              className={`btn-fun-secondary p-3 rounded-xl transition-all duration-300 touch-manipulation btn-glow ${audioUnlocked && !isRecovering
                 ? 'hover:scale-110'
                 : 'opacity-50 cursor-not-allowed'
                 }`}
@@ -772,8 +772,8 @@ const Producer = () => {
               <button
                 key={section.id}
                 onClick={() => setCurrentSection(section.id)}
-                className={`px-4 py-3 rounded-xl text-sm font-display font-semibold transition-all duration-300 touch-manipulation ${currentSection === section.id
-                  ? 'text-white shadow-lg scale-105'
+                className={`px-4 py-3 rounded-xl text-sm font-display font-semibold transition-all duration-300 touch-manipulation btn-glow ${currentSection === section.id
+                  ? 'text-white shadow-lg scale-105 btn-glow-blue'
                   : 'text-white/70 hover:text-white hover:bg-white/10 hover:scale-105'
                   }`}
               >

@@ -96,7 +96,7 @@ const GridSection = () => {
         <div className="flex justify-center gap-4 mb-8">
           <motion.button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 rounded-full font-semibold text-white hover:bg-blue-500 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 rounded-full font-semibold text-white hover:bg-blue-500 transition-colors btn-glow btn-glow-blue"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -106,7 +106,7 @@ const GridSection = () => {
 
           <motion.button
             onClick={clearGrid}
-            className="flex items-center gap-2 px-6 py-3 bg-gray-700 rounded-full font-semibold text-white hover:bg-gray-600 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-gray-700 rounded-full font-semibold text-white hover:bg-gray-600 transition-colors btn-glow"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -134,8 +134,8 @@ const GridSection = () => {
                     key={noteId}
                     onClick={() => toggleNote(row, col)}
                     className={`aspect-square rounded transition-all duration-200 ${isActive
-                        ? 'bg-blue-500 shadow-lg shadow-blue-500/25'
-                        : 'bg-gray-700 hover:bg-gray-600'
+                      ? 'bg-blue-500 shadow-lg shadow-blue-500/25'
+                      : 'bg-gray-700 hover:bg-gray-600'
                       }`}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
