@@ -205,7 +205,7 @@ const TrackLibrary = () => {
   }, [previewAudio, uploadedTracks]);
 
   return (
-    <div className="bg-transparent rounded-xl p-6 border border-blue-500/30">
+    <div className="bg-black/90 backdrop-blur-md rounded-xl p-6 border border-blue-500/30">
       <div className="text-center mb-6">
         <h3 className="text-lg font-bold text-white flex items-center justify-center gap-2">
           <Music className="w-5 h-5" />
@@ -263,7 +263,7 @@ const TrackLibrary = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="group bg-transparent rounded-lg p-4 border border-blue-500/20 hover:border-blue-500 transition-all hover:shadow-lg hover:shadow-blue-500/10"
+                  className="group bg-black/50 rounded-lg p-4 border border-blue-500/20 hover:border-blue-500 transition-all hover:shadow-lg hover:shadow-blue-500/10"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
@@ -355,7 +355,7 @@ const TrackLibrary = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="group bg-transparent rounded-lg p-4 border border-blue-500/20 hover:border-blue-500 transition-all hover:shadow-lg hover:shadow-blue-500/10"
+                  className="group bg-black/50 rounded-lg p-4 border border-blue-500/20 hover:border-blue-500 transition-all hover:shadow-lg hover:shadow-blue-500/10"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
@@ -437,11 +437,11 @@ const TrackLibrary = () => {
         )}
       </div>
 
-      <div className="mt-4 text-xs text-gray-400 text-center space-y-1">
+      <div className="mt-4 text-xs text-white text-center space-y-1">
         <div>{allTracks.length} tracks available • Click play icon to preview</div>
-        <div className="text-green-400">🎯 All tracks auto-sync to 128 BPM for perfect mixing</div>
+        <div className="text-white">🎯 All tracks auto-sync to 128 BPM for perfect mixing</div>
         {uploadedTracks.length > 0 && (
-          <div className="text-blue-400">📁 {uploadedTracks.length} uploaded tracks</div>
+          <div className="text-white">📁 {uploadedTracks.length} uploaded tracks</div>
         )}
       </div>
     </div>

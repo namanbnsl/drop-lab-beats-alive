@@ -45,10 +45,10 @@ const FXPanel = () => {
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-sm text-blue-400 font-semibold">{label}</span>
+          <span className="text-sm text-white font-semibold">{label}</span>
           <InfoTooltip content={tooltip} />
         </div>
-        <div className="text-xs text-gray-400">{Math.round(value)}%</div>
+        <div className="text-xs text-white">{Math.round(value)}%</div>
       </div>
     );
   };
@@ -56,7 +56,7 @@ const FXPanel = () => {
   return (
     <div className="bg-gray-900 rounded-xl p-6 border border-blue-500/30">
       <div className="text-center mb-6">
-        <h3 className="text-lg font-bold text-blue-400">FX Panel</h3>
+        <h3 className="text-lg font-bold text-white">FX Panel</h3>
       </div>
 
       {/* FX Controls */}
@@ -83,7 +83,7 @@ const FXPanel = () => {
 
       {/* Assignment Buttons */}
       <div className="space-y-3">
-        <div className="text-xs text-blue-400 text-center font-semibold">ASSIGN FX TO:</div>
+        <div className="text-xs text-white text-center font-semibold">ASSIGN FX TO:</div>
         <div className="flex justify-center gap-2">
           {(['A', 'B', 'BOTH'] as const).map((option) => (
             <motion.button
@@ -93,7 +93,7 @@ const FXPanel = () => {
               whileTap={{ scale: 0.95 }}
               className={`px-4 py-2 rounded-lg border font-semibold transition-all ${fx.assignedTo === option
                   ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/25'
-                  : 'border-blue-500/30 text-blue-400 hover:border-blue-500 hover:bg-blue-600/10'
+                  : 'border-blue-500/30 text-white hover:border-blue-500 hover:bg-blue-600/10'
                 }`}
             >
               {option}
@@ -109,10 +109,10 @@ const FXPanel = () => {
           animate={{ opacity: 1 }}
           className="mt-4 p-3 bg-blue-600/20 border border-blue-500/30 rounded-lg text-center"
         >
-          <div className="text-sm text-blue-400">
+          <div className="text-sm text-white">
             FX Active on Deck {fx.assignedTo}
           </div>
-          <div className="text-xs text-gray-400 mt-1">
+          <div className="text-xs text-white mt-1">
             {fx.filter !== 50 && `Filter: ${Math.round(fx.filter)}% `}
             {fx.reverb > 0 && `Reverb: ${Math.round(fx.reverb)}% `}
             {fx.delay > 0 && `Delay: ${Math.round(fx.delay)}%`}

@@ -80,7 +80,7 @@ const EQKnob = ({ label, value, onChange, color = 'purple' }: EQKnobProps) => {
   return (
     <div className="flex flex-col items-center space-y-1">
       <motion.div
-        className="relative w-12 h-12 cursor-pointer knob-vibe"
+        className="relative w-12 h-12 sm:w-16 sm:h-16 cursor-pointer knob-vibe"
         whileHover={{ scale: 1.08 }}
         animate={{
           boxShadow: isDragging
@@ -92,10 +92,10 @@ const EQKnob = ({ label, value, onChange, color = 'purple' }: EQKnobProps) => {
         title={`EQ control for ${label}`}
       >
         {/* Knob background with gradient and animated glow */}
-        <div className={`w-12 h-12 rounded-full border-2 shadow-lg transition-all duration-200 bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 knob-glow ${isDragging ? getColorClass(color) + ' ring-2 ring-blue-400/60' : 'border-gray-600 ' + getColorClass(color)}`}>
+        <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 shadow-lg transition-all duration-200 bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 knob-glow ${isDragging ? getColorClass(color) + ' ring-2 ring-blue-400/60' : 'border-gray-600 ' + getColorClass(color)}`}>
           {/* Knob indicator - bolder */}
           <div
-            className={`absolute top-1 left-1/2 w-1.5 h-5 rounded-full transform -translate-x-1/2 origin-bottom transition-all ${getIndicatorColor(color)} knob-indicator`}
+            className={`absolute top-1 left-1/2 w-1.5 h-5 sm:h-6 rounded-full transform -translate-x-1/2 origin-bottom transition-all ${getIndicatorColor(color)} knob-indicator`}
             style={{ transform: `translateX(-50%) rotate(${rotation}deg)` }}
           />
           {/* Center dot */}
@@ -109,7 +109,7 @@ const EQKnob = ({ label, value, onChange, color = 'purple' }: EQKnobProps) => {
       </div>
 
       {/* Value display */}
-      <div className="text-xs text-gray-400">
+      <div className="text-xs text-white">
         {Math.round(value)}
       </div>
     </div>

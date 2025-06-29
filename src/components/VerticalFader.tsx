@@ -92,7 +92,7 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
 
   return (
     <div className={`flex flex-col items-center ${className}`}>
-      {label && <label className="text-xs text-gray-300 mb-2">{label}</label>}
+      {label && <label className="text-xs text-white mb-2">{label}</label>}
 
       <div className="relative">
         {/* Fader Rail */}
@@ -110,9 +110,9 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
             style={{ height: `${value}%` }}
           />
 
-          {/* Fader Handle - FIXED: Position correctly */}
+          {/* Fader Handle - FIXED: Position correctly and make it blue */}
           <div
-            className={`absolute w-5 h-2 sm:w-6 sm:h-3 bg-white rounded-sm border border-gray-600 transform -translate-x-1/2 transition-all duration-100 touch-manipulation ${isDragging ? 'shadow-lg shadow-blue-500/50 scale-110' : 'hover:shadow-md hover:shadow-blue-500/30'
+            className={`absolute w-5 h-2 sm:w-6 sm:h-3 bg-blue-500 rounded-sm border border-blue-600 transform -translate-x-1/2 transition-all duration-100 touch-manipulation ${isDragging ? 'shadow-lg shadow-blue-500/50 scale-110' : 'hover:shadow-md hover:shadow-blue-500/30'
               } ${isMuted ? 'bg-red-300 border-red-500' : ''}`}
             style={{
               left: '50%',
@@ -130,7 +130,7 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
         )}
       </div>
 
-      <span className={`text-xs mt-2 ${isMuted ? 'text-red-400' : 'text-gray-300'}`}>
+      <span className={`text-xs mt-2 ${isMuted ? 'text-red-400' : 'text-white'}`}>
         {isMuted ? 'MUTE' : `${value}%`}
       </span>
     </div>

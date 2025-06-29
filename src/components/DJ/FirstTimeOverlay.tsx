@@ -81,7 +81,7 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-transparent rounded-xl border border-blue-500/30 p-6 max-w-md w-full">
+            <div className="bg-black/90 backdrop-blur-md rounded-xl border border-blue-500/30 p-6 max-w-md w-full">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
