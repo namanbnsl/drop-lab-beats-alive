@@ -87,7 +87,7 @@ export class MIDIParser {
           const trackData = this.parseTrack(dataView, offset + 8, chunkLength);
           
           // Convert to melody notes with duration
-          const melodyNotes = this.convertToMelodyNotes(trackData.notes);
+          const melodyNotes = this.convertToMelodyNotes(trackData.notes, tempo);
           notes.push(...melodyNotes);
           
           if (trackData.tempo) tempo = trackData.tempo;
@@ -245,14 +245,24 @@ export class MIDIParser {
     return pattern;
   }
   
-  private static convertToMelodyNotes(notes: Array<{ pitch: number; time: number; velocity: number; duration?: number }>): MIDINote[] {
+  private static convertToMelodyNotes(notes: Array<{ pitch: number; time: number; velocity: number; duration?: number }>, tempo: number): MIDINote[] {
     return notes
       .filter(note => note.duration !== undefined)
-      .map(note => ({
-        pitch: note.pitch,
-        velocity: note.velocity / 127, // Normalize to 0-1
-        startTime: (note.time / 480) * 0.25, // Convert to seconds (assuming 120 BPM)
-        duration: Math.max(0.1, (note.duration! / 480) * 0.25) // Minimum duration
-      }));
+      .map(note => {
+        // FIXED: Convert MIDI ticks to seconds properly
+        // time is in MIDI ticks, convert to beats, then to seconds
+        const timeInBeats = note.time / 480; // 480 ticks per quarter note
+        const startTimeInSeconds = timeInBeats * (60 / tempo); // Convert beats to seconds
+        
+        const durationInBeats = note.duration! / 480;
+        const durationInSeconds = Math.max(0.1, durationInBeats * (60 / tempo)); // Minimum duration
+        
+        return {
+          pitch: note.pitch,
+          velocity: note.velocity / 127, // Normalize to 0-1
+          startTime: startTimeInSeconds,
+          duration: durationInSeconds
+        };
+      });
   }
 }

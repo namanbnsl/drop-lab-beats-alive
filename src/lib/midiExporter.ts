@@ -138,14 +138,19 @@ export class MIDIExporter {
     const sortedNotes = [...notes].sort((a, b) => a.startTime - b.startTime);
     
     let currentTime = 0;
-    const activeNotes = new Map<number, number>(); // pitch -> start time
 
     // Process all note events
     const allEvents: Array<{time: number, type: 'on' | 'off', pitch: number, velocity: number}> = [];
     
     sortedNotes.forEach(note => {
-      const startTicks = Math.round(note.startTime * this.TICKS_PER_QUARTER);
-      const endTicks = Math.round((note.startTime + note.duration) * this.TICKS_PER_QUARTER);
+      // FIXED: Convert seconds to MIDI ticks properly
+      // startTime is in seconds, convert to beats, then to ticks
+      const startBeats = note.startTime * (tempo / 60); // Convert seconds to beats
+      const startTicks = Math.round(startBeats * this.TICKS_PER_QUARTER);
+      
+      const durationBeats = note.duration * (tempo / 60); // Convert duration seconds to beats
+      const durationTicks = Math.round(durationBeats * this.TICKS_PER_QUARTER);
+      const endTicks = startTicks + durationTicks;
       
       allEvents.push({
         time: startTicks,

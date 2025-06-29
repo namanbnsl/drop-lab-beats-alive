@@ -64,7 +64,7 @@ const Producer = () => {
   const crashSynthRef = useRef<Tone.MetalSynth | null>(null);
   const melodySynthRef = useRef<Tone.PolySynth | null>(null);
 
-  // FX refs for proper audio routing
+  // FIXED: Separate dry and wet paths for proper mixer control
   const reverbRef = useRef<Tone.Reverb | null>(null);
   const delayRef = useRef<Tone.FeedbackDelay | null>(null);
   const distortionRef = useRef<Tone.Distortion | null>(null);
@@ -80,6 +80,9 @@ const Producer = () => {
   const drumPanRef = useRef<Tone.Panner | null>(null);
   const melodyPanRef = useRef<Tone.Panner | null>(null);
   const fxPanRef = useRef<Tone.Panner | null>(null);
+
+  // FIXED: Add separate wet gain for FX send control
+  const melodyWetGainRef = useRef<Tone.Gain | null>(null);
 
   // Sequencer refs
   const sequencerRef = useRef<Tone.Sequence | null>(null);
@@ -115,7 +118,7 @@ const Producer = () => {
   const effectiveFxVolume = getEffectiveVolume(fxVolume, fxMuted, fxSolo, anySolo);
   const effectiveMasterVolume = masterMuted ? 0 : masterVolume;
 
-  // Mixer Volume Controls - Apply volume changes in real-time with mute/solo logic
+  // FIXED: Mixer Volume Controls - Apply volume changes in real-time with proper routing
   useEffect(() => {
     if (drumGainRef.current && audioUnlocked) {
       const volume = effectiveDrumsVolume / 100;
@@ -147,6 +150,16 @@ const Producer = () => {
       console.log(`🎚️ Master effective volume: ${effectiveMasterVolume}% (${volume.toFixed(2)}) ${masterMuted ? '[MUTED]' : ''}`);
     }
   }, [effectiveMasterVolume, masterMuted, audioUnlocked]);
+
+  // FIXED: FX wet send control - separate from melody volume
+  useEffect(() => {
+    if (melodyWetGainRef.current && audioUnlocked) {
+      // FX volume controls how much of the melody goes to the FX chain
+      const wetAmount = effectiveFxVolume / 100;
+      melodyWetGainRef.current.gain.rampTo(wetAmount, 0.1);
+      console.log(`🎛️ Melody FX Send: ${effectiveFxVolume}% (${wetAmount.toFixed(2)})`);
+    }
+  }, [effectiveFxVolume, fxMuted, fxSolo, audioUnlocked]);
 
   // FX Control Effects - Apply FX changes in real-time
   useEffect(() => {
@@ -215,28 +228,31 @@ const Producer = () => {
     }
   }, [fxPan, audioUnlocked]);
 
-  // Initialize audio system
+  // FIXED: Initialize audio system with proper routing
   const initializeSynths = () => {
     // Create master gain for overall volume control
     masterGainRef.current = new Tone.Gain(0.75).toDestination();
 
     // Create individual track gains for mixer control
     drumGainRef.current = new Tone.Gain(0.8).connect(masterGainRef.current);
-    melodyGainRef.current = new Tone.Gain(0.7).connect(masterGainRef.current); // DRY
-    fxGainRef.current = new Tone.Gain(0.5).connect(masterGainRef.current);     // WET (FX)
+    melodyGainRef.current = new Tone.Gain(0.7).connect(masterGainRef.current); // DRY path
+    fxGainRef.current = new Tone.Gain(0.5).connect(masterGainRef.current);     // WET path
 
     // Create pan controls for stereo positioning
     drumPanRef.current = new Tone.Panner(0).connect(drumGainRef.current);
     melodyPanRef.current = new Tone.Panner(0).connect(melodyGainRef.current); // DRY
     fxPanRef.current = new Tone.Panner(0).connect(fxGainRef.current);         // WET
 
-    // Create FX chain (WET path)
+    // FIXED: Create FX chain (WET path) - separate from melody dry path
     reverbRef.current = new Tone.Reverb(2).connect(fxPanRef.current);
     delayRef.current = new Tone.FeedbackDelay("8n", 0.5).connect(reverbRef.current);
     distortionRef.current = new Tone.Distortion(0.15).connect(delayRef.current);
     filterRef.current = new Tone.Filter(2000, "lowpass").connect(distortionRef.current);
 
-    // Create drum synths
+    // FIXED: Create wet gain for FX send control
+    melodyWetGainRef.current = new Tone.Gain(0.5).connect(filterRef.current);
+
+    // Create drum synths - connect to dry path only
     kickSynthRef.current = new Tone.MembraneSynth({
       pitchDecay: 0.05,
       octaves: 10,
@@ -265,16 +281,17 @@ const Producer = () => {
       octaves: 2
     }).connect(drumPanRef.current);
 
-    // Create melody synth
+    // FIXED: Create melody synth with proper dry/wet routing
     melodySynthRef.current = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: "triangle" },
       envelope: { attack: 0.02, decay: 0.1, sustain: 0.3, release: 1 }
     });
-    // Connect melody synth to both dry and wet paths
-    melodySynthRef.current.connect(melodyPanRef.current); // DRY
-    melodySynthRef.current.connect(filterRef.current);    // WET (FX chain)
+    
+    // Connect melody synth to BOTH dry and wet paths independently
+    melodySynthRef.current.connect(melodyPanRef.current);    // DRY path (controlled by melody volume)
+    melodySynthRef.current.connect(melodyWetGainRef.current); // WET path (controlled by FX volume)
 
-    console.log("🎵 Audio system initialized successfully!");
+    console.log("🎵 Audio system initialized with proper dry/wet routing!");
   };
 
   // Unlock audio context
