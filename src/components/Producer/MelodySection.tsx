@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Play, RefreshCw, Volume2, Save, FolderOpen, Music } from 'lucide-react';
+import { Play, RefreshCw, Volume2, Save, FolderOpen, Music, Download, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { MIDIExporter } from '../../lib/midiExporter';
+import { MIDIParser } from '../../lib/midiParser';
 import * as Tone from 'tone';
 
 interface Note {
@@ -33,6 +35,7 @@ const MelodySection: React.FC<MelodySectionProps> = ({
   const [key, setKey] = useState('C');
   const [scale, setScale] = useState('major');
   const [octave, setOctave] = useState(4);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const scales = ['major', 'minor', 'pentatonic', 'blues'];
@@ -99,20 +102,15 @@ const MelodySection: React.FC<MelodySectionProps> = ({
         return;
       }
 
-      const melodyData = {
-        notes,
-        key,
-        scale,
-        octave,
-        tempo,
-        timestamp: new Date().toISOString(),
-        version: '1.0'
-      };
-
-      localStorage.setItem('melodyData', JSON.stringify(melodyData));
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `droplab-melody-${timestamp}`;
       
-      toast.success(`Melody saved! (${notes.length} notes in ${key} ${scale} at ${tempo} BPM)`);
-      console.log('✅ Melody saved to localStorage:', melodyData);
+      // Export as MIDI file
+      MIDIExporter.exportMelody(notes, tempo, filename);
+      
+      toast.success(`Melody saved as MIDI! (${notes.length} notes in ${key} ${scale} at ${tempo} BPM)`);
+      console.log('✅ Melody exported as MIDI:', { notes, key, scale, octave, tempo, filename });
     } catch (error) {
       console.error('Failed to save melody:', error);
       toast.error("Failed to save melody. Please try again.");
@@ -120,59 +118,43 @@ const MelodySection: React.FC<MelodySectionProps> = ({
   };
 
   const loadMelody = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileLoad = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.mid') && !file.name.toLowerCase().endsWith('.midi')) {
+      toast.error("Please select a MIDI file (.mid or .midi)");
+      return;
+    }
+
     try {
-      const saved = localStorage.getItem('melodyData');
+      toast.info("Loading MIDI file...");
       
-      if (!saved) {
-        toast.error("No saved melody found!");
+      const { notes: loadedNotes, tempo: loadedTempo } = await MIDIParser.parseMelodyMIDI(file);
+      
+      if (loadedNotes.length === 0) {
+        toast.error("No melody notes found in MIDI file!");
         return;
       }
-
-      const savedData = JSON.parse(saved);
-      
-      // Handle both old format (just data) and new format (with metadata)
-      let loadedNotes = savedData.notes || [];
-      let loadedKey = savedData.key || 'C';
-      let loadedScale = savedData.scale || 'major';
-      let loadedOctave = savedData.octave || 4;
-      let loadedTempo = savedData.tempo || tempo;
-
-      // Validate notes structure
-      const isValidNotes = Array.isArray(loadedNotes) && loadedNotes.every(note => 
-        typeof note === 'object' && 
-        typeof note.pitch === 'number' &&
-        typeof note.velocity === 'number' &&
-        typeof note.startTime === 'number' &&
-        typeof note.duration === 'number'
-      );
-
-      if (!isValidNotes) {
-        toast.error("Saved melody is corrupted or invalid!");
-        return;
-      }
-
-      // Validate other parameters
-      if (!keys.includes(loadedKey)) loadedKey = 'C';
-      if (!scales.includes(loadedScale)) loadedScale = 'major';
-      if (!octaves.includes(loadedOctave)) loadedOctave = 4;
 
       onNotesChange(loadedNotes);
-      setKey(loadedKey);
-      setScale(loadedScale);
-      setOctave(loadedOctave);
       onTempoChange(loadedTempo);
       
-      toast.success(`Melody loaded! (${loadedNotes.length} notes in ${loadedKey} ${loadedScale} at ${loadedTempo} BPM)`);
-      console.log('✅ Melody loaded from localStorage:', {
-        notes: loadedNotes,
-        key: loadedKey,
-        scale: loadedScale,
-        octave: loadedOctave,
-        tempo: loadedTempo
-      });
+      toast.success(`Melody loaded from MIDI! (${loadedNotes.length} notes at ${loadedTempo} BPM)`);
+      console.log('✅ Melody loaded from MIDI:', { loadedNotes, loadedTempo });
     } catch (error) {
       console.error('Failed to load melody:', error);
-      toast.error("Failed to load melody. The saved data may be corrupted.");
+      toast.error("Failed to load MIDI file. Please ensure it's a valid melody MIDI file.");
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -382,15 +364,15 @@ const MelodySection: React.FC<MelodySectionProps> = ({
             onClick={saveMelody}
             className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation flex items-center gap-2"
           >
-            <Save className="w-4 h-4" />
-            Save
+            <Download className="w-4 h-4" />
+            Save MIDI
           </button>
           <button
             onClick={loadMelody}
             className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation flex items-center gap-2"
           >
-            <FolderOpen className="w-4 h-4" />
-            Load
+            <Upload className="w-4 h-4" />
+            Load MIDI
           </button>
         </div>
 
@@ -401,6 +383,7 @@ const MelodySection: React.FC<MelodySectionProps> = ({
           <div className="mt-4 text-xs sm:text-sm text-gray-400">
             <p>Click on any cell to add a note. Purple cells indicate existing notes.</p>
             <p>Scale: {key} {scale} | Notes in scale: {getScaleNotes(key, scale).join(', ')}</p>
+            <p className="mt-1">💾 Save exports as MIDI file • 📂 Load imports MIDI files</p>
           </div>
         </div>
 
@@ -408,6 +391,15 @@ const MelodySection: React.FC<MelodySectionProps> = ({
         <div className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30">
           {renderNotesList()}
         </div>
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".mid,.midi"
+          onChange={handleFileLoad}
+          className="hidden"
+        />
       </motion.div>
     </section>
   );

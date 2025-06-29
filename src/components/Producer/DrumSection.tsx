@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Play, RefreshCw, Volume2, Save, FolderOpen, AlertCircle, CheckCircle } from 'lucide-react';
+import { Play, RefreshCw, Volume2, Save, FolderOpen, AlertCircle, CheckCircle, Download, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { MIDIExporter } from '../../lib/midiExporter';
+import { MIDIParser } from '../../lib/midiParser';
 
 interface DrumPattern {
   kick: boolean[];
@@ -30,6 +32,7 @@ const DrumSection: React.FC<DrumSectionProps> = ({
   onTempoChange
 }) => {
   const [volume, setVolume] = useState(80);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleStep = (drumType: keyof DrumPattern, step: number) => {
     const newPattern = {
@@ -73,21 +76,19 @@ const DrumSection: React.FC<DrumSectionProps> = ({
         return;
       }
 
-      const patternData = {
-        pattern,
-        tempo,
-        timestamp: new Date().toISOString(),
-        version: '1.0'
-      };
-
-      localStorage.setItem('drumPattern', JSON.stringify(patternData));
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `droplab-drums-${timestamp}`;
+      
+      // Export as MIDI file
+      MIDIExporter.exportDrums(pattern, tempo, filename);
       
       const totalHits = Object.values(pattern).reduce((total, drumTrack) => 
         total + drumTrack.filter(Boolean).length, 0
       );
 
-      toast.success(`Drum pattern saved! (${totalHits} hits at ${tempo} BPM)`);
-      console.log('✅ Drum pattern saved to localStorage:', patternData);
+      toast.success(`Drum pattern saved as MIDI! (${totalHits} hits at ${tempo} BPM)`);
+      console.log('✅ Drum pattern exported as MIDI:', { pattern, tempo, filename });
     } catch (error) {
       console.error('Failed to save drum pattern:', error);
       toast.error("Failed to save pattern. Please try again.");
@@ -95,37 +96,25 @@ const DrumSection: React.FC<DrumSectionProps> = ({
   };
 
   const loadPattern = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileLoad = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.mid') && !file.name.toLowerCase().endsWith('.midi')) {
+      toast.error("Please select a MIDI file (.mid or .midi)");
+      return;
+    }
+
     try {
-      const saved = localStorage.getItem('drumPattern');
+      toast.info("Loading MIDI file...");
       
-      if (!saved) {
-        toast.error("No saved drum pattern found!");
-        return;
-      }
-
-      const savedData = JSON.parse(saved);
+      const { pattern: loadedPattern, tempo: loadedTempo } = await MIDIParser.parseDrumMIDI(file);
       
-      // Handle both old format (just pattern) and new format (with metadata)
-      let loadedPattern = savedData;
-      let loadedTempo = tempo;
-      
-      if (savedData.pattern) {
-        // New format with metadata
-        loadedPattern = savedData.pattern;
-        loadedTempo = savedData.tempo || tempo;
-      }
-
-      // Validate pattern structure
-      const requiredKeys = ['kick', 'snare', 'hihat', 'crash'];
-      const isValidPattern = requiredKeys.every(key => 
-        Array.isArray(loadedPattern[key]) && loadedPattern[key].length === 16
-      );
-
-      if (!isValidPattern) {
-        toast.error("Saved pattern is corrupted or invalid!");
-        return;
-      }
-
       onPatternChange(loadedPattern);
       onTempoChange(loadedTempo);
       
@@ -133,11 +122,16 @@ const DrumSection: React.FC<DrumSectionProps> = ({
         total + drumTrack.filter(Boolean).length, 0
       );
 
-      toast.success(`Drum pattern loaded! (${totalHits} hits at ${loadedTempo} BPM)`);
-      console.log('✅ Drum pattern loaded from localStorage:', { loadedPattern, loadedTempo });
+      toast.success(`Drum pattern loaded from MIDI! (${totalHits} hits at ${loadedTempo} BPM)`);
+      console.log('✅ Drum pattern loaded from MIDI:', { loadedPattern, loadedTempo });
     } catch (error) {
       console.error('Failed to load drum pattern:', error);
-      toast.error("Failed to load pattern. The saved data may be corrupted.");
+      toast.error("Failed to load MIDI file. Please ensure it's a valid drum MIDI file.");
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -263,15 +257,15 @@ const DrumSection: React.FC<DrumSectionProps> = ({
                 onClick={savePattern}
                 className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation flex items-center gap-2"
               >
-                <Save className="w-4 h-4" />
-                Save
+                <Download className="w-4 h-4" />
+                Save MIDI
               </button>
               <button
                 onClick={loadPattern}
                 className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm touch-manipulation flex items-center gap-2"
               >
-                <FolderOpen className="w-4 h-4" />
-                Load
+                <Upload className="w-4 h-4" />
+                Load MIDI
               </button>
             </div>
           </div>
@@ -296,8 +290,8 @@ const DrumSection: React.FC<DrumSectionProps> = ({
           </div>
 
           <div className="mt-4 text-xs sm:text-sm text-gray-400">
-            <p>Click on any step to toggle it on/off</p>
-            <p>Current pattern: {pattern.kick.filter(Boolean).length + pattern.snare.filter(Boolean).length + pattern.hihat.filter(Boolean).length + pattern.crash.filter(Boolean).length} hits</p>
+            <p>Click cells to create your pattern • {pattern.kick.filter(Boolean).length + pattern.snare.filter(Boolean).length + pattern.hihat.filter(Boolean).length + pattern.crash.filter(Boolean).length} hits</p>
+            <p className="mt-1">💾 Save exports as MIDI file • 📂 Load imports MIDI files</p>
           </div>
         </div>
 
@@ -319,6 +313,15 @@ const DrumSection: React.FC<DrumSectionProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".mid,.midi"
+          onChange={handleFileLoad}
+          className="hidden"
+        />
       </motion.div>
     </section>
   );
