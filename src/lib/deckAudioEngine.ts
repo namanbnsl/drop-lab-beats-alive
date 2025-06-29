@@ -22,11 +22,12 @@ export class DeckAudioEngine {
   private basePlaybackRate: number = 1;
   private tempoBendTimeout: NodeJS.Timeout | null = null;
   
-  // Beat snapping properties
+  // Enhanced beat snapping properties
   private isQueued: boolean = false;
-  private snappedStartTime: number = 0;
-  private gridPosition: { bar: number; beat: number } = { bar: 1, beat: 1 };
   private isGridAligned: boolean = false;
+  private nextBeatTime: number = 0;
+  private beatInterval: number = 0;
+  private gridUpdateInterval: NodeJS.Timeout | null = null;
 
   constructor() {
     // Initialize audio chain
@@ -87,12 +88,13 @@ export class DeckAudioEngine {
       this.originalBPM = userDefinedBPM;
       this.globalBPM = 128; // Always sync to 128 BPM
       this.currentBPM = this.globalBPM;
+      this.beatInterval = 60 / this.globalBPM; // seconds per beat
       
       // Set initial playback rate for auto-sync
       this.updatePlaybackRate();
       
-      // 🎯 BEAT SNAPPING: Align track to global beat grid immediately
-      await this.snapToGrid();
+      // 🎯 ENHANCED BEAT SNAPPING: Immediate alignment
+      await this.snapToNextBeat();
       
       console.log(`✅ Track loaded and beat-snapped: ${url} (${this.trackDuration.toFixed(2)}s, ${this.originalBPM} BPM → ${this.globalBPM} BPM)`);
       return true;
@@ -104,38 +106,70 @@ export class DeckAudioEngine {
   }
 
   /**
-   * 🎯 BEAT SNAPPING: Snap track to global beat grid
+   * 🎯 ENHANCED BEAT SNAPPING: Calculate and align to next beat
    */
-  private async snapToGrid(): Promise<void> {
+  private async snapToNextBeat(): Promise<void> {
     if (!this.player || !this.isLoaded) return;
 
     try {
-      // Get current transport time
-      const transportTime = Tone.Transport.seconds;
-      const beatInterval = 60 / this.globalBPM; // seconds per beat
+      // Ensure transport is running
+      if (Tone.Transport.state !== 'started') {
+        console.warn('Transport not running, starting it...');
+        Tone.Transport.start();
+        await new Promise(resolve => setTimeout(resolve, 100)); // Wait for transport to stabilize
+      }
+
+      // Get current transport time with high precision
+      const currentTime = Tone.Transport.seconds;
       
-      // Find the next beat boundary (4-beat bar alignment)
-      const beatsElapsed = transportTime / beatInterval;
-      const nextBeat = Math.ceil(beatsElapsed);
-      const nextBeatTime = nextBeat * beatInterval;
+      // Calculate next beat boundary (align to 4-beat bars)
+      const beatsElapsed = currentTime / this.beatInterval;
+      const nextBeat = Math.ceil(beatsElapsed / 4) * 4; // Snap to next bar (4 beats)
+      this.nextBeatTime = nextBeat * this.beatInterval;
       
-      // Calculate grid position
-      const bar = Math.floor(nextBeat / 4) + 1;
-      const beat = (nextBeat % 4) + 1;
+      // If next beat is too close (less than 0.5 seconds), move to next bar
+      if (this.nextBeatTime - currentTime < 0.5) {
+        this.nextBeatTime += this.beatInterval * 4; // Add one full bar
+      }
       
-      this.gridPosition = { bar, beat };
-      this.snappedStartTime = nextBeatTime;
-      
-      // Sync player to transport and prepare for snapped start
+      // Sync player to transport timeline
       this.player.sync();
+      
+      // Set up for queued playback
       this.isQueued = true;
       this.isGridAligned = true;
       
-      console.log(`🎯 Track snapped to grid: Bar ${bar}, Beat ${beat} (${nextBeatTime.toFixed(3)}s)`);
+      // Start grid position monitoring
+      this.startGridMonitoring();
+      
+      const waitTime = this.nextBeatTime - currentTime;
+      console.log(`🎯 Track snapped to beat: ${this.nextBeatTime.toFixed(3)}s (wait: ${waitTime.toFixed(3)}s)`);
+      
     } catch (error) {
-      console.error('Failed to snap to grid:', error);
+      console.error('Failed to snap to beat:', error);
       this.isGridAligned = false;
+      this.isQueued = false;
     }
+  }
+
+  /**
+   * Start monitoring grid position for real-time updates
+   */
+  private startGridMonitoring(): void {
+    if (this.gridUpdateInterval) {
+      clearInterval(this.gridUpdateInterval);
+    }
+    
+    this.gridUpdateInterval = setInterval(() => {
+      if (this.isLoaded) {
+        // Update grid alignment status
+        const currentTime = Tone.Transport.seconds;
+        const timeDiff = Math.abs(currentTime - this.nextBeatTime);
+        
+        // Consider aligned if within 50ms of target beat
+        this.isGridAligned = timeDiff < 0.05 || this.isQueued;
+      }
+    }, 50); // Update every 50ms for smooth feedback
   }
 
   /**
@@ -149,33 +183,27 @@ export class DeckAudioEngine {
       this.pause();
     }
     
-    // Re-align to grid
-    await this.snapToGrid();
-    console.log('🔄 Track re-snapped to current grid position');
+    // Re-align to next beat
+    await this.snapToNextBeat();
+    console.log('🔄 Track re-snapped to next beat boundary');
   }
 
   /**
    * Get current grid position information
    */
   getGridPosition(): { bar: number; beat: number; isAligned: boolean; isQueued: boolean } {
-    // Calculate current position if playing
-    if (this.isPlaying && Tone.Transport.state === 'started') {
-      const transportTime = Tone.Transport.seconds;
-      const beatInterval = 60 / this.globalBPM;
-      const currentBeat = Math.floor(transportTime / beatInterval);
-      const bar = Math.floor(currentBeat / 4) + 1;
-      const beat = (currentBeat % 4) + 1;
-      
-      return { 
-        bar, 
-        beat, 
-        isAligned: this.isGridAligned, 
-        isQueued: this.isQueued 
-      };
+    if (!this.isLoaded) {
+      return { bar: 1, beat: 1, isAligned: false, isQueued: false };
     }
+
+    const currentTime = Tone.Transport.seconds;
+    const currentBeat = Math.floor(currentTime / this.beatInterval);
+    const bar = Math.floor(currentBeat / 4) + 1;
+    const beat = (currentBeat % 4) + 1;
     
     return { 
-      ...this.gridPosition, 
+      bar, 
+      beat, 
       isAligned: this.isGridAligned, 
       isQueued: this.isQueued 
     };
@@ -188,11 +216,12 @@ export class DeckAudioEngine {
     this.globalBPM = globalBPM;
     this.originalBPM = originalBPM;
     this.currentBPM = globalBPM;
+    this.beatInterval = 60 / globalBPM;
     this.updatePlaybackRate();
     
     // Re-snap to grid with new BPM
     if (this.isLoaded) {
-      this.snapToGrid();
+      this.snapToNextBeat();
     }
     
     console.log(`🎯 Global BPM Sync: ${originalBPM} → ${globalBPM} BPM (rate: ${this.basePlaybackRate.toFixed(3)}x)`);
@@ -217,7 +246,7 @@ export class DeckAudioEngine {
   }
 
   /**
-   * ⚡ INSTANT PLAY: Start immediately if queued and snapped
+   * ⚡ ENHANCED INSTANT PLAY: Start at precise beat time
    */
   play(fromCue: boolean = false) {
     if (this.player && this.isLoaded && !this.isPlaying) {
@@ -225,13 +254,25 @@ export class DeckAudioEngine {
       this.updatePlaybackRate();
       
       if (this.isQueued && this.isGridAligned && !fromCue) {
-        // 🎯 INSTANT SYNC PLAY: Start immediately at snapped position
-        this.player.start(this.snappedStartTime);
-        this.startTime = this.snappedStartTime;
+        // 🎯 PRECISE BEAT-SYNCED PLAY
+        const currentTime = Tone.Transport.seconds;
+        const timeToNextBeat = this.nextBeatTime - currentTime;
+        
+        if (timeToNextBeat > 0 && timeToNextBeat < 2) {
+          // Start at the precise next beat time
+          this.player.start(this.nextBeatTime);
+          this.startTime = this.nextBeatTime;
+          console.log(`⚡ Queued for beat-sync play in ${timeToNextBeat.toFixed(3)}s`);
+        } else {
+          // If beat time has passed or is too far, start immediately
+          this.player.start();
+          this.startTime = Tone.now();
+          console.log(`▶️ Immediate play (beat time passed)`);
+        }
+        
         this.isQueued = false;
         this.isPlaying = true;
         
-        console.log(`⚡ Instant sync play at grid position: Bar ${this.gridPosition.bar}, Beat ${this.gridPosition.beat}`);
       } else {
         // Traditional play from current position
         const startPosition = fromCue ? this.cuePoint : this.pausedAt;
@@ -270,6 +311,7 @@ export class DeckAudioEngine {
       const clampedPosition = Math.max(0, Math.min(position, this.trackDuration));
       this.pausedAt = clampedPosition;
       this.isGridAligned = false; // Lose grid alignment when seeking
+      this.isQueued = false;
       
       if (wasPlaying) {
         this.play();
@@ -287,6 +329,7 @@ export class DeckAudioEngine {
       
       this.pausedAt = newTime;
       this.isGridAligned = false; // Lose grid alignment when scrubbing
+      this.isQueued = false;
       
       if (!this.isPlaying) {
         this.seek(newTime);
@@ -447,6 +490,10 @@ export class DeckAudioEngine {
   dispose() {
     if (this.tempoBendTimeout) {
       clearTimeout(this.tempoBendTimeout);
+    }
+    
+    if (this.gridUpdateInterval) {
+      clearInterval(this.gridUpdateInterval);
     }
     
     if (this.player) {

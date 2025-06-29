@@ -88,14 +88,23 @@ export const useDJStore = create<DJState>((set, get) => ({
 
   initializeAudio: async () => {
     try {
+      // Ensure audio context is ready
       await Tone.start();
+      
+      // Wait a moment for context to stabilize
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const deckA = new DeckAudioEngine();
       const deckB = new DeckAudioEngine();
       
-      // 🎯 Initialize master beat grid at 128 BPM
+      // 🎯 Initialize master beat grid at 128 BPM with precise timing
       Tone.Transport.bpm.value = 128;
-      Tone.Transport.start("+0.1"); // Start with small delay to ensure proper initialization
+      Tone.Transport.position = 0; // Reset position
+      
+      // Start transport with immediate timing for precise sync
+      if (Tone.Transport.state !== 'started') {
+        Tone.Transport.start("+0.01"); // Very small delay for stability
+      }
       
       set({ 
         deckA, 
@@ -103,11 +112,12 @@ export const useDJStore = create<DJState>((set, get) => ({
         isTransportRunning: true 
       });
       
-      // Start grid position updates
+      // Start grid position updates with higher frequency
       get().updateGridPositions();
       
       console.log('🎧 DJ Audio System Initialized - Master Grid @ 128 BPM');
-      console.log('🎯 Beat Snapping System Active - Tracks will auto-align to grid');
+      console.log('🎯 Enhanced Beat Snapping System Active');
+      console.log(`⏰ Transport State: ${Tone.Transport.state}, BPM: ${Tone.Transport.bpm.value}`);
     } catch (error) {
       console.error('Failed to initialize audio:', error);
     }
@@ -118,38 +128,44 @@ export const useDJStore = create<DJState>((set, get) => ({
     
     if (!state.isTransportRunning) return;
     
-    // Update master grid position
-    const transportTime = Tone.Transport.seconds;
-    const beatInterval = 60 / 128; // 128 BPM
-    const currentBeat = Math.floor(transportTime / beatInterval);
-    const bar = Math.floor(currentBeat / 4) + 1;
-    const beat = (currentBeat % 4) + 1;
-    
-    set({ masterGridPosition: { bar, beat } });
-    
-    // Update deck grid positions
-    if (state.deckA) {
-      const deckAGrid = state.deckA.getGridPosition();
-      set({
-        deckAState: {
-          ...state.deckAState,
-          gridPosition: deckAGrid
-        }
-      });
+    try {
+      // Update master grid position with high precision
+      const transportTime = Tone.Transport.seconds;
+      const beatInterval = 60 / 128; // 128 BPM
+      const currentBeat = Math.floor(transportTime / beatInterval);
+      const bar = Math.floor(currentBeat / 4) + 1;
+      const beat = (currentBeat % 4) + 1;
+      
+      set({ masterGridPosition: { bar, beat } });
+      
+      // Update deck grid positions
+      if (state.deckA) {
+        const deckAGrid = state.deckA.getGridPosition();
+        set({
+          deckAState: {
+            ...state.deckAState,
+            gridPosition: deckAGrid
+          }
+        });
+      }
+      
+      if (state.deckB) {
+        const deckBGrid = state.deckB.getGridPosition();
+        set({
+          deckBState: {
+            ...state.deckBState,
+            gridPosition: deckBGrid
+          }
+        });
+      }
+      
+      // Continue updating every 50ms for smooth feedback
+      setTimeout(() => get().updateGridPositions(), 50);
+    } catch (error) {
+      console.error('Grid position update error:', error);
+      // Continue updating even if there's an error
+      setTimeout(() => get().updateGridPositions(), 100);
     }
-    
-    if (state.deckB) {
-      const deckBGrid = state.deckB.getGridPosition();
-      set({
-        deckBState: {
-          ...state.deckBState,
-          gridPosition: deckBGrid
-        }
-      });
-    }
-    
-    // Continue updating every 100ms
-    setTimeout(() => get().updateGridPositions(), 100);
   },
 
   playDeck: (deck) => {
@@ -158,16 +174,18 @@ export const useDJStore = create<DJState>((set, get) => ({
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
     if (engine && engine.isLoaded) {
-      // Ensure master transport is running
-      if (!state.isTransportRunning) {
+      // Ensure master transport is running with correct BPM
+      if (!state.isTransportRunning || Tone.Transport.state !== 'started') {
         Tone.Transport.bpm.value = 128;
-        Tone.Transport.start();
+        if (Tone.Transport.state !== 'started') {
+          Tone.Transport.start();
+        }
         set({ isTransportRunning: true });
         get().updateGridPositions();
-        console.log('🎯 Master Transport started at 128 BPM');
+        console.log('🎯 Master Transport ensured running at 128 BPM');
       }
 
-      // ⚡ INSTANT PLAY: Engine handles beat-snapped instant play
+      // ⚡ ENHANCED INSTANT PLAY: Engine handles precise beat-synced play
       engine.play();
       
       const bpmInfo = engine.getBPMInfo();
@@ -183,7 +201,7 @@ export const useDJStore = create<DJState>((set, get) => ({
       });
       
       if (gridPosition.isQueued) {
-        console.log(`⚡ Deck ${deck} instant sync play - Grid aligned!`);
+        console.log(`⚡ Deck ${deck} queued for precise beat-sync play`);
       } else {
         console.log(`▶️ Deck ${deck} manual play at 128 BPM`);
       }
@@ -215,6 +233,13 @@ export const useDJStore = create<DJState>((set, get) => ({
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
     if (engine && track.url) {
+      // Ensure transport is running before loading
+      if (!state.isTransportRunning || Tone.Transport.state !== 'started') {
+        await get().initializeAudio();
+        // Wait for transport to stabilize
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      
       // Use the provided BPM as the original BPM for auto-sync calculation
       const originalBPM = track.bpm;
       const targetBPM = 128; // Always sync to 128 BPM
@@ -230,6 +255,9 @@ export const useDJStore = create<DJState>((set, get) => ({
         const playbackRate = (targetBPM / originalBPM).toFixed(3);
         console.log(`🎯 Auto-sync Deck ${deck}: ${originalBPM} BPM → ${targetBPM} BPM (${playbackRate}x rate)`);
         
+        // Wait a moment for beat snapping to complete
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         const bpmInfo = engine.getBPMInfo();
         const gridPosition = engine.getGridPosition();
         
@@ -243,8 +271,8 @@ export const useDJStore = create<DJState>((set, get) => ({
           }
         });
         
-        console.log(`✅ "${track.name}" loaded to Deck ${deck} and beat-snapped to grid`);
-        console.log(`🎯 Ready for instant sync play: Bar ${gridPosition.bar}, Beat ${gridPosition.beat}`);
+        console.log(`✅ "${track.name}" loaded to Deck ${deck} and beat-snapped`);
+        console.log(`🎯 Grid Status: Bar ${gridPosition.bar}, Beat ${gridPosition.beat}, Aligned: ${gridPosition.isAligned}, Queued: ${gridPosition.isQueued}`);
       }
     }
   },
@@ -256,16 +284,20 @@ export const useDJStore = create<DJState>((set, get) => ({
     
     if (engine && engine.isLoaded) {
       engine.reSnapToGrid();
-      const gridPosition = engine.getGridPosition();
       
-      set({
-        [deckState]: {
-          ...state[deckState],
-          gridPosition
-        }
-      });
-      
-      console.log(`🔄 Deck ${deck} re-snapped to grid: Bar ${gridPosition.bar}, Beat ${gridPosition.beat}`);
+      // Wait for re-snap to complete
+      setTimeout(() => {
+        const gridPosition = engine.getGridPosition();
+        
+        set({
+          [deckState]: {
+            ...state[deckState],
+            gridPosition
+          }
+        });
+        
+        console.log(`🔄 Deck ${deck} re-snapped: Bar ${gridPosition.bar}, Beat ${gridPosition.beat}, Queued: ${gridPosition.isQueued}`);
+      }, 100);
     }
   },
 
@@ -408,10 +440,10 @@ export const useDJStore = create<DJState>((set, get) => ({
       // Re-snap Deck B to current grid position for perfect sync
       get().reSnapToGrid('B');
       
-      // Then play for instant sync
+      // Then play for instant sync after a short delay
       setTimeout(() => {
         get().playDeck('B');
-      }, 50); // Small delay to ensure re-snap completes
+      }, 150); // Slightly longer delay to ensure re-snap completes
       
       console.log('🎯 Deck B synced to master grid at 128 BPM');
     }
@@ -421,8 +453,10 @@ export const useDJStore = create<DJState>((set, get) => ({
     const state = get();
     state.deckA?.dispose();
     state.deckB?.dispose();
-    Tone.Transport.stop();
-    Tone.Transport.cancel();
+    if (Tone.Transport.state === 'started') {
+      Tone.Transport.stop();
+      Tone.Transport.cancel();
+    }
     set({ isTransportRunning: false });
   },
 }));

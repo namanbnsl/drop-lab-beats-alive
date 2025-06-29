@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, RotateCcw, RefreshCw, Activity, Target, Zap } from 'lucide-react';
+import { Play, Pause, RotateCcw, RefreshCw, Activity, Target, Zap, Clock } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
 
 interface CDJDeckProps {
@@ -67,7 +67,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       ctx.translate(canvas.width / 2, canvas.height / 2);
       ctx.rotate(rotationRef.current);
       
-      // Outer ring with grid-aware status colors
+      // Outer ring with enhanced grid-aware status colors
       ctx.beginPath();
       ctx.arc(0, 0, 80, 0, Math.PI * 2);
       
@@ -75,6 +75,8 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         ctx.strokeStyle = '#ff6b6b'; // Red when scrubbing
       } else if (gridPosition.isQueued && gridPosition.isAligned) {
         ctx.strokeStyle = '#00ff88'; // Bright green when beat-snapped and ready
+      } else if (gridPosition.isQueued) {
+        ctx.strokeStyle = '#ffaa00'; // Orange when queued but not yet aligned
       } else if (isPlaying && deckState.track?.originalBPM) {
         ctx.strokeStyle = '#10b981'; // Green when playing and auto-synced
       } else if (isPlaying) {
@@ -96,6 +98,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         ctx.moveTo(60, 0);
         ctx.lineTo(75, 0);
         ctx.strokeStyle = gridPosition.isQueued && gridPosition.isAligned ? '#00ff88' : 
+                         gridPosition.isQueued ? '#ffaa00' :
                          (isPlaying ? '#10b981' : '#6b7280');
         ctx.lineWidth = 2;
         ctx.stroke();
@@ -108,10 +111,11 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       ctx.beginPath();
       ctx.arc(canvas.width / 2, canvas.height / 2, 8, 0, Math.PI * 2);
       ctx.fillStyle = gridPosition.isQueued && gridPosition.isAligned ? '#00ff88' : 
+                     gridPosition.isQueued ? '#ffaa00' :
                      (isPlaying ? '#10b981' : '#374151');
       ctx.fill();
 
-      // 🎯 Beat-snapped indicator ring
+      // 🎯 Beat-snapped indicator ring with pulsing animation
       if (gridPosition.isQueued && gridPosition.isAligned) {
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -120,6 +124,29 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         ctx.strokeStyle = '#00ff88';
         ctx.lineWidth = 3;
         ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        
+        // Pulsing outer ring for ready state
+        const pulseRadius = 90 + Math.sin(Date.now() * 0.01) * 5;
+        ctx.beginPath();
+        ctx.arc(0, 0, pulseRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = '#00ff88';
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.5;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+
+      // Queued but not aligned indicator
+      if (gridPosition.isQueued && !gridPosition.isAligned) {
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.beginPath();
+        ctx.arc(0, 0, 85, 0, Math.PI * 2);
+        ctx.strokeStyle = '#ffaa00';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([6, 6]);
         ctx.stroke();
         ctx.restore();
       }
@@ -360,6 +387,21 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     return 1;
   };
 
+  // Get sync status message
+  const getSyncStatusMessage = () => {
+    if (!deckState.track) return 'No Track Loaded';
+    
+    if (gridPosition.isQueued && gridPosition.isAligned) {
+      return '🎯 READY - Beat Snapped';
+    } else if (gridPosition.isQueued) {
+      return '⏳ Queued - Aligning...';
+    } else if (isPlaying) {
+      return '▶️ Playing';
+    } else {
+      return '⏸️ Stopped';
+    }
+  };
+
   return (
     <div className="bg-gray-900 rounded-xl p-6 border border-purple-500/30">
       <div className="text-center mb-4">
@@ -386,9 +428,13 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             title="Double-click for backspin • Drag to scrub • Scroll to bend tempo"
           />
           
-          {/* Status overlays */}
+          {/* Enhanced status overlays */}
           {gridPosition.isQueued && gridPosition.isAligned && (
             <div className="absolute inset-0 rounded-full bg-green-500/20 animate-pulse pointer-events-none" />
+          )}
+          
+          {gridPosition.isQueued && !gridPosition.isAligned && (
+            <div className="absolute inset-0 rounded-full bg-orange-500/20 animate-pulse pointer-events-none" />
           )}
           
           {isDragging && (
@@ -421,6 +467,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             </div>
           )}
 
+          {gridPosition.isQueued && !gridPosition.isAligned && (
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-orange-600 text-white text-xs px-2 py-1 rounded-full pointer-events-none animate-pulse">
+              ⏳ ALIGNING
+            </div>
+          )}
+
           {deckState.track?.originalBPM && (
             <div className="absolute bottom-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full pointer-events-none">
               128
@@ -448,20 +500,26 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           <span>Key: {deckState.track?.key || '-'}</span>
         </div>
         
-        {/* Grid Position Display */}
+        {/* Enhanced Grid Position Display */}
         <div className="text-xs mt-2 space-y-1">
           <div className="flex items-center justify-center gap-2">
             <span className="text-blue-400">Grid: Bar {gridPosition.bar}, Beat {gridPosition.beat}</span>
             {gridPosition.isAligned && (
               <Target className="w-3 h-3 text-green-400" />
             )}
+            {gridPosition.isQueued && !gridPosition.isAligned && (
+              <Clock className="w-3 h-3 text-orange-400 animate-spin" />
+            )}
           </div>
           
-          {gridPosition.isQueued && gridPosition.isAligned && (
-            <div className="text-green-400 font-semibold animate-pulse">
-              🎯 Beat-Snapped • Ready for Instant Play
-            </div>
-          )}
+          {/* Enhanced status message */}
+          <div className={`font-semibold ${
+            gridPosition.isQueued && gridPosition.isAligned ? 'text-green-400 animate-pulse' :
+            gridPosition.isQueued ? 'text-orange-400 animate-pulse' :
+            isPlaying ? 'text-blue-400' : 'text-gray-400'
+          }`}>
+            {getSyncStatusMessage()}
+          </div>
         </div>
         
         {/* Auto-sync info */}
@@ -533,7 +591,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             <RotateCcw className="w-6 h-6" />
           </motion.button>
 
-          {/* Re-snap to Grid Button */}
+          {/* Enhanced Re-snap to Grid Button */}
           <motion.button
             onClick={handleReSnap}
             whileHover={{ scale: 1.05 }}
@@ -580,7 +638,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           </div>
         </div>
 
-        {/* Status Indicators */}
+        {/* Enhanced Status Indicators */}
         <div className="text-center space-y-1">
           {scrubIndicator.active && (
             <div className="text-xs text-red-400">
@@ -606,6 +664,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             </div>
           )}
 
+          {gridPosition.isQueued && !gridPosition.isAligned && (
+            <div className="text-xs text-orange-400 animate-pulse">
+              ⏳ Aligning to Beat Grid...
+            </div>
+          )}
+
           {deckState.track?.originalBPM && (
             <div className="text-xs text-green-400">
               🎯 Auto-synced to 128 BPM
@@ -613,13 +677,14 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           )}
         </div>
 
-        {/* Instructions */}
+        {/* Enhanced Instructions */}
         <div className="text-xs text-gray-500 text-center space-y-1">
           <div>Double-click jogwheel for backspin</div>
           <div>Drag to scrub • Scroll to bend tempo</div>
           <div>🎯 Target button to re-snap to grid</div>
           {deckState.track?.originalBPM && <div>🎯 Auto-sync to 128 BPM Active</div>}
           {isTransportRunning && <div>🎵 Master Grid @ 128 BPM</div>}
+          {gridPosition.isQueued && <div>⚡ Ready for instant sync play</div>}
         </div>
       </div>
     </div>
