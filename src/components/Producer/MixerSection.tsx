@@ -105,7 +105,7 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({
   };
 
   return (
-    <div className="bg-gray-900/50 rounded-xl p-3 sm:p-4 border border-purple-500/30 w-full max-w-xs mx-auto">
+    <div className="bg-gray-900/50 rounded-xl p-3 sm:p-4 border border-blue-500/30 w-full max-w-xs mx-auto">
       <h3 className={cn("text-base sm:text-lg font-semibold mb-4 text-center", color)}>{label}</h3>
 
       {/* Pan Knob */}
@@ -115,7 +115,7 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({
           <InfoTooltip content={mixerTooltips.pan} />
         </div>
         <div
-          className="relative w-10 h-10 sm:w-12 sm:h-12 bg-gray-800 rounded-full border-2 border-purple-500/30 touch-manipulation cursor-pointer"
+          className="relative w-10 h-10 sm:w-12 sm:h-12 bg-gray-800 rounded-full border-2 border-blue-500/30 touch-manipulation cursor-pointer"
           onClick={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
@@ -127,7 +127,7 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({
           }}
         >
           <div
-            className="absolute top-1 left-1/2 w-1 h-3 sm:h-4 bg-purple-400 rounded-full transform -translate-x-1/2 origin-bottom"
+            className="absolute top-1 left-1/2 w-1 h-3 sm:h-4 bg-blue-400 rounded-full transform -translate-x-1/2 origin-bottom"
             style={{ transform: `translateX(-50%) rotate(${(pan - 50) * 2.7}deg)` }}
           />
           <div className="absolute inset-2 bg-gray-900 rounded-full flex items-center justify-center">
@@ -247,7 +247,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
   };
 
   return (
-    <section id="mixer" className="min-h-screen flex items-center justify-center px-4 py-8 sm:py-20">
+    <section id="mixer" className="px-4 pt-32 pb-8">
       <motion.div
         className="max-w-6xl mx-auto text-center w-full"
         initial={{ opacity: 0, y: 50 }}
@@ -255,7 +255,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 text-white">
           🎚 Balance the Mix
         </h2>
 
@@ -332,7 +332,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
           >
             <ChannelStrip
               label="Master"
-              color="text-purple-400"
+              color="text-blue-400"
               volume={masterVolume}
               onVolumeChange={onMasterVolumeChange}
               onMuteChange={onMasterMuteChange}
@@ -348,13 +348,13 @@ const MixerSection: React.FC<MixerSectionProps> = ({
 
         {/* Balance Faders */}
         <motion.div
-          className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30 max-w-4xl mx-auto"
+          className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-blue-500/30 max-w-4xl mx-auto"
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.5 }}
           viewport={{ once: true }}
         >
-          <h3 className="text-base sm:text-lg font-semibold text-purple-400 mb-4 sm:mb-6">Track Balance</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-blue-400 mb-4 sm:mb-6">Track Balance</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8">
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-1 mb-2">
@@ -400,7 +400,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
 
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-1 mb-2">
-                <span className="text-xs sm:text-sm text-purple-400 font-semibold">Master</span>
+                <span className="text-xs sm:text-sm text-blue-400 font-semibold">Master</span>
                 <InfoTooltip content={balanceTooltips.master} />
               </div>
               <VerticalFader
@@ -417,12 +417,12 @@ const MixerSection: React.FC<MixerSectionProps> = ({
         {/* Mixer Status Display */}
         {(anySolo || drumsMuted || melodyMuted || fxMuted || masterMuted) && (
           <motion.div
-            className="mt-6 bg-gray-900/50 rounded-xl p-4 border border-purple-500/30 max-w-2xl mx-auto"
+            className="mt-6 bg-gray-900/50 rounded-xl p-4 border border-blue-500/30 max-w-2xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <h4 className="text-sm font-semibold text-purple-400 mb-2">Mixer Status</h4>
+            <h4 className="text-sm font-semibold text-blue-400 mb-2">Mixer Status</h4>
             <div className="flex flex-wrap gap-2 justify-center text-xs">
               {drumsSolo && <span className="bg-yellow-600 text-white px-2 py-1 rounded">🎯 Drums SOLO</span>}
               {melodySolo && <span className="bg-yellow-600 text-white px-2 py-1 rounded">🎯 Melody SOLO</span>}

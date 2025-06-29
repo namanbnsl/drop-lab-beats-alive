@@ -97,7 +97,7 @@ const Index = () => {
             </div>
           </motion.div>
           <motion.p
-            className="text-white text-base sm:text-lg font-bold handwritten-enhanced"
+            className="text-white text-base sm:text-lg font-bold font-handwritten"
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 0] }}
             transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
@@ -182,7 +182,7 @@ const Index = () => {
             animate={{ scale: 1, opacity: 1, rotate: -1 }}
             transition={{ duration: 0.8, delay: 0.2, type: "spring", bounce: 0.3 }}
           >
-            <span className="highlighter highlighter-orange">DropLab</span>
+            <span className="text-white">DropLab</span>
           </motion.h1>
 
           <motion.svg
@@ -203,7 +203,7 @@ const Index = () => {
           </motion.svg>
 
           <motion.p
-            className="text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8 text-gray-300 handwritten-enhanced animate-handwrite transform rotate-1"
+            className="text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8 text-white font-handwritten font-bold animate-handwrite transform rotate-1"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -219,7 +219,7 @@ const Index = () => {
           >
             <motion.button
               onClick={() => navigate('/producer')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 hover:scale-105 touch-manipulation handwritten-enhanced transform -rotate-1 hover:rotate-0 hover:bg-gray-700"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 hover:scale-105 touch-manipulation transform -rotate-1 hover:rotate-0 hover:bg-gray-700"
               whileHover={{ scale: 1.05, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -228,7 +228,7 @@ const Index = () => {
 
             <motion.button
               onClick={() => navigate('/dj')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 hover:scale-105 touch-manipulation handwritten-enhanced transform rotate-1 hover:rotate-0 hover:bg-gray-700"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 hover:scale-105 touch-manipulation transform rotate-1 hover:rotate-0 hover:bg-gray-700"
               whileHover={{ scale: 1.05, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -260,7 +260,7 @@ const Index = () => {
                 transition={{ duration: 0.6 }}
                 viewport={{ once: true }}
               >
-                <span className="highlighter highlighter-purple">Producer Mode</span>
+                <span className="text-white">Producer Mode</span>
                 <motion.svg
                   className="mx-auto mt-2"
                   width="200"
@@ -299,7 +299,7 @@ const Index = () => {
                       }}
                     >
                       <div className="text-2xl">{feature.doodle}</div>
-                      <h3 className="text-base sm:text-lg font-bold handwritten-enhanced text-white">
+                      <h3 className="text-base sm:text-lg font-bold font-handwritten text-white">
                         {feature.title}
                       </h3>
                     </div>
@@ -317,7 +317,7 @@ const Index = () => {
                 transition={{ duration: 0.6 }}
                 viewport={{ once: true }}
               >
-                <span className="highlighter highlighter-pink">DJ Mode</span>
+                <span className="text-white">DJ Mode</span>
                 <motion.svg
                   className="mx-auto mt-2"
                   width="200"
@@ -356,7 +356,7 @@ const Index = () => {
                       }}
                     >
                       <div className="text-2xl">{feature.doodle}</div>
-                      <h3 className="text-base sm:text-lg font-bold handwritten-enhanced text-white">
+                      <h3 className="text-base sm:text-lg font-bold font-handwritten text-white">
                         {feature.title}
                       </h3>
                     </div>
@@ -378,7 +378,7 @@ const Index = () => {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 handwritten-title transform -rotate-1">
-            <span className="highlighter highlighter-green">No gear? No problem.</span>
+            <span className="text-white">No gear? No problem.</span>
           </h2>
 
           <motion.svg
@@ -399,7 +399,7 @@ const Index = () => {
             />
           </motion.svg>
 
-          <p className="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-12 leading-relaxed handwritten-enhanced">
+          <p className="text-lg sm:text-xl text-white mb-8 sm:mb-12 leading-relaxed font-handwritten">
             DropLab is built to teach as you play. With interactive tooltips and a step-by-step walkthrough, anyone can
             go from beginner to beat master.
           </p>
@@ -433,7 +433,7 @@ const Index = () => {
         >
           <div className="mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold handwritten-title transform rotate-1">
-              <span className="highlighter highlighter-indigo">Built with powerful tech:</span>
+              <span className="text-white">Built with powerful tech:</span>
             </h2>
             <motion.svg
               className="mx-auto mt-2"
@@ -458,7 +458,7 @@ const Index = () => {
             {techStack.map((tech, index) => (
               <motion.span
                 key={tech.name}
-                className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-900 border border-gray-800 rounded-full font-bold text-xs sm:text-sm text-white touch-manipulation handwritten-enhanced relative hover:border-emerald-500 transition-colors"
+                className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-900 border border-gray-800 rounded-full font-bold text-xs sm:text-sm text-white touch-manipulation font-handwritten relative hover:border-emerald-500 transition-colors"
                 initial={{ opacity: 0, scale: 0.8, rotate: Math.random() * 20 - 10 }}
                 whileInView={{ opacity: 1, scale: 1, rotate: Math.random() * 6 - 3 }}
                 transition={{ delay: index * 0.1, duration: 0.5, type: "spring", bounce: 0.4 }}
@@ -482,7 +482,7 @@ const Index = () => {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 handwritten-title transform -rotate-1">
-            <span className="highlighter highlighter-red">Ready to make some noise?</span>
+            <span className="text-white">Ready to make some noise?</span>
           </h2>
 
           <motion.svg
@@ -503,14 +503,14 @@ const Index = () => {
             />
           </motion.svg>
 
-          <p className="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-12 leading-relaxed handwritten-enhanced">
+          <p className="text-lg sm:text-xl text-white mb-8 sm:mb-12 leading-relaxed font-handwritten">
             Jump into the studio or the DJ booth and start creating. No account needed, just pure musical expression.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mb-8 sm:mb-12">
             <motion.button
               onClick={() => navigate('/producer')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 touch-manipulation handwritten-enhanced transform -rotate-2 hover:rotate-0 hover:bg-gray-700 border-gray-700"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 touch-manipulation font-handwritten transform -rotate-2 hover:rotate-0 hover:bg-gray-700 border-gray-700"
               whileHover={{ scale: 1.05, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -519,7 +519,7 @@ const Index = () => {
 
             <motion.button
               onClick={() => navigate('/dj')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 touch-manipulation handwritten-enhanced transform rotate-2 hover:rotate-0 hover:bg-gray-700 border-gray-700"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 touch-manipulation font-handwritten transform rotate-2 hover:rotate-0 hover:bg-gray-700 border-gray-700"
               whileHover={{ scale: 1.05, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -537,7 +537,7 @@ const Index = () => {
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        <p className="text-gray-400 text-xs sm:text-sm handwritten-enhanced transform rotate-1">
+        <p className="text-white text-xs sm:text-sm font-handwritten transform rotate-1">
           © 2025 DropLab by Aarjav & Naman 🚀 | Hackathon Edition
         </p>
       </motion.section>

@@ -9,10 +9,10 @@ interface VerticalFaderProps {
   onMuteChange?: (muted: boolean) => void;
 }
 
-const VerticalFader: React.FC<VerticalFaderProps> = ({ 
-  label, 
-  value, 
-  onChange, 
+const VerticalFader: React.FC<VerticalFaderProps> = ({
+  label,
+  value,
+  onChange,
   className = "",
   isMuted = false,
   onMuteChange
@@ -24,10 +24,10 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
     setShowValue(true);
-    
+
     const updateValue = (clientY: number) => {
       if (!faderRef.current) return;
-      
+
       const rect = faderRef.current.getBoundingClientRect();
       const y = clientY - rect.top;
       // FIXED: Invert the calculation so top = 100%, bottom = 0%
@@ -56,10 +56,10 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
   const handleTouchStart = (e: React.TouchEvent) => {
     setIsDragging(true);
     setShowValue(true);
-    
+
     const updateValue = (clientY: number) => {
       if (!faderRef.current) return;
-      
+
       const rect = faderRef.current.getBoundingClientRect();
       const y = clientY - rect.top;
       // FIXED: Invert the calculation so top = 100%, bottom = 0%
@@ -93,46 +93,43 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
   return (
     <div className={`flex flex-col items-center ${className}`}>
       {label && <label className="text-xs text-gray-300 mb-2">{label}</label>}
-      
+
       <div className="relative">
         {/* Fader Rail */}
         <div
           ref={faderRef}
-          className={`relative h-24 sm:h-36 w-3 sm:w-4 bg-gray-800 rounded-full cursor-pointer transition-all duration-200 touch-manipulation ${
-            isDragging ? 'bg-gray-700' : 'hover:bg-gray-700'
-          } ${isMuted ? 'opacity-50' : ''}`}
+          className={`relative h-24 sm:h-36 w-3 sm:w-4 bg-gray-800 rounded-full cursor-pointer transition-all duration-200 touch-manipulation ${isDragging ? 'bg-gray-700' : 'hover:bg-gray-700'
+            } ${isMuted ? 'opacity-50' : ''}`}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
         >
           {/* Active Fill - FIXED: Fill from bottom up */}
           <div
-            className={`absolute bottom-0 left-0 w-full rounded-full transition-all duration-100 ${
-              isMuted ? 'bg-red-500' : 'bg-purple-500'
-            }`}
+            className={`absolute bottom-0 left-0 w-full rounded-full transition-all duration-100 ${isMuted ? 'bg-red-500' : 'bg-blue-500'
+              }`}
             style={{ height: `${value}%` }}
           />
-          
+
           {/* Fader Handle - FIXED: Position correctly */}
           <div
-            className={`absolute w-5 h-2 sm:w-6 sm:h-3 bg-white rounded-sm border border-gray-600 transform -translate-x-1/2 transition-all duration-100 touch-manipulation ${
-              isDragging ? 'shadow-lg shadow-purple-500/50 scale-110' : 'hover:shadow-md hover:shadow-purple-500/30'
-            } ${isMuted ? 'bg-red-300 border-red-500' : ''}`}
-            style={{ 
+            className={`absolute w-5 h-2 sm:w-6 sm:h-3 bg-white rounded-sm border border-gray-600 transform -translate-x-1/2 transition-all duration-100 touch-manipulation ${isDragging ? 'shadow-lg shadow-blue-500/50 scale-110' : 'hover:shadow-md hover:shadow-blue-500/30'
+              } ${isMuted ? 'bg-red-300 border-red-500' : ''}`}
+            style={{
               left: '50%',
               top: `${handlePosition}%`,
               transform: 'translateX(-50%) translateY(-50%)'
             }}
           />
         </div>
-        
+
         {/* Value Display */}
         {showValue && (
-          <div className="absolute -right-6 sm:-right-8 top-1/2 transform -translate-y-1/2 bg-black border border-purple-500 text-white text-xs px-2 py-1 rounded z-10">
+          <div className="absolute -right-6 sm:-right-8 top-1/2 transform -translate-y-1/2 bg-black border border-blue-500 text-white text-xs px-2 py-1 rounded z-10">
             {value}%
           </div>
         )}
       </div>
-      
+
       <span className={`text-xs mt-2 ${isMuted ? 'text-red-400' : 'text-gray-300'}`}>
         {isMuted ? 'MUTE' : `${value}%`}
       </span>

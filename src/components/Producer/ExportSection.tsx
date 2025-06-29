@@ -45,7 +45,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
     type: 'success' | 'error' | null;
     message: string;
   }>({ type: null, message: '' });
-  
+
   const audioRecorderRef = useRef<AudioRecorder | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -65,7 +65,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
 
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       const filename = `droplab-melody-${timestamp}`;
-      
+
       MIDIExporter.exportMelody(melodyNotes, tempo, filename);
       showStatus('success', 'Melody exported successfully as MIDI!');
     } catch (error) {
@@ -76,7 +76,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
 
   const handleExportDrums = () => {
     try {
-      const hasAnyDrums = Object.values(drumPattern).some(pattern => 
+      const hasAnyDrums = Object.values(drumPattern).some(pattern =>
         pattern.some(step => step)
       );
 
@@ -87,7 +87,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
 
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       const filename = `droplab-drums-${timestamp}`;
-      
+
       MIDIExporter.exportDrums(drumPattern, tempo, filename);
       showStatus('success', 'Drum pattern exported successfully as MIDI!');
     } catch (error) {
@@ -138,14 +138,14 @@ const ExportSection: React.FC<ExportSectionProps> = ({
           }
 
           const audioBlob = await audioRecorderRef.current!.stopRecording();
-          
+
           // Generate filename with timestamp
           const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
           const filename = `droplab-track-${timestamp}`;
-          
+
           // Download the audio file
           AudioRecorder.downloadAudio(audioBlob, filename);
-          
+
           setIsRecording(false);
           setRecordingProgress(0);
           showStatus('success', 'Audio track exported successfully!');
@@ -178,7 +178,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
   }, []);
 
   return (
-    <section id="export" className="min-h-screen flex items-center justify-center px-4 py-8 sm:py-20">
+    <section id="export" className="px-4 pt-32 pb-8">
       <motion.div
         className="max-w-5xl mx-auto text-center w-full"
         initial={{ opacity: 0, y: 50 }}
@@ -186,14 +186,14 @@ const ExportSection: React.FC<ExportSectionProps> = ({
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 text-white">
           💾 Export Your Creation
         </h2>
-        
+
         <p className="text-lg sm:text-xl text-gray-300 mb-2 sm:mb-4">
           Your masterpiece is ready to share with the world
         </p>
-        
+
         <p className="text-base sm:text-lg text-gray-400 mb-8 sm:mb-12">
           Export your music in professional formats
         </p>
@@ -204,11 +204,10 @@ const ExportSection: React.FC<ExportSectionProps> = ({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`mb-6 p-4 rounded-lg border max-w-md mx-auto ${
-              exportStatus.type === 'success' 
-                ? 'bg-green-900/20 border-green-500/30 text-green-400' 
-                : 'bg-red-900/20 border-red-500/30 text-red-400'
-            }`}
+            className={`mb-6 p-4 rounded-lg border max-w-md mx-auto ${exportStatus.type === 'success'
+              ? 'bg-green-900/20 border-green-500/30 text-green-400'
+              : 'bg-red-900/20 border-red-500/30 text-red-400'
+              }`}
           >
             <div className="flex items-center justify-center gap-2">
               {exportStatus.type === 'success' ? (
@@ -232,7 +231,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
           >
             <motion.button
               onClick={onPlayTrack}
-              className="group relative px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-purple-600 to-purple-500 rounded-full font-bold text-lg sm:text-2xl text-white transition-all duration-300 hover:from-purple-500 hover:to-purple-400 hover:shadow-xl hover:shadow-purple-500/25 touch-manipulation"
+              className="group relative px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full font-bold text-lg sm:text-2xl text-white transition-all duration-300 hover:from-blue-500 hover:to-blue-400 hover:shadow-xl hover:shadow-blue-500/25 touch-manipulation"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -260,25 +259,25 @@ const ExportSection: React.FC<ExportSectionProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-3xl w-full">
             {/* Export Melody as MIDI */}
             <motion.div
-              className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30"
+              className="bg-gray-900/50 rounded-xl p-6 border border-blue-500/30"
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.1 }}
               viewport={{ once: true }}
             >
               <div className="mb-6">
-                <Music className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+                <Music className="w-12 h-12 text-blue-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-white mb-2">Export Melody</h3>
                 <p className="text-gray-400 text-sm">Download your melody as MIDI file</p>
-                <p className="text-purple-400 text-xs mt-1">
+                <p className="text-blue-400 text-xs mt-1">
                   {melodyNotes.length} notes ready
                 </p>
               </div>
-              
+
               <motion.button
                 onClick={handleExportMelody}
                 disabled={melodyNotes.length === 0}
-                className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm touch-manipulation"
+                className="w-full py-3 px-4 bg-blue-600 rounded-full font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm touch-manipulation"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -291,27 +290,27 @@ const ExportSection: React.FC<ExportSectionProps> = ({
 
             {/* Export Drums as MIDI */}
             <motion.div
-              className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30"
+              className="bg-gray-900/50 rounded-xl p-6 border border-blue-500/30"
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
             >
               <div className="mb-6">
-                <Music className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+                <Music className="w-12 h-12 text-blue-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-white mb-2">Export Drums</h3>
                 <p className="text-gray-400 text-sm">Download your drum pattern as MIDI</p>
-                <p className="text-purple-400 text-xs mt-1">
-                  {Object.values(drumPattern).reduce((total, pattern) => 
+                <p className="text-blue-400 text-xs mt-1">
+                  {Object.values(drumPattern).reduce((total, pattern) =>
                     total + pattern.filter(Boolean).length, 0
                   )} hits ready
                 </p>
               </div>
-              
+
               <motion.button
                 onClick={handleExportDrums}
                 disabled={!Object.values(drumPattern).some(pattern => pattern.some(step => step))}
-                className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm touch-manipulation"
+                className="w-full py-3 px-4 bg-blue-600 rounded-full font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm touch-manipulation"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -324,25 +323,25 @@ const ExportSection: React.FC<ExportSectionProps> = ({
 
             {/* Export as Audio */}
             <motion.div
-              className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30"
+              className="bg-gray-900/50 rounded-xl p-6 border border-blue-500/30"
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
               viewport={{ once: true }}
             >
               <div className="mb-6">
-                <FileAudio className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+                <FileAudio className="w-12 h-12 text-blue-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-white mb-2">Export Audio</h3>
                 <p className="text-gray-400 text-sm">High-quality WAV file ready for streaming</p>
-                <p className="text-purple-400 text-xs mt-1">
+                <p className="text-blue-400 text-xs mt-1">
                   8-second recording
                 </p>
               </div>
-              
+
               <motion.button
                 onClick={handleExportAudio}
                 disabled={isRecording || !hasGeneratedContent}
-                className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm touch-manipulation"
+                className="w-full py-3 px-4 bg-blue-600 rounded-full font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm touch-manipulation"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -367,18 +366,18 @@ const ExportSection: React.FC<ExportSectionProps> = ({
         {/* Recording Progress */}
         {isRecording && (
           <motion.div
-            className="mt-6 sm:mt-8 bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30 max-w-md mx-auto"
+            className="mt-6 sm:mt-8 bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-blue-500/30 max-w-md mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
             <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="w-4 h-4 sm:w-6 sm:h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-purple-400 font-semibold text-sm sm:text-base">Recording your track...</span>
+              <div className="w-4 h-4 sm:w-6 sm:h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-blue-400 font-semibold text-sm sm:text-base">Recording your track...</span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
               <motion.div
-                className="bg-purple-500 h-2 rounded-full"
+                className="bg-blue-500 h-2 rounded-full"
                 style={{ width: `${recordingProgress}%` }}
                 transition={{ duration: 0.1 }}
               />
@@ -391,23 +390,23 @@ const ExportSection: React.FC<ExportSectionProps> = ({
 
         {/* Export Info */}
         <motion.div
-          className="mt-8 sm:mt-12 bg-gray-900/30 rounded-xl p-4 sm:p-6 border border-purple-500/20 max-w-2xl mx-auto"
+          className="mt-8 sm:mt-12 bg-gray-900/30 rounded-xl p-4 sm:p-6 border border-blue-500/20 max-w-2xl mx-auto"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
           viewport={{ once: true }}
         >
-          <h3 className="text-lg font-semibold text-purple-400 mb-4">Export Information</h3>
+          <h3 className="text-lg font-semibold text-blue-400 mb-4">Export Information</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div className="text-center">
               <p className="text-white font-medium">MIDI Files</p>
               <p className="text-gray-400">Compatible with all DAWs</p>
-              <p className="text-purple-400 text-xs">Logic, Ableton, FL Studio</p>
+              <p className="text-blue-400 text-xs">Logic, Ableton, FL Studio</p>
             </div>
             <div className="text-center">
               <p className="text-white font-medium">Audio Export</p>
               <p className="text-gray-400">High-quality WAV format</p>
-              <p className="text-purple-400 text-xs">44.1kHz, 16-bit</p>
+              <p className="text-blue-400 text-xs">44.1kHz, 16-bit</p>
             </div>
           </div>
         </motion.div>

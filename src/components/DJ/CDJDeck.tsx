@@ -14,7 +14,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   const lastAngleRef = useRef(0);
   const lastClickRef = useRef(0);
   const tempoBendTimeoutRef = useRef<NodeJS.Timeout>();
-  
+
   const [isDragging, setIsDragging] = useState(false);
   const [isJogPressed, setIsJogPressed] = useState(false);
   const [isCuePressed, setIsCuePressed] = useState(false);
@@ -22,7 +22,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   const [backspinCooldown, setBackspinCooldown] = useState(false);
   const [scrubIndicator, setScrubIndicator] = useState({ active: false, direction: 0 });
   const [tempoBend, setTempoBend] = useState({ active: false, direction: 0 });
-  
+
   const {
     deckAState,
     deckBState,
@@ -59,16 +59,16 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
 
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       // Draw platter ring with enhanced grid-aware colors
       ctx.save();
       ctx.translate(canvas.width / 2, canvas.height / 2);
       ctx.rotate(rotationRef.current);
-      
+
       // Outer ring with enhanced grid-aware status colors
       ctx.beginPath();
       ctx.arc(0, 0, 80, 0, Math.PI * 2);
-      
+
       if (isDragging) {
         ctx.strokeStyle = '#ff6b6b'; // Red when scrubbing
       } else if (gridPosition.isQueued && gridPosition.isAligned) {
@@ -86,31 +86,31 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       } else {
         ctx.strokeStyle = '#374151'; // Gray when no track
       }
-      
+
       ctx.lineWidth = 4;
       ctx.stroke();
-      
+
       // Inner details (pitch marks) with grid-aware colors
       for (let i = 0; i < 8; i++) {
         ctx.beginPath();
         ctx.moveTo(60, 0);
         ctx.lineTo(75, 0);
-        ctx.strokeStyle = gridPosition.isQueued && gridPosition.isAligned ? '#00ff88' : 
-                         gridPosition.isQueued ? '#ffaa00' :
-                         (isPlaying ? '#10b981' : '#6b7280');
+        ctx.strokeStyle = gridPosition.isQueued && gridPosition.isAligned ? '#00ff88' :
+          gridPosition.isQueued ? '#ffaa00' :
+            (isPlaying ? '#10b981' : '#6b7280');
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.rotate(Math.PI / 4);
       }
-      
+
       ctx.restore();
-      
+
       // Center dot with grid status
       ctx.beginPath();
       ctx.arc(canvas.width / 2, canvas.height / 2, 8, 0, Math.PI * 2);
-      ctx.fillStyle = gridPosition.isQueued && gridPosition.isAligned ? '#00ff88' : 
-                     gridPosition.isQueued ? '#ffaa00' :
-                     (isPlaying ? '#10b981' : '#374151');
+      ctx.fillStyle = gridPosition.isQueued && gridPosition.isAligned ? '#00ff88' :
+        gridPosition.isQueued ? '#ffaa00' :
+          (isPlaying ? '#10b981' : '#374151');
       ctx.fill();
 
       // Beat-snapped indicator ring with pulsing animation
@@ -123,7 +123,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         ctx.lineWidth = 3;
         ctx.setLineDash([4, 4]);
         ctx.stroke();
-        
+
         // Pulsing outer ring for ready state
         const pulseRadius = 90 + Math.sin(Date.now() * 0.01) * 5;
         ctx.beginPath();
@@ -239,7 +239,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   const handlePlatterClick = (e: React.MouseEvent) => {
     const now = Date.now();
     const timeSinceLastClick = now - lastClickRef.current;
-    
+
     if (timeSinceLastClick < 300 && !backspinCooldown) {
       // Double-click detected - trigger backspin
       e.preventDefault();
@@ -247,18 +247,18 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
       setBackspinCooldown(true);
       setTimeout(() => setBackspinCooldown(false), 1000);
     }
-    
+
     lastClickRef.current = now;
   };
 
   const handlePlatterMouseDown = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const angle = getMouseAngle(e, rect);
-    
+
     setIsDragging(true);
     setIsJogPressed(true);
     lastAngleRef.current = angle;
-    
+
     // Set cue point if track is loaded and stopped
     if (deckState.track && !isPlaying) {
       setCuePoint(50);
@@ -273,24 +273,24 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
 
     const rect = canvas.getBoundingClientRect();
     const currentAngle = getMouseAngle(e, rect);
-    
+
     // Calculate angular velocity with proper direction
     let angleDelta = currentAngle - lastAngleRef.current;
-    
+
     // Handle angle wrap-around properly
     if (angleDelta > Math.PI) angleDelta -= 2 * Math.PI;
     if (angleDelta < -Math.PI) angleDelta += 2 * Math.PI;
-    
+
     // Enhanced sensitivity for better scrubbing control
     const velocity = angleDelta * 25; // Increased sensitivity
-    
+
     // Update visual rotation
     rotationRef.current += angleDelta;
     lastAngleRef.current = currentAngle;
 
     // Show scrub indicator with direction
     setScrubIndicator({ active: true, direction: velocity });
-    
+
     // Enhanced scrubbing
     scrubTrack(side, velocity);
 
@@ -309,24 +309,24 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   // Scroll to bend tempo functionality
   const handlePlatterWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    
+
     if (!isPlaying || !deckState.track) return;
 
     const delta = e.deltaY;
     const bendDirection = delta < 0 ? 1 : -1; // Up = speed up, Down = slow down
     const bendAmount = bendDirection > 0 ? 1.05 : 0.95; // 5% tempo change
-    
+
     // Apply tempo bend
     bendTempo(side, bendAmount);
-    
+
     // Show visual feedback
     setTempoBend({ active: true, direction: bendDirection });
-    
+
     // Clear any existing timeout
     if (tempoBendTimeoutRef.current) {
       clearTimeout(tempoBendTimeoutRef.current);
     }
-    
+
     // Reset tempo after 500ms
     tempoBendTimeoutRef.current = setTimeout(() => {
       bendTempo(side, 1.0); // Reset to normal tempo
@@ -358,7 +358,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     if (isDragging) {
       document.addEventListener('mousemove', handlePlatterMouseMove);
       document.addEventListener('mouseup', handlePlatterMouseUp);
-      
+
       return () => {
         document.removeEventListener('mousemove', handlePlatterMouseMove);
         document.removeEventListener('mouseup', handlePlatterMouseUp);
@@ -367,9 +367,9 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   }, [isDragging, lastAngleRef.current]);
 
   return (
-    <div className="bg-gray-900 rounded-xl p-6 border border-purple-500/30">
+    <div className="bg-gray-900 rounded-xl p-6 border border-blue-500/30">
       <div className="text-center mb-4">
-        <h3 className="text-lg font-bold text-purple-400">Deck {side}</h3>
+        <h3 className="text-lg font-bold text-blue-400">Deck {side}</h3>
       </div>
 
       {/* Platter */}
@@ -384,20 +384,20 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             onClick={handlePlatterClick}
             onWheel={handlePlatterWheel}
           />
-          
+
           {/* Status overlays */}
           {isDragging && (
             <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full pointer-events-none">
               SCRUB
             </div>
           )}
-          
+
           {isCuePressed && (
             <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full pointer-events-none">
               CUE
             </div>
           )}
-          
+
           {backspinCooldown && (
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full pointer-events-none">
               BACKSPIN
@@ -426,7 +426,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
 
       {/* Track Info */}
       <div className="bg-black rounded-lg p-3 mb-4 text-center">
-        <div className="text-purple-400 font-semibold truncate">
+        <div className="text-blue-400 font-semibold truncate">
           {deckState.track?.name || 'No Track'}
         </div>
         <div className="text-sm text-gray-400 flex justify-between mt-1">
@@ -451,13 +451,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             onClick={handlePlayPause}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className={`p-3 rounded-full transition-all ${
-              isPlaying 
-                ? 'bg-green-600 text-white shadow-lg shadow-green-500/25' 
+            className={`p-3 rounded-full transition-all ${isPlaying
+                ? 'bg-green-600 text-white shadow-lg shadow-green-500/25'
                 : gridPosition.isQueued && gridPosition.isAligned
-                ? 'bg-green-600 text-white shadow-lg shadow-green-500/25 animate-pulse'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
+                  ? 'bg-green-600 text-white shadow-lg shadow-green-500/25 animate-pulse'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
           >
             {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
           </motion.button>
@@ -469,13 +468,12 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             onMouseLeave={handleCueMouseUp}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className={`p-3 rounded-full transition-all font-bold text-sm ${
-              isCuePressed
+            className={`p-3 rounded-full transition-all font-bold text-sm ${isCuePressed
                 ? 'bg-green-600 text-white shadow-lg shadow-green-500/25'
                 : deckState.track
-                ? 'bg-gray-700 text-green-400 hover:bg-gray-600 border border-green-500/30'
-                : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-            }`}
+                  ? 'bg-gray-700 text-green-400 hover:bg-gray-600 border border-green-500/30'
+                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+              }`}
             disabled={!deckState.track}
           >
             CUE

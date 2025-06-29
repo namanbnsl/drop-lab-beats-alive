@@ -31,7 +31,7 @@ const GenreSelector: React.FC<GenreSelectorProps> = ({
     { id: 'post-punk', name: 'Post Punk', color: 'bg-gray-400' },
     { id: 'shoegaze', name: 'Shoegaze', color: 'bg-yellow-400' },
     { id: 'funk', name: 'Funk', color: 'bg-gray-400' },
-    { id: 'chiptune', name: 'Chiptune', color: 'bg-purple-500' },
+    { id: 'chiptune', name: 'Chiptune', color: 'bg-blue-500' },
     { id: 'lush-strings', name: 'Lush Strings', color: 'bg-gray-400' },
     { id: 'sparkling-arpeggios', name: 'Sparkling Arpegg...', color: 'bg-gray-400' },
     { id: 'staccato-rhythms', name: 'Staccato Rhythms', color: 'bg-gray-400' },
@@ -64,11 +64,10 @@ const GenreSelector: React.FC<GenreSelectorProps> = ({
         >
           {/* Genre Knob */}
           <motion.div
-            className={`relative w-20 h-20 rounded-full cursor-pointer transition-all duration-300 ${
-              selectedGenre === genre.id 
-                ? `${genre.color} shadow-lg shadow-current/50 scale-110` 
+            className={`relative w-20 h-20 rounded-full cursor-pointer transition-all duration-300 ${selectedGenre === genre.id
+                ? `${genre.color} shadow-lg shadow-current/50 scale-110`
                 : 'bg-gray-600 hover:bg-gray-500'
-            }`}
+              }`}
             onClick={() => handleGenreClick(genre)}
             whileHover={{ scale: selectedGenre === genre.id ? 1.15 : 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -103,7 +102,7 @@ const GenreSelector: React.FC<GenreSelectorProps> = ({
             {playingGenre === genre.id && (
               <motion.div
                 className="absolute inset-0 rounded-full border-4 border-white"
-                animate={{ 
+                animate={{
                   boxShadow: [
                     '0 0 0 0 rgba(255,255,255,0.7)',
                     '0 0 0 10px rgba(255,255,255,0)',

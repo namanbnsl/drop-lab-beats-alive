@@ -86,7 +86,7 @@ const Knob: React.FC<KnobProps> = ({ label, value, onChange, min = 0, max = 100,
       case 'green': return 'border-green-500';
       case 'blue': return 'border-blue-500';
       case 'orange': return 'border-orange-500';
-      default: return 'border-purple-500';
+      default: return 'border-blue-500';
     }
   };
 
@@ -96,23 +96,21 @@ const Knob: React.FC<KnobProps> = ({ label, value, onChange, min = 0, max = 100,
       case 'green': return 'bg-green-400';
       case 'blue': return 'bg-blue-400';
       case 'orange': return 'bg-orange-400';
-      default: return 'bg-purple-400';
+      default: return 'bg-blue-400';
     }
   };
 
   return (
     <div className="flex flex-col items-center">
       <div
-        className={`relative w-12 h-12 sm:w-16 sm:h-16 bg-gray-800 rounded-full border-2 cursor-pointer transition-all duration-200 touch-manipulation ${
-          isDragging ? `${getColorClass(color)} shadow-lg shadow-${color}-500/25` : `border-gray-600 hover:${getColorClass(color)}`
-        }`}
+        className={`relative w-12 h-12 sm:w-16 sm:h-16 bg-gray-800 rounded-full border-2 cursor-pointer transition-all duration-200 touch-manipulation ${isDragging ? `${getColorClass(color)} shadow-lg shadow-${color}-500/25` : `border-gray-600 hover:${getColorClass(color)}`
+          }`}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >
         <div
-          className={`absolute top-1 left-1/2 w-1 h-4 sm:h-6 rounded-full transform -translate-x-1/2 origin-bottom transition-all ${
-            getIndicatorColor(color)
-          }`}
+          className={`absolute top-1 left-1/2 w-1 h-4 sm:h-6 rounded-full transform -translate-x-1/2 origin-bottom transition-all ${getIndicatorColor(color)
+            }`}
           style={{ transform: `translateX(-50%) rotate(${rotation}deg)` }}
         />
         <div className={`absolute inset-2 bg-gray-900 rounded-full flex items-center justify-center`}>
@@ -165,7 +163,7 @@ const FXSection: React.FC<FXSectionProps> = ({
   };
 
   return (
-    <section id="fx" className="min-h-screen flex items-center justify-center px-4 py-8 sm:py-20">
+    <section id="fx" className="px-4 pt-32 pb-8">
       <motion.div
         className="max-w-6xl mx-auto text-center w-full"
         initial={{ opacity: 0, y: 50 }}
@@ -173,10 +171,10 @@ const FXSection: React.FC<FXSectionProps> = ({
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 text-white">
           🎛 Add Some Texture
         </h2>
-        
+
         <p className="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-12">
           Shape your sound with professional-grade effects
         </p>
@@ -184,7 +182,7 @@ const FXSection: React.FC<FXSectionProps> = ({
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
           {/* Delay - Functional */}
           <motion.div
-            className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
+            className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-blue-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -192,7 +190,7 @@ const FXSection: React.FC<FXSectionProps> = ({
           >
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-semibold text-purple-400">Delay</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Delay</h3>
                 <InfoTooltip content={fxTooltips.delay} />
               </div>
               <motion.button
@@ -200,30 +198,29 @@ const FXSection: React.FC<FXSectionProps> = ({
                   setDelayBypass(!delayBypass);
                   onDelayChange(delayBypass ? delayAmount : 0);
                 }}
-                className={`p-2 rounded-full transition-colors touch-manipulation ${
-                  delayBypass ? 'bg-gray-600 text-gray-400' : 'bg-purple-600 text-white'
-                }`}
+                className={`p-2 rounded-full transition-colors touch-manipulation ${delayBypass ? 'bg-gray-600 text-gray-400' : 'bg-blue-600 text-white'
+                  }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
                 <Power className="w-3 h-3 sm:w-4 sm:h-4" />
               </motion.button>
             </div>
-            
+
             <div className="space-y-4 sm:space-y-6">
-              <Knob 
-                label="Amount" 
-                value={Math.round(delayAmount * 100)} 
-                onChange={handleDelayChange} 
+              <Knob
+                label="Amount"
+                value={Math.round(delayAmount * 100)}
+                onChange={handleDelayChange}
                 color="purple"
               />
-              <Knob label="Feedback" value={40} onChange={() => {}} color="purple" />
+              <Knob label="Feedback" value={40} onChange={() => { }} color="purple" />
             </div>
           </motion.div>
 
           {/* Reverb - Functional */}
           <motion.div
-            className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
+            className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-blue-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -231,7 +228,7 @@ const FXSection: React.FC<FXSectionProps> = ({
           >
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-semibold text-green-400">Reverb</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Reverb</h3>
                 <InfoTooltip content={fxTooltips.reverb} />
               </div>
               <motion.button
@@ -239,30 +236,29 @@ const FXSection: React.FC<FXSectionProps> = ({
                   setReverbBypass(!reverbBypass);
                   onReverbChange(reverbBypass ? reverbAmount : 0);
                 }}
-                className={`p-2 rounded-full transition-colors touch-manipulation ${
-                  reverbBypass ? 'bg-gray-600 text-gray-400' : 'bg-green-600 text-white'
-                }`}
+                className={`p-2 rounded-full transition-colors touch-manipulation ${reverbBypass ? 'bg-gray-600 text-gray-400' : 'bg-green-600 text-white'
+                  }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
                 <Power className="w-3 h-3 sm:w-4 sm:h-4" />
               </motion.button>
             </div>
-            
+
             <div className="space-y-4 sm:space-y-6">
-              <Knob 
-                label="Amount" 
-                value={Math.round(reverbAmount * 100)} 
-                onChange={handleReverbChange} 
+              <Knob
+                label="Amount"
+                value={Math.round(reverbAmount * 100)}
+                onChange={handleReverbChange}
                 color="green"
               />
-              <Knob label="Size" value={50} onChange={() => {}} color="green" />
+              <Knob label="Size" value={50} onChange={() => { }} color="green" />
             </div>
           </motion.div>
 
           {/* Distortion - Now Functional */}
           <motion.div
-            className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
+            className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-blue-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
@@ -270,7 +266,7 @@ const FXSection: React.FC<FXSectionProps> = ({
           >
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-semibold text-red-400">Distortion</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Distortion</h3>
                 <InfoTooltip content={fxTooltips.distortion} />
               </div>
               <motion.button
@@ -278,30 +274,29 @@ const FXSection: React.FC<FXSectionProps> = ({
                   setDistortionBypass(!distortionBypass);
                   onDistortionChange(distortionBypass ? distortionAmount : 0);
                 }}
-                className={`p-2 rounded-full transition-colors touch-manipulation ${
-                  distortionBypass ? 'bg-gray-600 text-gray-400' : 'bg-red-600 text-white'
-                }`}
+                className={`p-2 rounded-full transition-colors touch-manipulation ${distortionBypass ? 'bg-gray-600 text-gray-400' : 'bg-red-600 text-white'
+                  }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
                 <Power className="w-3 h-3 sm:w-4 sm:h-4" />
               </motion.button>
             </div>
-            
+
             <div className="space-y-4 sm:space-y-6">
-              <Knob 
-                label="Drive" 
-                value={distortionAmount} 
-                onChange={handleDistortionChange} 
+              <Knob
+                label="Drive"
+                value={distortionAmount}
+                onChange={handleDistortionChange}
                 color="red"
               />
-              <Knob label="Tone" value={60} onChange={() => {}} color="red" />
+              <Knob label="Tone" value={60} onChange={() => { }} color="red" />
             </div>
           </motion.div>
 
           {/* Filter - Now Functional */}
           <motion.div
-            className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
+            className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-blue-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
@@ -309,7 +304,7 @@ const FXSection: React.FC<FXSectionProps> = ({
           >
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-semibold text-blue-400">Filter</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Filter</h3>
                 <InfoTooltip content={fxTooltips.filter} />
               </div>
               <motion.button
@@ -317,59 +312,58 @@ const FXSection: React.FC<FXSectionProps> = ({
                   setFilterBypass(!filterBypass);
                   onFilterChange(filterBypass ? filterAmount : 50);
                 }}
-                className={`p-2 rounded-full transition-colors touch-manipulation ${
-                  filterBypass ? 'bg-gray-600 text-gray-400' : 'bg-blue-600 text-white'
-                }`}
+                className={`p-2 rounded-full transition-colors touch-manipulation ${filterBypass ? 'bg-gray-600 text-gray-400' : 'bg-blue-600 text-white'
+                  }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
                 <Power className="w-3 h-3 sm:w-4 sm:h-4" />
               </motion.button>
             </div>
-            
+
             <div className="space-y-4 sm:space-y-6">
-              <Knob 
-                label="Cutoff" 
-                value={filterAmount} 
-                onChange={handleFilterChange} 
+              <Knob
+                label="Cutoff"
+                value={filterAmount}
+                onChange={handleFilterChange}
                 color="blue"
               />
-              <Knob label="Resonance" value={20} onChange={() => {}} color="blue" />
+              <Knob label="Resonance" value={20} onChange={() => { }} color="blue" />
             </div>
           </motion.div>
         </div>
 
         {/* FX Status Display */}
         <motion.div
-          className="mt-8 sm:mt-12 bg-gray-900/30 rounded-xl p-4 sm:p-6 border border-purple-500/20 max-w-2xl mx-auto"
+          className="mt-8 sm:mt-12 bg-gray-900/30 rounded-xl p-4 sm:p-6 border border-blue-500/20 max-w-2xl mx-auto"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
           viewport={{ once: true }}
         >
-          <h3 className="text-lg font-semibold text-purple-400 mb-4">Active Effects</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">Active Effects</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             <div className="text-center">
               <p className="text-white font-medium">Delay</p>
-              <p className={`text-xs ${delayBypass ? 'text-gray-500' : 'text-purple-400'}`}>
+              <p className={`text-xs ${delayBypass ? 'text-gray-500' : 'text-white'}`}>
                 {delayBypass ? 'Bypassed' : `${Math.round(delayAmount * 100)}%`}
               </p>
             </div>
             <div className="text-center">
               <p className="text-white font-medium">Reverb</p>
-              <p className={`text-xs ${reverbBypass ? 'text-gray-500' : 'text-green-400'}`}>
+              <p className={`text-xs ${reverbBypass ? 'text-gray-500' : 'text-white'}`}>
                 {reverbBypass ? 'Bypassed' : `${Math.round(reverbAmount * 100)}%`}
               </p>
             </div>
             <div className="text-center">
               <p className="text-white font-medium">Distortion</p>
-              <p className={`text-xs ${distortionBypass ? 'text-gray-500' : 'text-red-400'}`}>
+              <p className={`text-xs ${distortionBypass ? 'text-gray-500' : 'text-white'}`}>
                 {distortionBypass ? 'Bypassed' : `${distortionAmount}%`}
               </p>
             </div>
             <div className="text-center">
               <p className="text-white font-medium">Filter</p>
-              <p className={`text-xs ${filterBypass ? 'text-gray-500' : 'text-blue-400'}`}>
+              <p className={`text-xs ${filterBypass ? 'text-gray-500' : 'text-white'}`}>
                 {filterBypass ? 'Bypassed' : `${filterAmount}%`}
               </p>
             </div>

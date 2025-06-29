@@ -17,16 +17,16 @@ const MusicGenerationSection = () => {
   const [volume, setVolume] = useState(70);
   const [isMuted, setIsMuted] = useState(false);
   const [currentPattern, setCurrentPattern] = useState<AudioPattern | null>(null);
-  
+
   const audioEngineRef = useRef<AudioEngine>();
   const currentPartsRef = useRef<any>(null);
 
   useEffect(() => {
     audioEngineRef.current = new AudioEngine();
-    
+
     // Auto-select and highlight default genres
     setSelectedGenre('shoegaze');
-    
+
     return () => {
       if (audioEngineRef.current) {
         audioEngineRef.current.dispose();
@@ -42,7 +42,7 @@ const MusicGenerationSection = () => {
 
   const handleGenreSelect = (genre: Genre) => {
     setSelectedGenre(genre.id);
-    
+
     // Generate pattern for the selected genre
     if (audioEngineRef.current) {
       const pattern = audioEngineRef.current.generatePattern(genre.id);
@@ -80,7 +80,7 @@ const MusicGenerationSection = () => {
       // Generate and play new pattern
       const pattern = audioEngineRef.current.generatePattern(genre.id);
       setCurrentPattern(pattern);
-      
+
       try {
         const parts = await audioEngineRef.current.playPattern(pattern, genre.id);
         currentPartsRef.current = parts;
@@ -110,7 +110,7 @@ const MusicGenerationSection = () => {
     } else {
       const pattern = audioEngineRef.current.generatePattern(selectedGenre);
       setCurrentPattern(pattern);
-      
+
       try {
         const parts = await audioEngineRef.current.playPattern(pattern, selectedGenre);
         currentPartsRef.current = parts;
@@ -124,17 +124,17 @@ const MusicGenerationSection = () => {
 
   const handleExport = () => {
     if (!currentPattern || !selectedGenre) return;
-    
+
     // Create a simple JSON export of the current pattern
     const exportData = {
       genre: selectedGenre,
       pattern: currentPattern,
       timestamp: new Date().toISOString()
     };
-    
+
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    
+
     const a = document.createElement('a');
     a.href = url;
     a.download = `droplab-${selectedGenre}-${Date.now()}.json`;
@@ -153,15 +153,15 @@ const MusicGenerationSection = () => {
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
           🎵 Generate Your Sound
         </h2>
-        
+
         <p className="text-xl text-gray-300 mb-4">
           Select a genre and create original music in real-time
         </p>
-        
-        <p className="text-sm text-purple-400 mb-12">
+
+        <p className="text-sm text-blue-400 mb-12">
           Powered by advanced audio synthesis and pattern generation
         </p>
 
@@ -187,7 +187,7 @@ const MusicGenerationSection = () => {
           <motion.button
             onClick={handleMasterPlayPause}
             disabled={!selectedGenre}
-            className="w-20 h-20 bg-gradient-to-r from-purple-600 to-purple-500 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-purple-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-20 h-20 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -199,14 +199,14 @@ const MusicGenerationSection = () => {
           </motion.button>
 
           {/* Volume Control */}
-          <div className="flex items-center gap-4 bg-gray-900/50 rounded-xl p-4 border border-purple-500/30">
+          <div className="flex items-center gap-4 bg-gray-900/50 rounded-xl p-4 border border-blue-500/30">
             <button
               onClick={() => setIsMuted(!isMuted)}
-              className="text-purple-400 hover:text-purple-300 transition-colors"
+              className="text-blue-400 hover:text-blue-300 transition-colors"
             >
               {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
             </button>
-            
+
             <input
               type="range"
               min="0"
@@ -215,7 +215,7 @@ const MusicGenerationSection = () => {
               onChange={(e) => setVolume(Number(e.target.value))}
               className="w-32 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
             />
-            
+
             <span className="text-sm text-gray-300 w-12">{volume}%</span>
           </div>
 
@@ -235,16 +235,16 @@ const MusicGenerationSection = () => {
         {/* Pattern Info */}
         {selectedGenre && (
           <motion.div
-            className="bg-gray-900/50 rounded-xl p-6 border border-purple-500/30 max-w-2xl mx-auto"
+            className="bg-gray-900/50 rounded-xl p-6 border border-blue-500/30 max-w-2xl mx-auto"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
             viewport={{ once: true }}
           >
-            <h3 className="text-lg font-semibold text-purple-400 mb-4">
+            <h3 className="text-lg font-semibold text-blue-400 mb-4">
               Current Pattern: {selectedGenre.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
             </h3>
-            
+
             {currentPattern && (
               <div className="grid md:grid-cols-2 gap-4 text-sm">
                 <div>
@@ -261,11 +261,11 @@ const MusicGenerationSection = () => {
                 </div>
               </div>
             )}
-            
+
             {isPlaying && (
               <div className="mt-4 flex items-center justify-center gap-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                <span className="text-purple-400 text-sm">Playing...</span>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-blue-400 text-sm">Playing...</span>
               </div>
             )}
           </motion.div>

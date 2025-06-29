@@ -21,16 +21,16 @@ const MixerPanel = () => {
   };
 
   return (
-    <div className="bg-gray-900 rounded-xl p-6 border border-purple-500/30">
+    <div className="bg-gray-900 rounded-xl p-6 border border-blue-500/30">
       <div className="text-center mb-6">
-        <h3 className="text-lg font-bold text-purple-400">Mixer</h3>
+        <h3 className="text-lg font-bold text-blue-400">Mixer</h3>
       </div>
 
       <div className="flex justify-between items-start space-x-8">
         {/* Deck A Column */}
         <div className="flex flex-col items-center space-y-4">
-          <div className="text-xs text-purple-400 font-semibold">DECK A</div>
-          
+          <div className="text-xs text-blue-400 font-semibold">DECK A</div>
+
           {/* EQ Section */}
           <div className="space-y-3">
             <EQKnob
@@ -92,7 +92,7 @@ const MixerPanel = () => {
 
           {/* Crossfader */}
           <div className="space-y-2">
-            <div className="text-xs text-purple-400 text-center font-semibold">CROSSFADER</div>
+            <div className="text-xs text-blue-400 text-center font-semibold">CROSSFADER</div>
             <div className="relative">
               <input
                 type="range"
@@ -104,12 +104,12 @@ const MixerPanel = () => {
               />
               <div className="flex justify-between text-xs text-gray-400 mt-1">
                 <span>A</span>
-                <span className={crossfader === 50 ? 'text-purple-400' : ''}>MIX</span>
+                <span className={crossfader === 50 ? 'text-blue-400' : ''}>MIX</span>
                 <span>B</span>
               </div>
               {/* Center notch indicator */}
               {Math.abs(crossfader - 50) < 2 && (
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1 w-1 h-4 bg-purple-400 rounded-full" />
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1 w-1 h-4 bg-blue-400 rounded-full" />
               )}
             </div>
           </div>
@@ -117,8 +117,8 @@ const MixerPanel = () => {
 
         {/* Deck B Column */}
         <div className="flex flex-col items-center space-y-4">
-          <div className="text-xs text-purple-400 font-semibold">DECK B</div>
-          
+          <div className="text-xs text-blue-400 font-semibold">DECK B</div>
+
           {/* EQ Section */}
           <div className="space-y-3">
             <EQKnob

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, ChevronLeft } from 'lucide-react';
@@ -11,6 +10,7 @@ interface FirstTimeOverlayProps {
 const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [userName, setUserName] = useState('');
 
   const steps = [
     {
@@ -58,6 +58,10 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
     onClose(dontShowAgain);
   };
 
+  const handleComplete = () => {
+    // Implementation of handleComplete function
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -77,11 +81,11 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-gray-900 rounded-xl border border-purple-500/30 p-6 max-w-md w-full">
+            <div className="bg-gray-900 rounded-xl border border-blue-500/30 p-6 max-w-md w-full">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
-                  <div className="text-lg font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+                  <div className="text-lg font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
                     {steps[currentStep].title}
                   </div>
                 </div>
@@ -106,9 +110,8 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
                   {steps.map((_, index) => (
                     <div
                       key={index}
-                      className={`h-2 rounded-full flex-1 transition-colors ${
-                        index <= currentStep ? 'bg-purple-500' : 'bg-gray-700'
-                      }`}
+                      className={`h-2 rounded-full flex-1 transition-colors ${index <= currentStep ? 'bg-blue-500' : 'bg-gray-700'
+                        }`}
                     />
                   ))}
                 </div>
@@ -135,7 +138,7 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
                         type="checkbox"
                         checked={dontShowAgain}
                         onChange={(e) => setDontShowAgain(e.target.checked)}
-                        className="rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500"
+                        className="rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
                       />
                       Don't show again
                     </label>
@@ -145,12 +148,38 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
                     onClick={handleNext}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="flex items-center gap-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
                     {currentStep < steps.length - 1 && <ChevronRight className="w-4 h-4" />}
                   </motion.button>
                 </div>
+              </div>
+
+              {/* Additional content */}
+              <div className="mt-6">
+                {/* Add any additional content here */}
+              </div>
+
+              {/* User Name Input */}
+              <div className="mt-6">
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Enter your DJ name"
+                  className="rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Complete Button */}
+              <div className="mt-6">
+                <button
+                  onClick={handleComplete}
+                  className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Complete
+                </button>
               </div>
             </div>
           </motion.div>

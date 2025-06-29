@@ -1,4 +1,3 @@
-
 import React from 'react';
 import EQKnob from './EQKnob';
 
@@ -14,8 +13,8 @@ const EQSection = ({ deck, eq, onEQChange }: EQSectionProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center space-y-3 p-3 bg-gray-900/50 rounded-lg border border-purple-500/20">
-      <div className="text-xs text-purple-400 font-semibold">EQ {deck}</div>
+    <div className="flex flex-col items-center space-y-3 p-3 bg-gray-900/50 rounded-lg border border-blue-500/20">
+      <div className="text-xs text-blue-400 font-semibold">EQ {deck}</div>
       <div className="space-y-3">
         <EQKnob
           label="High"
