@@ -37,7 +37,7 @@ export class MIDIExporter {
   }
 
   /**
-   * Convert drum pattern to MIDI notes with proper tempo-based timing
+   * FIXED: Convert drum pattern to MIDI notes with proper tempo-based timing
    */
   private static convertDrumPatternToNotes(pattern: DrumPattern, tempo: number): MIDINote[] {
     const notes: MIDINote[] = [];
@@ -55,9 +55,14 @@ export class MIDIExporter {
       crash: 49   // C#3 - Crash Cymbal 1
     };
 
+    console.log(`🥁 Converting drum pattern to MIDI at ${tempo} BPM`);
+    console.log(`📏 Step duration: ${stepDurationInSeconds.toFixed(4)}s per step`);
+
     Object.entries(pattern).forEach(([drumType, steps]) => {
+      const activeSteps: number[] = [];
       steps.forEach((active, stepIndex) => {
         if (active) {
+          activeSteps.push(stepIndex);
           notes.push({
             pitch: drumMap[drumType as keyof typeof drumMap],
             velocity: 0.8,
@@ -66,11 +71,13 @@ export class MIDIExporter {
           });
         }
       });
+      
+      if (activeSteps.length > 0) {
+        console.log(`🥁 ${drumType}: steps [${activeSteps.join(', ')}] → times [${activeSteps.map(s => (s * stepDurationInSeconds).toFixed(3)).join(', ')}]s`);
+      }
     });
 
-    console.log(`🥁 Converted drum pattern to ${notes.length} MIDI notes at ${tempo} BPM`);
-    console.log(`📏 Step duration: ${stepDurationInSeconds.toFixed(4)}s per step`);
-
+    console.log(`✅ Converted drum pattern to ${notes.length} MIDI notes`);
     return notes;
   }
 
