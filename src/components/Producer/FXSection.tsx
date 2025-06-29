@@ -214,7 +214,6 @@ const FXSection: React.FC<FXSectionProps> = ({
                 onChange={handleDelayChange}
                 color="purple"
               />
-              <Knob label="Feedback" value={40} onChange={() => { }} color="purple" />
             </div>
           </motion.div>
 
@@ -252,11 +251,10 @@ const FXSection: React.FC<FXSectionProps> = ({
                 onChange={handleReverbChange}
                 color="green"
               />
-              <Knob label="Size" value={50} onChange={() => { }} color="green" />
             </div>
           </motion.div>
 
-          {/* Distortion - Now Functional */}
+          {/* Distortion - Functional */}
           <motion.div
             className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-blue-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -290,11 +288,10 @@ const FXSection: React.FC<FXSectionProps> = ({
                 onChange={handleDistortionChange}
                 color="red"
               />
-              <Knob label="Tone" value={60} onChange={() => { }} color="red" />
             </div>
           </motion.div>
 
-          {/* Filter - Now Functional */}
+          {/* Filter - Functional */}
           <motion.div
             className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-blue-500/30"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -328,7 +325,6 @@ const FXSection: React.FC<FXSectionProps> = ({
                 onChange={handleFilterChange}
                 color="blue"
               />
-              <Knob label="Resonance" value={20} onChange={() => { }} color="blue" />
             </div>
           </motion.div>
         </div>

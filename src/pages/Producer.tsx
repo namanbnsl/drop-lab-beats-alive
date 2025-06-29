@@ -90,11 +90,12 @@ const Producer = () => {
   const audioCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastAudioTimeRef = useRef<number>(0);
 
+  // FIXED: Updated sections array with mixer after effects
   const sections = [
     { id: 'drums', name: 'Drums', icon: '🥁' },
     { id: 'melody', name: 'Melody', icon: '🎼' },
-    { id: 'mixer', name: 'Mixer', icon: '🎚️' },
     { id: 'fx', name: 'Effects', icon: '🎛️' },
+    { id: 'mixer', name: 'Mixer', icon: '🎚️' },
     { id: 'export', name: 'Export', icon: '💾' }
   ];
 
@@ -135,11 +136,13 @@ const Producer = () => {
     }
   }, [effectiveMelodyVolume, melodyMuted, melodySolo, audioUnlocked]);
 
+  // FIXED: FX volume now controls the master dry/wet for all effects
   useEffect(() => {
-    if (fxGainRef.current && audioUnlocked) {
-      const volume = effectiveFxVolume / 100;
-      fxGainRef.current.gain.rampTo(volume, 0.1);
-      console.log(`🎚️ FX effective volume: ${effectiveFxVolume}% (${volume.toFixed(2)}) ${fxMuted ? '[MUTED]' : ''} ${fxSolo ? '[SOLO]' : ''}`);
+    if (melodyWetGainRef.current && audioUnlocked) {
+      // FX volume controls how much of the melody goes to the FX chain (master dry/wet)
+      const wetAmount = effectiveFxVolume / 100;
+      melodyWetGainRef.current.gain.rampTo(wetAmount, 0.1);
+      console.log(`🎛️ Master FX Dry/Wet: ${effectiveFxVolume}% (${wetAmount.toFixed(2)})`);
     }
   }, [effectiveFxVolume, fxMuted, fxSolo, audioUnlocked]);
 
@@ -150,16 +153,6 @@ const Producer = () => {
       console.log(`🎚️ Master effective volume: ${effectiveMasterVolume}% (${volume.toFixed(2)}) ${masterMuted ? '[MUTED]' : ''}`);
     }
   }, [effectiveMasterVolume, masterMuted, audioUnlocked]);
-
-  // FIXED: FX wet send control - separate from melody volume
-  useEffect(() => {
-    if (melodyWetGainRef.current && audioUnlocked) {
-      // FX volume controls how much of the melody goes to the FX chain
-      const wetAmount = effectiveFxVolume / 100;
-      melodyWetGainRef.current.gain.rampTo(wetAmount, 0.1);
-      console.log(`🎛️ Melody FX Send: ${effectiveFxVolume}% (${wetAmount.toFixed(2)})`);
-    }
-  }, [effectiveFxVolume, fxMuted, fxSolo, audioUnlocked]);
 
   // FX Control Effects - Apply FX changes in real-time
   useEffect(() => {
@@ -528,6 +521,19 @@ const Producer = () => {
             onTempoChange={setTempo}
           />
         );
+      case 'fx':
+        return (
+          <FXSection
+            reverbAmount={reverbAmount}
+            delayAmount={delayAmount}
+            distortionAmount={distortionAmount}
+            filterAmount={filterAmount}
+            onReverbChange={setReverbAmount}
+            onDelayChange={setDelayAmount}
+            onDistortionChange={setDistortionAmount}
+            onFilterChange={setFilterAmount}
+          />
+        );
       case 'mixer':
         return (
           <MixerSection
@@ -559,19 +565,6 @@ const Producer = () => {
             onDrumsPanChange={setDrumsPan}
             onMelodyPanChange={setMelodyPan}
             onFxPanChange={setFxPan}
-          />
-        );
-      case 'fx':
-        return (
-          <FXSection
-            reverbAmount={reverbAmount}
-            delayAmount={delayAmount}
-            distortionAmount={distortionAmount}
-            filterAmount={filterAmount}
-            onReverbChange={setReverbAmount}
-            onDelayChange={setDelayAmount}
-            onDistortionChange={setDistortionAmount}
-            onFilterChange={setFilterAmount}
           />
         );
       case 'export':
