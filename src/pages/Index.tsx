@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Music, Headphones, Zap, Settings, Disc3, Sliders, Grid3X3, Monitor, PlayCircle, Brain, BookOpen } from 'lucide-react';
+import { Music, Zap, Settings, Disc3, Sliders, Grid3X3, Monitor, PlayCircle, Brain, BookOpen } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -10,11 +10,9 @@ const Index = () => {
   const controls = useAnimation();
 
   useEffect(() => {
-    // Simulate loading time
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 2500);
-
     return () => clearTimeout(timer);
   }, []);
 
@@ -22,37 +20,55 @@ const Index = () => {
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
   const featureVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+    hidden: { opacity: 0, y: 50, rotate: -2 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      rotate: Math.random() * 4 - 2,
+      transition: { duration: 0.8, type: "spring" as const, bounce: 0.4 },
+    },
   };
 
   const producerFeatures = [
-    { icon: Music, title: "Melody Generator" },
-    { icon: Zap, title: "Drum Pattern Builder" },
-    { icon: Grid3X3, title: "Synth Grid Composer" },
-    { icon: Settings, title: "Modular FX Playground" }
+    { icon: Music, title: "Melody Generator", doodle: "🎵", color: "highlighter-purple" },
+    { icon: Zap, title: "Drum Pattern Builder", doodle: "⚡", color: "highlighter-yellow" },
+    { icon: Grid3X3, title: "Synth Grid Composer", doodle: "🎹", color: "highlighter-blue" },
+    { icon: Settings, title: "Modular FX Playground", doodle: "🔧", color: "highlighter-green" },
   ];
 
   const djFeatures = [
-    { icon: Monitor, title: "Dual CDJs" },
-    { icon: Sliders, title: "3-Band EQ Mixer" },
-    { icon: PlayCircle, title: "Launch Sim Mode" },
-    { icon: Brain, title: "Tutorial + Tooltips" }
+    { icon: Monitor, title: "Dual CDJs", doodle: "💿", color: "highlighter-orange" },
+    { icon: Sliders, title: "3-Band EQ Mixer", doodle: "🎚️", color: "highlighter-pink" },
+    { icon: PlayCircle, title: "Launch Sim Mode", doodle: "▶️", color: "highlighter-teal" },
+    { icon: Brain, title: "Tutorial + Tooltips", doodle: "💡", color: "highlighter-cyan" },
   ];
 
   const techStack = [
-    "React ⚛️",
-    "Tailwind CSS 💨",
-    "Tone.js 🎚️",
-    "Magenta.js 🎹",
-    "WebAudio API 🎧",
-    "Firebase 🔥"
+    { name: "React ⚛️", color: "highlighter-blue" },
+    { name: "Tailwind CSS 💨", color: "highlighter-cyan" },
+    { name: "Tone.js 🎚️", color: "highlighter-green" },
+    { name: "WebAudio API 🎧", color: "highlighter-purple" },
+  ];
+
+  const scatteredIcons = [
+    { icon: "🎤", top: "10%", left: "5%", delay: 0 },
+    { icon: "🎸", top: "15%", right: "8%", delay: 1 },
+    { icon: "🥁", top: "25%", left: "3%", delay: 2 },
+    { icon: "🎺", top: "35%", right: "5%", delay: 0.5 },
+    { icon: "🎻", top: "45%", left: "2%", delay: 1.5 },
+    { icon: "🎹", top: "55%", right: "3%", delay: 2.5 },
+    { icon: "🎧", top: "65%", left: "4%", delay: 1 },
+    { icon: "🔊", top: "75%", right: "6%", delay: 2 },
+    { icon: "📻", top: "85%", left: "5%", delay: 0.5 },
+    { icon: "🎵", top: "20%", left: "85%", delay: 1.5 },
+    { icon: "🎶", top: "40%", left: "90%", delay: 2 },
+    { icon: "🎼", top: "60%", left: "88%", delay: 0.5 },
+    { icon: "🔥", top: "80%", left: "92%", delay: 1 },
   ];
 
   if (isLoading) {
@@ -71,17 +87,20 @@ const Index = () => {
           transition={{ duration: 0.5 }}
         >
           <motion.div
-            className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 rounded-full bg-gradient-to-r from-purple-600 to-purple-400 flex items-center justify-center shadow-lg shadow-purple-500/25"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 relative"
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
           >
-            <Disc3 className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+            <div className="absolute inset-0 bg-orange-500 rounded-full transform rotate-3"></div>
+            <div className="absolute inset-0 bg-pink-500 rounded-full transform -rotate-2 flex items-center justify-center">
+              <Disc3 className="w-10 h-10 sm:w-12 sm:h-12 text-white transform rotate-12" />
+            </div>
           </motion.div>
           <motion.p
-            className="text-white text-base sm:text-lg font-medium"
+            className="text-white text-base sm:text-lg font-bold handwritten-enhanced"
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
           >
             Warming up the decks...
           </motion.p>
@@ -90,55 +109,101 @@ const Index = () => {
     );
   }
 
-  const waveformPath = `M0,50 Q${mousePosition.x * 0.1},${30 + mousePosition.y * 0.02} 200,50 T400,50 T600,50 T800,50 T1000,50 T1200,50 T1400,50 T1600,50 T1800,50 T2000,50`;
-
   return (
-    <div className="min-h-screen bg-black text-white font-['Poppins'] overflow-x-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div 
-          className="absolute inset-0 bg-gradient-radial from-purple-900/10 via-transparent to-transparent"
+    <div className="min-h-screen bg-black text-white font-handwritten overflow-x-hidden relative grid-bg">
+      {/* Scattered Icons */}
+      {scatteredIcons.map((item, index) => (
+        <motion.div
+          key={index}
+          className="scattered-icon"
           style={{
-            background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(162, 89, 255, 0.08) 0%, transparent 50%)`
+            top: item.top,
+            left: item.left,
+            right: item.right,
+            animationDelay: `${item.delay}s`,
           }}
-        />
-        <svg className="absolute inset-0 w-full h-full opacity-20">
-          <path
-            d={waveformPath}
-            stroke="url(#purpleWaveGradient)"
-            strokeWidth="2"
-            fill="none"
-            className="animate-pulse"
-          />
-          <defs>
-            <linearGradient id="purpleWaveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#a259ff" />
-              <stop offset="50%" stopColor="#8000ff" />
-              <stop offset="100%" stopColor="#9b59b6" />
-            </linearGradient>
-          </defs>
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 0.4, scale: 1 }}
+          transition={{ delay: item.delay + 3, duration: 0.5 }}
+        >
+          {item.icon}
+        </motion.div>
+      ))}
+
+      {/* Hand-drawn background elements */}
+      <div className="fixed inset-0 pointer-events-none opacity-10">
+        <svg className="absolute inset-0 w-full h-full">
+          <g className="animate-pulse">
+            <path
+              d="M100,100 Q120,80 140,100 Q160,120 180,100"
+              stroke="#10b981"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+            />
+            <circle cx="200" cy="110" r="6" fill="#f59e0b" />
+            <path
+              d="M300,200 Q320,180 340,200 Q360,220 380,200"
+              stroke="#3b82f6"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+            />
+          </g>
         </svg>
       </div>
 
       {/* Hero Section */}
       <motion.section
-        className="min-h-screen flex items-center justify-center relative px-4"
+        className="min-h-[80vh] flex items-center justify-center relative px-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 0.5 }}
       >
-        <div className="text-center z-10">
-          <motion.h1
-            className="text-4xl sm:text-6xl md:text-8xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 bg-clip-text text-transparent"
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+        <div className="text-center z-10 relative">
+          <motion.svg
+            className="absolute -top-20 -right-10 w-16 h-16 text-orange-400"
+            initial={{ opacity: 0, rotate: -20 }}
+            animate={{ opacity: 1, rotate: 0 }}
+            transition={{ delay: 1.2, duration: 0.8 }}
           >
-            DropLab
+            <path
+              d="M5,25 Q15,5 35,15 Q45,20 40,30 L35,25 M40,30 L30,35"
+              stroke="currentColor"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+            />
+          </motion.svg>
+
+          <motion.h1
+            className="text-4xl sm:text-6xl md:text-8xl font-bold mb-4 sm:mb-6 handwritten-title transform -rotate-1"
+            initial={{ scale: 0.5, opacity: 0, rotate: -5 }}
+            animate={{ scale: 1, opacity: 1, rotate: -1 }}
+            transition={{ duration: 0.8, delay: 0.2, type: "spring", bounce: 0.3 }}
+          >
+            <span className="highlighter highlighter-orange">DropLab</span>
           </motion.h1>
-          
+
+          <motion.svg
+            className="mx-auto mb-6"
+            width="300"
+            height="20"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ delay: 1, duration: 1.5 }}
+          >
+            <path
+              d="M20,10 Q80,5 150,12 Q220,8 280,15"
+              stroke="#f59e0b"
+              strokeWidth="3"
+              fill="none"
+              strokeLinecap="round"
+            />
+          </motion.svg>
+
           <motion.p
-            className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-12 text-gray-300"
+            className="text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8 text-gray-300 handwritten-enhanced animate-handwrite transform rotate-1"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -152,67 +217,91 @@ const Index = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            {/* Producer Button */}
-            <button 
+            <motion.button
               onClick={() => navigate('/producer')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-base sm:text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 hover:scale-105 touch-manipulation"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 hover:scale-105 touch-manipulation handwritten-enhanced transform -rotate-1 hover:rotate-0 hover:bg-gray-700"
+              whileHover={{ scale: 1.05, rotate: 0 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <span className="relative z-10 flex items-center gap-2 justify-center">
-                🎼 Start Producing
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-purple-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </button>
+              <span className="relative z-10 flex items-center gap-2 justify-center">🎼 Start Producing</span>
+            </motion.button>
 
-            <button 
+            <motion.button
               onClick={() => navigate('/dj')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-base sm:text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 hover:scale-105 touch-manipulation"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 hover:scale-105 touch-manipulation handwritten-enhanced transform rotate-1 hover:rotate-0 hover:bg-gray-700"
+              whileHover={{ scale: 1.05, rotate: 0 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <span className="relative z-10 flex items-center gap-2 justify-center">
-                🎧 Enter DJ Booth
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-purple-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </button>
+              <span className="relative z-10 flex items-center gap-2 justify-center">🎧 Enter DJ Booth</span>
+            </motion.button>
           </motion.div>
         </div>
       </motion.section>
 
-      {/* Feature Breakdown */}
-      <section className="py-12 sm:py-20 px-4">
+      {/* Mindmap Features Section */}
+      <section className="pt-8 pb-12 sm:pt-12 sm:pb-20 px-4 relative">
         <motion.div
-          className="max-w-6xl mx-auto"
+          className="max-w-7xl mx-auto"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
+          {/* Central Hub */}
+          <div className="flex justify-center mb-16"></div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 relative" style={{ zIndex: 2 }}>
             {/* Producer Mode */}
-            <div>
+            <div className="space-y-8">
               <motion.h2
-                className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent"
+                className="text-2xl sm:text-3xl font-bold text-center handwritten-title mb-8 transform -rotate-1"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
                 viewport={{ once: true }}
               >
-                Producer Mode
+                <span className="highlighter highlighter-purple">Producer Mode</span>
+                <motion.svg
+                  className="mx-auto mt-2"
+                  width="200"
+                  height="15"
+                  initial={{ pathLength: 0 }}
+                  whileInView={{ pathLength: 1 }}
+                  transition={{ delay: 0.3, duration: 1.5 }}
+                  viewport={{ once: true }}
+                >
+                  <path
+                    d="M20,8 Q60,5 100,10 Q140,6 180,12"
+                    stroke="#a855f7"
+                    strokeWidth="2"
+                    fill="none"
+                    strokeLinecap="round"
+                  />
+                </motion.svg>
               </motion.h2>
-              <div className="space-y-4 sm:space-y-6">
+
+              <div className="space-y-6">
                 {producerFeatures.map((feature, index) => (
                   <motion.div
                     key={feature.title}
-                    className="group p-4 sm:p-6 bg-black rounded-xl border border-purple-500/30 hover:border-purple-500 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10"
+                    className="group relative"
                     variants={featureVariants}
                     initial="hidden"
                     whileInView="visible"
-                    transition={{ delay: index * 0.1 }}
+                    transition={{ delay: index * 0.2 }}
                     viewport={{ once: true }}
                   >
-                    <div className="flex items-center gap-3 sm:gap-4">
-                      <div className="p-2 sm:p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
-                        <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
-                      </div>
-                      <h3 className="text-base sm:text-lg font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">{feature.title}</h3>
+                    <div
+                      className="flex items-center gap-4 p-4 bg-gray-900 border border-gray-800 rounded-lg hover:border-emerald-500 transition-all duration-300 transform hover:scale-105"
+                      style={{
+                        transform: `rotate(${Math.random() * 4 - 2}deg)`,
+                        marginLeft: `${index * 20}px`,
+                      }}
+                    >
+                      <div className="text-2xl">{feature.doodle}</div>
+                      <h3 className="text-base sm:text-lg font-bold handwritten-enhanced text-white">
+                        {feature.title}
+                      </h3>
                     </div>
                   </motion.div>
                 ))}
@@ -220,32 +309,56 @@ const Index = () => {
             </div>
 
             {/* DJ Mode */}
-            <div>
+            <div className="space-y-8">
               <motion.h2
-                className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent"
+                className="text-2xl sm:text-3xl font-bold text-center handwritten-title mb-8 transform rotate-1"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
                 viewport={{ once: true }}
               >
-                DJ Mode
+                <span className="highlighter highlighter-pink">DJ Mode</span>
+                <motion.svg
+                  className="mx-auto mt-2"
+                  width="200"
+                  height="15"
+                  initial={{ pathLength: 0 }}
+                  whileInView={{ pathLength: 1 }}
+                  transition={{ delay: 0.3, duration: 1.5 }}
+                  viewport={{ once: true }}
+                >
+                  <path
+                    d="M20,8 Q60,5 100,10 Q140,6 180,12"
+                    stroke="#ec4899"
+                    strokeWidth="2"
+                    fill="none"
+                    strokeLinecap="round"
+                  />
+                </motion.svg>
               </motion.h2>
-              <div className="space-y-4 sm:space-y-6">
+
+              <div className="space-y-6">
                 {djFeatures.map((feature, index) => (
                   <motion.div
                     key={feature.title}
-                    className="group p-4 sm:p-6 bg-black rounded-xl border border-purple-500/30 hover:border-purple-500 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10"
+                    className="group relative"
                     variants={featureVariants}
                     initial="hidden"
                     whileInView="visible"
-                    transition={{ delay: index * 0.1 }}
+                    transition={{ delay: index * 0.2 }}
                     viewport={{ once: true }}
                   >
-                    <div className="flex items-center gap-3 sm:gap-4">
-                      <div className="p-2 sm:p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
-                        <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
-                      </div>
-                      <h3 className="text-base sm:text-lg font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">{feature.title}</h3>
+                    <div
+                      className="flex items-center gap-4 p-4 bg-gray-900 border border-gray-800 rounded-lg hover:border-pink-500 transition-all duration-300 transform hover:scale-105"
+                      style={{
+                        transform: `rotate(${Math.random() * 4 - 2}deg)`,
+                        marginRight: `${index * 20}px`,
+                      }}
+                    >
+                      <div className="text-2xl">{feature.doodle}</div>
+                      <h3 className="text-base sm:text-lg font-bold handwritten-enhanced text-white">
+                        {feature.title}
+                      </h3>
                     </div>
                   </motion.div>
                 ))}
@@ -256,32 +369,52 @@ const Index = () => {
       </section>
 
       {/* Education Focus */}
-      <section className="py-12 sm:py-20 px-4 bg-gray-900/20">
+      <section className="py-12 sm:py-20 px-4 bg-gray-900/30 relative">
         <motion.div
-          className="max-w-4xl mx-auto text-center"
+          className="max-w-4xl mx-auto text-center relative z-10"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
-            No gear? No problem. Learn as you mix.
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 handwritten-title transform -rotate-1">
+            <span className="highlighter highlighter-green">No gear? No problem.</span>
           </h2>
-          <p className="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-12 leading-relaxed">
-            DropLab is built to teach as you play. With interactive tooltips and a step-by-step walkthrough, anyone can go from beginner to beat master.
+
+          <motion.svg
+            className="mx-auto mb-8"
+            width="400"
+            height="20"
+            initial={{ pathLength: 0 }}
+            whileInView={{ pathLength: 1 }}
+            transition={{ delay: 0.5, duration: 2 }}
+            viewport={{ once: true }}
+          >
+            <path
+              d="M20,10 Q100,5 200,12 Q300,8 380,15 Q350,18 200,15 Q100,18 20,12"
+              stroke="#10b981"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+            />
+          </motion.svg>
+
+          <p className="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-12 leading-relaxed handwritten-enhanced">
+            DropLab is built to teach as you play. With interactive tooltips and a step-by-step walkthrough, anyone can
+            go from beginner to beat master.
           </p>
-          
+
           <motion.div
-            className="relative inline-block"
-            whileHover={{ scale: 1.05 }}
+            className="relative inline-block transform rotate-2"
+            whileHover={{ scale: 1.05, rotate: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="w-48 h-32 sm:w-64 sm:h-40 bg-black rounded-xl border border-purple-500/30 flex items-center justify-center relative overflow-hidden">
-              <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 text-purple-400" />
-              <div className="absolute top-2 right-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold animate-pulse">
+            <div className="w-48 h-32 sm:w-64 sm:h-40 bg-gray-900 border-2 border-cyan-500 rounded-xl flex items-center justify-center relative overflow-hidden">
+              <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 text-cyan-400 transform -rotate-3" />
+              <div className="absolute top-2 right-2 bg-yellow-400 text-gray-900 text-xs px-2 py-1 rounded-full font-bold animate-bounce transform rotate-12">
                 Learn!
               </div>
-              <div className="absolute bottom-2 left-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
+              <div className="absolute bottom-2 left-2 bg-pink-400 text-gray-900 text-xs px-2 py-1 rounded-full transform -rotate-6">
                 Tip: Try this!
               </div>
             </div>
@@ -298,22 +431,41 @@ const Index = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
-            Built with ❤️ and powerful tech:
-          </h2>
-          
+          <div className="mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold handwritten-title transform rotate-1">
+              <span className="highlighter highlighter-indigo">Built with powerful tech:</span>
+            </h2>
+            <motion.svg
+              className="mx-auto mt-2"
+              width="300"
+              height="15"
+              initial={{ pathLength: 0 }}
+              whileInView={{ pathLength: 1 }}
+              transition={{ delay: 0.3, duration: 1.5 }}
+              viewport={{ once: true }}
+            >
+              <path
+                d="M20,8 Q80,5 150,10 Q220,6 280,12"
+                stroke="#6366f1"
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+              />
+            </motion.svg>
+          </div>
+
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
             {techStack.map((tech, index) => (
               <motion.span
-                key={tech}
-                className="px-4 sm:px-6 py-2 sm:py-3 bg-black rounded-full border border-purple-500/30 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 text-xs sm:text-sm font-medium text-white touch-manipulation"
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1, duration: 0.5 }}
+                key={tech.name}
+                className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-900 border border-gray-800 rounded-full font-bold text-xs sm:text-sm text-white touch-manipulation handwritten-enhanced relative hover:border-emerald-500 transition-colors"
+                initial={{ opacity: 0, scale: 0.8, rotate: Math.random() * 20 - 10 }}
+                whileInView={{ opacity: 1, scale: 1, rotate: Math.random() * 6 - 3 }}
+                transition={{ delay: index * 0.1, duration: 0.5, type: "spring", bounce: 0.4 }}
                 viewport={{ once: true }}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.1, rotate: 0 }}
               >
-                {tech}
+                {tech.name}
               </motion.span>
             ))}
           </div>
@@ -321,40 +473,71 @@ const Index = () => {
       </section>
 
       {/* Final CTA */}
+      <section className="py-12 sm:py-20 px-4 bg-gray-900/30 relative">
+        <motion.div
+          className="max-w-4xl mx-auto text-center relative z-10"
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 handwritten-title transform -rotate-1">
+            <span className="highlighter highlighter-red">Ready to make some noise?</span>
+          </h2>
+
+          <motion.svg
+            className="mx-auto mb-8"
+            width="400"
+            height="20"
+            initial={{ pathLength: 0 }}
+            whileInView={{ pathLength: 1 }}
+            transition={{ delay: 0.5, duration: 2 }}
+            viewport={{ once: true }}
+          >
+            <path
+              d="M20,10 Q100,5 200,12 Q300,8 380,15 Q350,18 200,15 Q100,18 20,12"
+              stroke="#ef4444"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+            />
+          </motion.svg>
+
+          <p className="text-lg sm:text-xl text-gray-300 mb-8 sm:mb-12 leading-relaxed handwritten-enhanced">
+            Jump into the studio or the DJ booth and start creating. No account needed, just pure musical expression.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mb-8 sm:mb-12">
+            <motion.button
+              onClick={() => navigate('/producer')}
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 touch-manipulation handwritten-enhanced transform -rotate-2 hover:rotate-0 hover:bg-gray-700 border-gray-700"
+              whileHover={{ scale: 1.05, rotate: 0 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="relative z-10">🎼 Start Producing</span>
+            </motion.button>
+
+            <motion.button
+              onClick={() => navigate('/dj')}
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 touch-manipulation handwritten-enhanced transform rotate-2 hover:rotate-0 hover:bg-gray-700 border-gray-700"
+              whileHover={{ scale: 1.05, rotate: 0 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="relative z-10">🎧 Enter DJ Booth</span>
+            </motion.button>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Footer */}
       <motion.section
-        className="py-12 sm:py-20 px-4 text-center"
+        className="py-6 px-4 text-center"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
         viewport={{ once: true }}
       >
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-8 sm:mb-12 bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
-          Ready to drop your first beat?
-        </h2>
-        
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mb-8 sm:mb-12">
-          <motion.button
-            onClick={() => navigate('/producer')}
-            className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-base sm:text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 touch-manipulation"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className="relative z-10">🎼 Start Producing</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-purple-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          </motion.button>
-
-          <motion.button
-            onClick={() => navigate('/dj')}
-            className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-black border-2 border-purple-500 rounded-full font-semibold text-base sm:text-lg text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/25 touch-manipulation"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className="relative z-10">🎧 Enter DJ Booth</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-purple-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          </motion.button>
-        </div>
-
-        <p className="text-gray-400 text-xs sm:text-sm">
+        <p className="text-gray-400 text-xs sm:text-sm handwritten-enhanced transform rotate-1">
           © 2025 DropLab by Aarjav & Naman 🚀 | Hackathon Edition
         </p>
       </motion.section>

@@ -51,6 +51,12 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
 
   .dark {
@@ -89,6 +95,12 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -306,12 +318,12 @@ html {
     font-size: 0.75rem;
     line-height: 1rem;
   }
-  
+
   .text-responsive-base {
     font-size: 0.875rem;
     line-height: 1.25rem;
   }
-  
+
   .text-responsive-lg {
     font-size: 1rem;
     line-height: 1.5rem;
@@ -337,8 +349,198 @@ html {
   .text-gray-400 {
     color: #d1d5db;
   }
-  
+
   .text-gray-500 {
     color: #e5e7eb;
   }
+}
+
+/* Handwritten font styles */
+@layer base {
+  .font-handwritten {
+    font-family: "Bradley Hand", "Brush Script MT", "Lucida Handwriting", "Comic Sans MS", cursive;
+    font-weight: 400;
+  }
+
+  .handwritten {
+    font-family: "Bradley Hand", "Brush Script MT", "Lucida Handwriting", "Comic Sans MS", cursive;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+  }
+
+  .handwritten-title {
+    font-family: "Brush Script MT", "Bradley Hand", "Lucida Handwriting", cursive;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Enhanced grid background with darker lines */
+.grid-bg {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 50px 50px, 50px 50px, 10px 10px, 10px 10px;
+}
+
+/* Custom animations for organic feel */
+@keyframes wiggle {
+
+  0%,
+  100% {
+    transform: rotate(-1deg);
+  }
+
+  50% {
+    transform: rotate(1deg);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(-1deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+
+@keyframes handwrite {
+  0% {
+    transform: translateX(-2px) rotate(-0.5deg);
+  }
+
+  25% {
+    transform: translateX(1px) rotate(0.5deg);
+  }
+
+  50% {
+    transform: translateX(-1px) rotate(-0.3deg);
+  }
+
+  75% {
+    transform: translateX(2px) rotate(0.3deg);
+  }
+
+  100% {
+    transform: translateX(-2px) rotate(-0.5deg);
+  }
+}
+
+@keyframes bounce-slow {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+}
+
+.animate-wiggle {
+  animation: wiggle 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-handwrite {
+  animation: handwrite 4s ease-in-out infinite;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s ease-in-out infinite;
+}
+
+/* Enhanced handwritten feel */
+.handwritten-enhanced {
+  font-family: "Bradley Hand", "Brush Script MT", "Lucida Handwriting", "Comic Sans MS", cursive;
+  font-weight: 400;
+  letter-spacing: 0.8px;
+  line-height: 1.4;
+  transform: rotate(-0.5deg);
+}
+
+/* Brighter highlighter effect with selective usage */
+.highlighter {
+  position: relative;
+  display: inline-block;
+  color: white;
+}
+
+.highlighter::before {
+  content: "";
+  position: absolute;
+  top: 15%;
+  left: -5px;
+  right: -5px;
+  bottom: 15%;
+  background: rgba(255, 255, 180, 0.4);
+  transform: rotate(-1deg);
+  z-index: -1;
+  border-radius: 3px;
+}
+
+.highlighter-purple::before {
+  background: rgba(196, 181, 253, 0.6);
+}
+
+.highlighter-pink::before {
+  background: rgba(251, 207, 232, 0.6);
+}
+
+.highlighter-blue::before {
+  background: rgba(191, 219, 254, 0.6);
+}
+
+.highlighter-green::before {
+  background: rgba(187, 247, 208, 0.6);
+}
+
+.highlighter-orange::before {
+  background: rgba(254, 215, 170, 0.6);
+}
+
+.highlighter-yellow::before {
+  background: rgba(254, 240, 138, 0.6);
+}
+
+.highlighter-red::before {
+  background: rgba(254, 202, 202, 0.6);
+}
+
+.highlighter-teal::before {
+  background: rgba(153, 246, 228, 0.6);
+}
+
+.highlighter-indigo::before {
+  background: rgba(199, 210, 254, 0.6);
+}
+
+.highlighter-cyan::before {
+  background: rgba(165, 243, 252, 0.6);
+}
+
+/* Scattered icons positioning */
+.scattered-icon {
+  position: absolute;
+  opacity: 0.4;
+  font-size: 1.5rem;
+  animation: float 6s ease-in-out infinite;
+}
+
+.scattered-icon:nth-child(odd) {
+  animation-delay: -2s;
+}
+
+.scattered-icon:nth-child(even) {
+  animation-delay: -4s;
 }
