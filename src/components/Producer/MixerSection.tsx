@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Volume2, VolumeX } from 'lucide-react';
 import InfoTooltip from '../InfoTooltip';
 import VerticalFader from '../VerticalFader';
+import { cn } from '../../lib/utils';
 
 interface MixerSectionProps {
   melodyVolume: number;
@@ -76,7 +77,7 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({
 
   return (
     <div className="bg-gray-900/50 rounded-xl p-3 sm:p-4 border border-purple-500/30 w-full max-w-xs mx-auto">
-      <h3 className={`text-base sm:text-lg font-semibold mb-4 text-center ${color}`}>{label}</h3>
+      <h3 className={cn("text-base sm:text-lg font-semibold mb-4 text-center", color)}>{label}</h3>
       
       {/* Pan Knob */}
       <div className="flex flex-col items-center mb-4 sm:mb-6">
@@ -115,9 +116,10 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({
         <div className="flex items-center gap-1 flex-1">
           <motion.button
             onClick={handleMuteToggle}
-            className={`flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation ${
+            className={cn(
+              "flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation",
               isMuted ? 'bg-red-600 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
+            )}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -128,9 +130,10 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({
         
         <motion.button
           onClick={handleSoloToggle}
-          className={`flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation ${
+          className={cn(
+            "flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation",
             isSolo ? 'bg-yellow-600 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-          }`}
+          )}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -375,7 +378,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Mixer Status Display */}
         {(anySolo || drumsMuted || melodyMuted || fxMuted || masterMuted) && (
