@@ -111,6 +111,26 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-black text-white font-handwritten overflow-x-hidden relative grid-bg">
+      {/* Bolt.new Badge - Top Right */}
+      <motion.a
+        href="https://bolt.new/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed top-4 right-4 z-50 transition-transform duration-300 hover:scale-110"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1, duration: 0.5 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <img
+          src="/bolt_white_circle_360x360.png"
+          alt="Bolt.new Badge"
+          className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20"
+          style={{ filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))' }}
+        />
+      </motion.a>
+
       {/* Scattered Icons */}
       {scatteredIcons.map((item, index) => (
         <motion.div
