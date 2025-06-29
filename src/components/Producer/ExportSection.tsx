@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Send, FileAudio, Music, Play, Pause, AlertCircle, CheckCircle, Headphones } from 'lucide-react';
+import { Download, FileAudio, Music, Play, Pause, AlertCircle, CheckCircle, Headphones } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MIDIExporter } from '../../lib/midiExporter';
 import { AudioRecorder } from '../../lib/audioRecorder';
@@ -167,6 +167,10 @@ const ExportSection: React.FC<ExportSectionProps> = ({
     }
   };
 
+  const handleSendToDJ = () => {
+    navigate('/dj');
+  };
+
   // Cleanup on unmount
   React.useEffect(() => {
     return () => {
@@ -182,7 +186,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
   return (
     <section id="export" className="min-h-screen flex items-center justify-center px-4 py-8 sm:py-20">
       <motion.div
-        className="max-w-4xl mx-auto text-center w-full"
+        className="max-w-5xl mx-auto text-center w-full"
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
@@ -197,7 +201,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
         </p>
         
         <p className="text-base sm:text-lg text-gray-400 mb-8 sm:mb-12">
-          Export your masterpiece
+          Export your masterpiece or take it straight to the DJ booth
         </p>
 
         {/* Status Messages */}
@@ -206,7 +210,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`mb-6 p-4 rounded-lg border ${
+            className={`mb-6 p-4 rounded-lg border max-w-md mx-auto ${
               exportStatus.type === 'success' 
                 ? 'bg-green-900/20 border-green-500/30 text-green-400' 
                 : 'bg-red-900/20 border-red-500/30 text-red-400'
@@ -226,7 +230,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
         {/* Play/Pause Button */}
         {hasGeneratedContent && (
           <motion.div
-            className="mb-8 sm:mb-12"
+            className="mb-8 sm:mb-12 flex justify-center"
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
@@ -257,106 +261,139 @@ const ExportSection: React.FC<ExportSectionProps> = ({
           </motion.div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
-          {/* Export Melody as MIDI */}
-          <motion.div
-            className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            viewport={{ once: true }}
-          >
-            <div className="mb-4 sm:mb-6">
-              <Music className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Export Melody</h3>
-              <p className="text-gray-400 text-xs sm:text-sm">Download your melody as MIDI file</p>
-              <p className="text-purple-400 text-xs mt-1">
-                {melodyNotes.length} notes ready
-              </p>
-            </div>
-            
-            <motion.button
-              onClick={handleExportMelody}
-              disabled={melodyNotes.length === 0}
-              className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm touch-manipulation"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+        {/* Export Options Grid - Centered */}
+        <div className="flex justify-center mb-8 sm:mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-4xl w-full">
+            {/* Export Melody as MIDI */}
+            <motion.div
+              className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              viewport={{ once: true }}
             >
-              <span className="flex items-center gap-2 justify-center">
-                <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                Melody MIDI
-              </span>
-            </motion.button>
-          </motion.div>
+              <div className="mb-4 sm:mb-6">
+                <Music className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Export Melody</h3>
+                <p className="text-gray-400 text-xs sm:text-sm">Download your melody as MIDI file</p>
+                <p className="text-purple-400 text-xs mt-1">
+                  {melodyNotes.length} notes ready
+                </p>
+              </div>
+              
+              <motion.button
+                onClick={handleExportMelody}
+                disabled={melodyNotes.length === 0}
+                className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm touch-manipulation"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className="flex items-center gap-2 justify-center">
+                  <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                  Melody MIDI
+                </span>
+              </motion.button>
+            </motion.div>
 
-          {/* Export Drums as MIDI */}
-          <motion.div
-            className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            <div className="mb-4 sm:mb-6">
-              <Music className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Export Drums</h3>
-              <p className="text-gray-400 text-xs sm:text-sm">Download your drum pattern as MIDI</p>
-              <p className="text-purple-400 text-xs mt-1">
-                {Object.values(drumPattern).reduce((total, pattern) => 
-                  total + pattern.filter(Boolean).length, 0
-                )} hits ready
-              </p>
-            </div>
-            
-            <motion.button
-              onClick={handleExportDrums}
-              disabled={!Object.values(drumPattern).some(pattern => pattern.some(step => step))}
-              className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm touch-manipulation"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            {/* Export Drums as MIDI */}
+            <motion.div
+              className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              viewport={{ once: true }}
             >
-              <span className="flex items-center gap-2 justify-center">
-                <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                Drums MIDI
-              </span>
-            </motion.button>
-          </motion.div>
+              <div className="mb-4 sm:mb-6">
+                <Music className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Export Drums</h3>
+                <p className="text-gray-400 text-xs sm:text-sm">Download your drum pattern as MIDI</p>
+                <p className="text-purple-400 text-xs mt-1">
+                  {Object.values(drumPattern).reduce((total, pattern) => 
+                    total + pattern.filter(Boolean).length, 0
+                  )} hits ready
+                </p>
+              </div>
+              
+              <motion.button
+                onClick={handleExportDrums}
+                disabled={!Object.values(drumPattern).some(pattern => pattern.some(step => step))}
+                className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm touch-manipulation"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className="flex items-center gap-2 justify-center">
+                  <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                  Drums MIDI
+                </span>
+              </motion.button>
+            </motion.div>
 
-          {/* Export as Audio */}
-          <motion.div
-            className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            viewport={{ once: true }}
-          >
-            <div className="mb-4 sm:mb-6">
-              <FileAudio className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Export Audio</h3>
-              <p className="text-gray-400 text-xs sm:text-sm">High-quality WAV file ready for streaming</p>
-              <p className="text-purple-400 text-xs mt-1">
-                8-second recording
-              </p>
-            </div>
-            
-            <motion.button
-              onClick={handleExportAudio}
-              disabled={isRecording || !hasGeneratedContent}
-              className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm touch-manipulation"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            {/* Export as Audio */}
+            <motion.div
+              className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              viewport={{ once: true }}
             >
-              <span className="flex items-center gap-2 justify-center">
-                <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                {isRecording ? 'Recording...' : 'Export Audio'}
-              </span>
-            </motion.button>
-          </motion.div>
+              <div className="mb-4 sm:mb-6">
+                <FileAudio className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Export Audio</h3>
+                <p className="text-gray-400 text-xs sm:text-sm">High-quality WAV file ready for streaming</p>
+                <p className="text-purple-400 text-xs mt-1">
+                  8-second recording
+                </p>
+              </div>
+              
+              <motion.button
+                onClick={handleExportAudio}
+                disabled={isRecording || !hasGeneratedContent}
+                className="w-full py-3 px-4 bg-purple-600 rounded-full font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm touch-manipulation"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className="flex items-center gap-2 justify-center">
+                  <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                  {isRecording ? 'Recording...' : 'Export Audio'}
+                </span>
+              </motion.button>
+            </motion.div>
+
+            {/* Send to DJ Mode */}
+            <motion.div
+              className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
+              <div className="mb-4 sm:mb-6">
+                <Headphones className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-2">DJ Mode</h3>
+                <p className="text-gray-400 text-xs sm:text-sm">Take your track straight to the decks</p>
+                <p className="text-purple-400 text-xs mt-1">
+                  Professional mixing
+                </p>
+              </div>
+              
+              <motion.button
+                onClick={handleSendToDJ}
+                className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-purple-500 rounded-full font-semibold text-white hover:from-purple-500 hover:to-purple-400 transition-all duration-300 shadow-lg shadow-purple-500/25 text-xs sm:text-sm touch-manipulation"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className="flex items-center gap-2 justify-center">
+                  <Headphones className="w-3 h-3 sm:w-4 sm:h-4" />
+                  Enter DJ Booth
+                </span>
+              </motion.button>
+            </motion.div>
+          </div>
         </div>
 
         {/* Content Status */}
         {!hasGeneratedContent && (
-          <div className="mb-6 sm:mb-8 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+          <div className="mb-6 sm:mb-8 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg max-w-md mx-auto">
             <p className="text-blue-400 text-xs sm:text-sm">
               🎵 Generate some melodies or drums first to unlock export options!
             </p>
@@ -366,7 +403,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
         {/* Recording Progress */}
         {isRecording && (
           <motion.div
-            className="mt-6 sm:mt-8 bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30"
+            className="mt-6 sm:mt-8 bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-purple-500/30 max-w-md mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
@@ -390,7 +427,7 @@ const ExportSection: React.FC<ExportSectionProps> = ({
 
         {/* Export Info */}
         <motion.div
-          className="mt-8 sm:mt-12 bg-gray-900/30 rounded-xl p-4 sm:p-6 border border-purple-500/20"
+          className="mt-8 sm:mt-12 bg-gray-900/30 rounded-xl p-4 sm:p-6 border border-purple-500/20 max-w-3xl mx-auto"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
@@ -407,6 +444,11 @@ const ExportSection: React.FC<ExportSectionProps> = ({
               <p className="text-white font-medium">Audio Export</p>
               <p className="text-gray-400">High-quality WAV format</p>
               <p className="text-purple-400 text-xs">44.1kHz, 16-bit</p>
+            </div>
+            <div className="text-center">
+              <p className="text-white font-medium">DJ Integration</p>
+              <p className="text-gray-400">Seamless workflow</p>
+              <p className="text-purple-400 text-xs">Auto-sync to 128 BPM</p>
             </div>
           </div>
         </motion.div>
