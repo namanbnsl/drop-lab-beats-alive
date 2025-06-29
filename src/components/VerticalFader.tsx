@@ -5,13 +5,17 @@ interface VerticalFaderProps {
   value: number;
   onChange: (value: number) => void;
   className?: string;
+  isMuted?: boolean;
+  onMuteChange?: (muted: boolean) => void;
 }
 
 const VerticalFader: React.FC<VerticalFaderProps> = ({ 
   label, 
   value, 
   onChange, 
-  className = "" 
+  className = "",
+  isMuted = false,
+  onMuteChange
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [showValue, setShowValue] = useState(false);
@@ -26,7 +30,8 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
       
       const rect = faderRef.current.getBoundingClientRect();
       const y = clientY - rect.top;
-      const percentage = Math.max(0, Math.min(100, (y / rect.height) * 100));
+      // FIXED: Invert the calculation so top = 100%, bottom = 0%
+      const percentage = Math.max(0, Math.min(100, 100 - (y / rect.height) * 100));
       onChange(Math.round(percentage));
     };
 
@@ -57,7 +62,8 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
       
       const rect = faderRef.current.getBoundingClientRect();
       const y = clientY - rect.top;
-      const percentage = Math.max(0, Math.min(100, (y / rect.height) * 100));
+      // FIXED: Invert the calculation so top = 100%, bottom = 0%
+      const percentage = Math.max(0, Math.min(100, 100 - (y / rect.height) * 100));
       onChange(Math.round(percentage));
     };
 
@@ -81,6 +87,9 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
     document.addEventListener('touchend', handleTouchEnd);
   };
 
+  // FIXED: Calculate handle position correctly (inverted)
+  const handlePosition = 100 - value; // Top = 0%, Bottom = 100%
+
   return (
     <div className={`flex flex-col items-center ${className}`}>
       {label && <label className="text-xs text-gray-300 mb-2">{label}</label>}
@@ -91,24 +100,26 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
           ref={faderRef}
           className={`relative h-24 sm:h-36 w-3 sm:w-4 bg-gray-800 rounded-full cursor-pointer transition-all duration-200 touch-manipulation ${
             isDragging ? 'bg-gray-700' : 'hover:bg-gray-700'
-          }`}
+          } ${isMuted ? 'opacity-50' : ''}`}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
         >
-          {/* Active Fill */}
+          {/* Active Fill - FIXED: Fill from bottom up */}
           <div
-            className="absolute bottom-0 left-0 w-full bg-purple-500 rounded-full transition-all duration-100"
-            style={{ height: `${100 - value}%` }}
+            className={`absolute bottom-0 left-0 w-full rounded-full transition-all duration-100 ${
+              isMuted ? 'bg-red-500' : 'bg-purple-500'
+            }`}
+            style={{ height: `${value}%` }}
           />
           
-          {/* Fader Handle */}
+          {/* Fader Handle - FIXED: Position correctly */}
           <div
             className={`absolute w-5 h-2 sm:w-6 sm:h-3 bg-white rounded-sm border border-gray-600 transform -translate-x-1/2 transition-all duration-100 touch-manipulation ${
               isDragging ? 'shadow-lg shadow-purple-500/50 scale-110' : 'hover:shadow-md hover:shadow-purple-500/30'
-            }`}
+            } ${isMuted ? 'bg-red-300 border-red-500' : ''}`}
             style={{ 
               left: '50%',
-              top: `${value}%`,
+              top: `${handlePosition}%`,
               transform: 'translateX(-50%) translateY(-50%)'
             }}
           />
@@ -117,12 +128,14 @@ const VerticalFader: React.FC<VerticalFaderProps> = ({
         {/* Value Display */}
         {showValue && (
           <div className="absolute -right-6 sm:-right-8 top-1/2 transform -translate-y-1/2 bg-black border border-purple-500 text-white text-xs px-2 py-1 rounded z-10">
-            {100 - value}%
+            {value}%
           </div>
         )}
       </div>
       
-      <span className="text-xs text-gray-300 mt-2">{100 - value}%</span>
+      <span className={`text-xs mt-2 ${isMuted ? 'text-red-400' : 'text-gray-300'}`}>
+        {isMuted ? 'MUTE' : `${value}%`}
+      </span>
     </div>
   );
 };

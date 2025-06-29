@@ -24,6 +24,16 @@ const Producer = () => {
   const [fxVolume, setFxVolume] = useState(50);
   const [masterVolume, setMasterVolume] = useState(75);
 
+  // Mixer mute/solo states
+  const [drumsMuted, setDrumsMuted] = useState(false);
+  const [melodyMuted, setMelodyMuted] = useState(false);
+  const [fxMuted, setFxMuted] = useState(false);
+  const [masterMuted, setMasterMuted] = useState(false);
+
+  const [drumsSolo, setDrumsSolo] = useState(false);
+  const [melodySolo, setMelodySolo] = useState(false);
+  const [fxSolo, setFxSolo] = useState(false);
+
   // FX state
   const [reverbAmount, setReverbAmount] = useState(0);
   const [delayAmount, setDelayAmount] = useState(0);
@@ -82,38 +92,51 @@ const Producer = () => {
     setHasGeneratedContent(hasDrums || hasMelody);
   }, [drumPattern, melodyNotes]);
 
-  // Mixer Volume Controls - Apply volume changes in real-time
+  // Calculate effective volumes considering mute/solo states
+  const getEffectiveVolume = (volume: number, isMuted: boolean, isSolo: boolean, anySolo: boolean) => {
+    if (isMuted || masterMuted) return 0;
+    if (anySolo && !isSolo) return 0; // If any channel is solo'd and this isn't it, mute this
+    return volume;
+  };
+
+  const anySolo = drumsSolo || melodySolo || fxSolo;
+  const effectiveDrumsVolume = getEffectiveVolume(drumsVolume, drumsMuted, drumsSolo, anySolo);
+  const effectiveMelodyVolume = getEffectiveVolume(melodyVolume, melodyMuted, melodySolo, anySolo);
+  const effectiveFxVolume = getEffectiveVolume(fxVolume, fxMuted, fxSolo, anySolo);
+  const effectiveMasterVolume = masterMuted ? 0 : masterVolume;
+
+  // Mixer Volume Controls - Apply volume changes in real-time with mute/solo logic
   useEffect(() => {
     if (drumGainRef.current && audioUnlocked) {
-      const volume = drumsVolume / 100;
+      const volume = effectiveDrumsVolume / 100;
       drumGainRef.current.gain.rampTo(volume, 0.1);
-      console.log(`🎚️ Drums volume: ${drumsVolume}% (${volume.toFixed(2)})`);
+      console.log(`🎚️ Drums effective volume: ${effectiveDrumsVolume}% (${volume.toFixed(2)}) ${drumsMuted ? '[MUTED]' : ''} ${drumsSolo ? '[SOLO]' : ''}`);
     }
-  }, [drumsVolume, audioUnlocked]);
+  }, [effectiveDrumsVolume, drumsMuted, drumsSolo, audioUnlocked]);
 
   useEffect(() => {
     if (melodyGainRef.current && audioUnlocked) {
-      const volume = melodyVolume / 100;
+      const volume = effectiveMelodyVolume / 100;
       melodyGainRef.current.gain.rampTo(volume, 0.1);
-      console.log(`🎚️ Melody volume: ${melodyVolume}% (${volume.toFixed(2)})`);
+      console.log(`🎚️ Melody effective volume: ${effectiveMelodyVolume}% (${volume.toFixed(2)}) ${melodyMuted ? '[MUTED]' : ''} ${melodySolo ? '[SOLO]' : ''}`);
     }
-  }, [melodyVolume, audioUnlocked]);
+  }, [effectiveMelodyVolume, melodyMuted, melodySolo, audioUnlocked]);
 
   useEffect(() => {
     if (fxGainRef.current && audioUnlocked) {
-      const volume = fxVolume / 100;
+      const volume = effectiveFxVolume / 100;
       fxGainRef.current.gain.rampTo(volume, 0.1);
-      console.log(`🎚️ FX volume: ${fxVolume}% (${volume.toFixed(2)})`);
+      console.log(`🎚️ FX effective volume: ${effectiveFxVolume}% (${volume.toFixed(2)}) ${fxMuted ? '[MUTED]' : ''} ${fxSolo ? '[SOLO]' : ''}`);
     }
-  }, [fxVolume, audioUnlocked]);
+  }, [effectiveFxVolume, fxMuted, fxSolo, audioUnlocked]);
 
   useEffect(() => {
     if (masterGainRef.current && audioUnlocked) {
-      const volume = masterVolume / 100;
+      const volume = effectiveMasterVolume / 100;
       masterGainRef.current.gain.rampTo(volume, 0.1);
-      console.log(`🎚️ Master volume: ${masterVolume}% (${volume.toFixed(2)})`);
+      console.log(`🎚️ Master effective volume: ${effectiveMasterVolume}% (${volume.toFixed(2)}) ${masterMuted ? '[MUTED]' : ''}`);
     }
-  }, [masterVolume, audioUnlocked]);
+  }, [effectiveMasterVolume, masterMuted, audioUnlocked]);
 
   // FX Control Effects - Apply FX changes in real-time
   useEffect(() => {
@@ -279,10 +302,10 @@ const Producer = () => {
       setIsRecovering(false);
       
       // Apply current mixer settings after audio is unlocked
-      if (drumGainRef.current) drumGainRef.current.gain.value = drumsVolume / 100;
-      if (melodyGainRef.current) melodyGainRef.current.gain.value = melodyVolume / 100;
-      if (fxGainRef.current) fxGainRef.current.gain.value = fxVolume / 100;
-      if (masterGainRef.current) masterGainRef.current.gain.value = masterVolume / 100;
+      if (drumGainRef.current) drumGainRef.current.gain.value = effectiveDrumsVolume / 100;
+      if (melodyGainRef.current) melodyGainRef.current.gain.value = effectiveMelodyVolume / 100;
+      if (fxGainRef.current) fxGainRef.current.gain.value = effectiveFxVolume / 100;
+      if (masterGainRef.current) masterGainRef.current.gain.value = effectiveMasterVolume / 100;
       
       console.log('🎚️ Mixer levels applied after audio unlock');
     } catch (error) {
@@ -538,6 +561,29 @@ const Producer = () => {
     return fxActive.join(' + ');
   };
 
+  // Get mixer status for display
+  const getMixerStatus = () => {
+    const status = [];
+    if (anySolo) {
+      if (drumsSolo) status.push('D:SOLO');
+      if (melodySolo) status.push('M:SOLO');
+      if (fxSolo) status.push('F:SOLO');
+    } else {
+      status.push(`D:${effectiveDrumsVolume}`);
+      status.push(`M:${effectiveMelodyVolume}`);
+      status.push(`F:${effectiveFxVolume}`);
+    }
+    status.push(`⚡:${effectiveMasterVolume}`);
+    
+    const muted = [];
+    if (drumsMuted) muted.push('D:MUTE');
+    if (melodyMuted) muted.push('M:MUTE');
+    if (fxMuted) muted.push('F:MUTE');
+    if (masterMuted) muted.push('⚡:MUTE');
+    
+    return { levels: status.join(' '), muted: muted.join(' ') };
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -635,6 +681,8 @@ const Producer = () => {
     }
   };
 
+  const mixerStatus = getMixerStatus();
+
   return (
     <div className="min-h-screen bg-black">
       {/* Header */}
@@ -720,19 +768,28 @@ const Producer = () => {
             </span>
           </div>
 
-          {/* Mixer Status Indicator */}
-          <div className="flex items-center gap-2">
-            <span className="text-white">Mix:</span>
-            <span className="text-blue-400 font-mono text-xs">
-              D:{drumsVolume} M:{melodyVolume} F:{fxVolume} ⚡:{masterVolume}
-            </span>
+          {/* Enhanced Mixer Status Indicator */}
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center gap-2">
+              <span className="text-white">Mix:</span>
+              <span className="text-blue-400 font-mono text-xs">
+                {mixerStatus.levels}
+              </span>
+            </div>
+            {mixerStatus.muted && (
+              <div className="flex items-center gap-1">
+                <span className="text-red-400 font-mono text-xs">
+                  {mixerStatus.muted}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* FX Status Indicator */}
           {getFXStatus() && (
             <div className="flex items-center gap-2">
               <span className="text-white">FX:</span>
-              <span className="text-green-400 font-mono">
+              <span className="text-green-400 font-mono text-xs">
                 {getFXStatus()}
               </span>
             </div>

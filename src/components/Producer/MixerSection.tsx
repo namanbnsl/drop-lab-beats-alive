@@ -20,17 +20,58 @@ interface ChannelStripProps {
   color: string;
   volume: number;
   onVolumeChange: (value: number) => void;
+  onMuteChange: (muted: boolean) => void;
+  onSoloChange: (solo: boolean) => void;
+  isMuted: boolean;
+  isSolo: boolean;
 }
 
-const ChannelStrip: React.FC<ChannelStripProps> = ({ label, color, volume, onVolumeChange }) => {
+const ChannelStrip: React.FC<ChannelStripProps> = ({ 
+  label, 
+  color, 
+  volume, 
+  onVolumeChange, 
+  onMuteChange, 
+  onSoloChange,
+  isMuted,
+  isSolo
+}) => {
   const [pan, setPan] = useState(50);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isSolo, setIsSolo] = useState(false);
 
   const mixerTooltips = {
-    volume: "Adjusts how loud the track is in the final mix. Slide down to make it quieter.",
+    volume: "Adjusts how loud the track is in the final mix. Slide up to make it louder.",
     pan: "Moves the sound left or right in stereo. Use it to widen your mix.",
     muteSolo: "Mute silences a track. Solo lets you isolate it for focused listening."
+  };
+
+  const handleVolumeChange = (newValue: number) => {
+    if (!isMuted) {
+      onVolumeChange(newValue);
+    }
+  };
+
+  const handleMuteToggle = () => {
+    const newMuted = !isMuted;
+    onMuteChange(newMuted);
+    
+    if (newMuted && isSolo) {
+      // If muting a solo'd track, turn off solo
+      onSoloChange(false);
+    }
+    
+    console.log(`🔇 ${label} ${newMuted ? 'muted' : 'unmuted'}`);
+  };
+
+  const handleSoloToggle = () => {
+    const newSolo = !isSolo;
+    onSoloChange(newSolo);
+    
+    if (newSolo && isMuted) {
+      // If soloing a muted track, unmute it
+      onMuteChange(false);
+    }
+    
+    console.log(`🎯 ${label} solo ${newSolo ? 'enabled' : 'disabled'}`);
   };
 
   return (
@@ -63,7 +104,8 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({ label, color, volume, onVol
         <VerticalFader
           label=""
           value={volume}
-          onChange={onVolumeChange}
+          onChange={handleVolumeChange}
+          isMuted={isMuted}
           className="scale-90 sm:scale-100"
         />
       </div>
@@ -72,9 +114,9 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({ label, color, volume, onVol
       <div className="flex gap-1 sm:gap-2">
         <div className="flex items-center gap-1 flex-1">
           <motion.button
-            onClick={() => setIsMuted(!isMuted)}
+            onClick={handleMuteToggle}
             className={`flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation ${
-              isMuted ? 'bg-red-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              isMuted ? 'bg-red-600 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
             }`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -85,9 +127,9 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({ label, color, volume, onVol
         </div>
         
         <motion.button
-          onClick={() => setIsSolo(!isSolo)}
+          onClick={handleSoloToggle}
           className={`flex-1 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs sm:text-sm transition-colors touch-manipulation ${
-            isSolo ? 'bg-yellow-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            isSolo ? 'bg-yellow-600 text-white shadow-lg' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
           }`}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -95,6 +137,14 @@ const ChannelStrip: React.FC<ChannelStripProps> = ({ label, color, volume, onVol
           SOLO
         </motion.button>
       </div>
+
+      {/* Status Indicators */}
+      {(isMuted || isSolo) && (
+        <div className="mt-2 text-center">
+          {isMuted && <div className="text-xs text-red-400">🔇 MUTED</div>}
+          {isSolo && <div className="text-xs text-yellow-400">🎯 SOLO</div>}
+        </div>
+      )}
     </div>
   );
 };
@@ -109,6 +159,58 @@ const MixerSection: React.FC<MixerSectionProps> = ({
   onFxVolumeChange,
   onMasterVolumeChange
 }) => {
+  // Mute/Solo states for each channel
+  const [drumsMuted, setDrumsMuted] = useState(false);
+  const [melodyMuted, setMelodyMuted] = useState(false);
+  const [fxMuted, setFxMuted] = useState(false);
+  const [masterMuted, setMasterMuted] = useState(false);
+
+  const [drumsSolo, setDrumsSolo] = useState(false);
+  const [melodySolo, setMelodySolo] = useState(false);
+  const [fxSolo, setFxSolo] = useState(false);
+
+  // Handle solo logic - when one channel is solo'd, others are effectively muted
+  const handleSoloChange = (channel: 'drums' | 'melody' | 'fx', solo: boolean) => {
+    switch (channel) {
+      case 'drums':
+        setDrumsSolo(solo);
+        if (solo) {
+          setMelodySolo(false);
+          setFxSolo(false);
+        }
+        break;
+      case 'melody':
+        setMelodySolo(solo);
+        if (solo) {
+          setDrumsSolo(false);
+          setFxSolo(false);
+        }
+        break;
+      case 'fx':
+        setFxSolo(solo);
+        if (solo) {
+          setDrumsSolo(false);
+          setMelodySolo(false);
+        }
+        break;
+    }
+  };
+
+  // Calculate effective volume considering mute/solo states
+  const getEffectiveVolume = (volume: number, isMuted: boolean, isSolo: boolean, anySolo: boolean) => {
+    if (isMuted || masterMuted) return 0;
+    if (anySolo && !isSolo) return 0; // If any channel is solo'd and this isn't it, mute this
+    return volume;
+  };
+
+  const anySolo = drumsSolo || melodySolo || fxSolo;
+
+  // Apply effective volumes to the audio system
+  const effectiveDrumsVolume = getEffectiveVolume(drumsVolume, drumsMuted, drumsSolo, anySolo);
+  const effectiveMelodyVolume = getEffectiveVolume(melodyVolume, melodyMuted, melodySolo, anySolo);
+  const effectiveFxVolume = getEffectiveVolume(fxVolume, fxMuted, fxSolo, anySolo);
+  const effectiveMasterVolume = masterMuted ? 0 : masterVolume;
+
   const balanceTooltips = {
     drums: "Controls the overall loudness of your drum tracks.",
     melody: "Adjusts the level of your generated or composed melodies.",
@@ -145,6 +247,10 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               color="text-red-400"
               volume={drumsVolume}
               onVolumeChange={onDrumsVolumeChange}
+              onMuteChange={setDrumsMuted}
+              onSoloChange={(solo) => handleSoloChange('drums', solo)}
+              isMuted={drumsMuted}
+              isSolo={drumsSolo}
             />
           </motion.div>
 
@@ -159,6 +265,10 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               color="text-blue-400"
               volume={melodyVolume}
               onVolumeChange={onMelodyVolumeChange}
+              onMuteChange={setMelodyMuted}
+              onSoloChange={(solo) => handleSoloChange('melody', solo)}
+              isMuted={melodyMuted}
+              isSolo={melodySolo}
             />
           </motion.div>
 
@@ -173,6 +283,10 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               color="text-green-400"
               volume={fxVolume}
               onVolumeChange={onFxVolumeChange}
+              onMuteChange={setFxMuted}
+              onSoloChange={(solo) => handleSoloChange('fx', solo)}
+              isMuted={fxMuted}
+              isSolo={fxSolo}
             />
           </motion.div>
 
@@ -187,6 +301,10 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               color="text-purple-400"
               volume={masterVolume}
               onVolumeChange={onMasterVolumeChange}
+              onMuteChange={setMasterMuted}
+              onSoloChange={() => {}} // Master doesn't have solo
+              isMuted={masterMuted}
+              isSolo={false}
             />
           </motion.div>
         </div>
@@ -208,8 +326,9 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               </div>
               <VerticalFader
                 label=""
-                value={drumsVolume}
+                value={effectiveDrumsVolume}
                 onChange={onDrumsVolumeChange}
+                isMuted={drumsMuted || (anySolo && !drumsSolo)}
                 className="scale-75 sm:scale-100"
               />
             </div>
@@ -221,8 +340,9 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               </div>
               <VerticalFader
                 label=""
-                value={melodyVolume}
+                value={effectiveMelodyVolume}
                 onChange={onMelodyVolumeChange}
+                isMuted={melodyMuted || (anySolo && !melodySolo)}
                 className="scale-75 sm:scale-100"
               />
             </div>
@@ -234,8 +354,9 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               </div>
               <VerticalFader
                 label=""
-                value={fxVolume}
+                value={effectiveFxVolume}
                 onChange={onFxVolumeChange}
+                isMuted={fxMuted || (anySolo && !fxSolo)}
                 className="scale-75 sm:scale-100"
               />
             </div>
@@ -247,13 +368,35 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               </div>
               <VerticalFader
                 label=""
-                value={masterVolume}
+                value={effectiveMasterVolume}
                 onChange={onMasterVolumeChange}
+                isMuted={masterMuted}
                 className="scale-75 sm:scale-100"
               />
             </div>
           </div>
-        </motion.div>
+        </div>
+
+        {/* Mixer Status Display */}
+        {(anySolo || drumsMuted || melodyMuted || fxMuted || masterMuted) && (
+          <motion.div
+            className="mt-6 bg-gray-900/50 rounded-xl p-4 border border-purple-500/30 max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <h4 className="text-sm font-semibold text-purple-400 mb-2">Mixer Status</h4>
+            <div className="flex flex-wrap gap-2 justify-center text-xs">
+              {drumsSolo && <span className="bg-yellow-600 text-white px-2 py-1 rounded">🎯 Drums SOLO</span>}
+              {melodySolo && <span className="bg-yellow-600 text-white px-2 py-1 rounded">🎯 Melody SOLO</span>}
+              {fxSolo && <span className="bg-yellow-600 text-white px-2 py-1 rounded">🎯 FX SOLO</span>}
+              {drumsMuted && <span className="bg-red-600 text-white px-2 py-1 rounded">🔇 Drums MUTE</span>}
+              {melodyMuted && <span className="bg-red-600 text-white px-2 py-1 rounded">🔇 Melody MUTE</span>}
+              {fxMuted && <span className="bg-red-600 text-white px-2 py-1 rounded">🔇 FX MUTE</span>}
+              {masterMuted && <span className="bg-red-600 text-white px-2 py-1 rounded">🔇 MASTER MUTE</span>}
+            </div>
+          </motion.div>
+        )}
       </motion.div>
     </section>
   );
