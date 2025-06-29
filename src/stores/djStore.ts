@@ -35,11 +35,11 @@ interface DJState {
   // Mixer
   crossfader: number;
   
-  // Global BPM Control (internal only)
+  // Global BPM Control (Backend Metronome)
   globalBPM: number;
   bpmSyncEnabled: boolean;
   
-  // Transport for sync (Silent Backend Metronome)
+  // Transport for sync (Backend Metronome at 128 BPM)
   isTransportRunning: boolean;
   masterGridPosition: { bar: number; beat: number };
   
@@ -81,7 +81,7 @@ export const useDJStore = create<DJState>((set, get) => ({
   deckBState: defaultDeckState,
   
   crossfader: 50,
-  globalBPM: 128, // Fixed at 128 BPM for all tracks
+  globalBPM: 128, // Backend metronome fixed at 128 BPM
   bpmSyncEnabled: true,
   isTransportRunning: false,
   masterGridPosition: { bar: 1, beat: 1 },
@@ -97,11 +97,12 @@ export const useDJStore = create<DJState>((set, get) => ({
       const deckA = new DeckAudioEngine();
       const deckB = new DeckAudioEngine();
       
-      // 🎯 Initialize master beat grid at 128 BPM with precise timing
+      // 🎯 Initialize backend metronome at 128 BPM with precise timing
       Tone.Transport.bpm.value = 128;
-      Tone.Transport.position = 0; // Reset position
+      Tone.Transport.position = 0; // Reset position to bar 1, beat 1
+      Tone.Transport.loop = false; // Continuous running
       
-      // Start transport with immediate timing for precise sync
+      // Start transport immediately for backend metronome
       if (Tone.Transport.state !== 'started') {
         Tone.Transport.start("+0.01"); // Very small delay for stability
       }
@@ -112,11 +113,11 @@ export const useDJStore = create<DJState>((set, get) => ({
         isTransportRunning: true 
       });
       
-      // Start grid position updates with higher frequency
+      // Start grid position updates with high frequency for smooth feedback
       get().updateGridPositions();
       
-      console.log('🎧 DJ Audio System Initialized - Master Grid @ 128 BPM');
-      console.log('🎯 Enhanced Beat Snapping System Active');
+      console.log('🎧 DJ Audio System Initialized');
+      console.log('🎯 Backend Metronome @ 128 BPM - All tracks will sync to this grid');
       console.log(`⏰ Transport State: ${Tone.Transport.state}, BPM: ${Tone.Transport.bpm.value}`);
     } catch (error) {
       console.error('Failed to initialize audio:', error);
@@ -131,8 +132,8 @@ export const useDJStore = create<DJState>((set, get) => ({
     try {
       // Update master grid position with high precision
       const transportTime = Tone.Transport.seconds;
-      const beatInterval = 60 / 128; // 128 BPM
-      const currentBeat = Math.floor(transportTime / beatInterval);
+      const beatDuration = 60 / 128; // 128 BPM beat duration
+      const currentBeat = Math.floor(transportTime / beatDuration);
       const bar = Math.floor(currentBeat / 4) + 1;
       const beat = (currentBeat % 4) + 1;
       
@@ -174,7 +175,7 @@ export const useDJStore = create<DJState>((set, get) => ({
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
     if (engine && engine.isLoaded) {
-      // Ensure master transport is running with correct BPM
+      // Ensure backend metronome is running
       if (!state.isTransportRunning || Tone.Transport.state !== 'started') {
         Tone.Transport.bpm.value = 128;
         if (Tone.Transport.state !== 'started') {
@@ -182,10 +183,10 @@ export const useDJStore = create<DJState>((set, get) => ({
         }
         set({ isTransportRunning: true });
         get().updateGridPositions();
-        console.log('🎯 Master Transport ensured running at 128 BPM');
+        console.log('🎯 Backend Metronome ensured running at 128 BPM');
       }
 
-      // ⚡ ENHANCED INSTANT PLAY: Engine handles precise beat-synced play
+      // ⚡ BEAT-ALIGNED PLAY: Engine will wait for next bar to start
       engine.play();
       
       const bpmInfo = engine.getBPMInfo();
@@ -201,7 +202,7 @@ export const useDJStore = create<DJState>((set, get) => ({
       });
       
       if (gridPosition.isQueued) {
-        console.log(`⚡ Deck ${deck} queued for precise beat-sync play`);
+        console.log(`⚡ Deck ${deck} queued for next bar sync play`);
       } else {
         console.log(`▶️ Deck ${deck} manual play at 128 BPM`);
       }
@@ -233,7 +234,7 @@ export const useDJStore = create<DJState>((set, get) => ({
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
     
     if (engine && track.url) {
-      // Ensure transport is running before loading
+      // Ensure backend metronome is running before loading
       if (!state.isTransportRunning || Tone.Transport.state !== 'started') {
         await get().initializeAudio();
         // Wait for transport to stabilize
@@ -242,7 +243,7 @@ export const useDJStore = create<DJState>((set, get) => ({
       
       // Use the provided BPM as the original BPM for auto-sync calculation
       const originalBPM = track.bpm;
-      const targetBPM = 128; // Always sync to 128 BPM
+      const targetBPM = 128; // Always sync to 128 BPM backend metronome
       
       // Create track with original BPM
       const trackWithBPM = { ...track, originalBPM };
@@ -271,7 +272,7 @@ export const useDJStore = create<DJState>((set, get) => ({
           }
         });
         
-        console.log(`✅ "${track.name}" loaded to Deck ${deck} and beat-snapped`);
+        console.log(`✅ "${track.name}" loaded to Deck ${deck} and synced to backend metronome`);
         console.log(`🎯 Grid Status: Bar ${gridPosition.bar}, Beat ${gridPosition.beat}, Aligned: ${gridPosition.isAligned}, Queued: ${gridPosition.isQueued}`);
       }
     }
@@ -445,7 +446,7 @@ export const useDJStore = create<DJState>((set, get) => ({
         get().playDeck('B');
       }, 150); // Slightly longer delay to ensure re-snap completes
       
-      console.log('🎯 Deck B synced to master grid at 128 BPM');
+      console.log('🎯 Deck B synced to backend metronome at 128 BPM');
     }
   },
 

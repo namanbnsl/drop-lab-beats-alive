@@ -30,6 +30,7 @@ export class DeckAudioEngine {
   private gridUpdateInterval: NodeJS.Timeout | null = null;
   private audioBuffer: AudioBuffer | null = null;
   private waveformData: Float32Array | null = null;
+  private scheduledStartTime: number = 0;
 
   constructor() {
     // Initialize audio chain
@@ -98,8 +99,11 @@ export class DeckAudioEngine {
       // Set initial playback rate for auto-sync
       this.updatePlaybackRate();
       
-      // 🎯 SIMPLIFIED BEAT SNAPPING: Just mark as ready for sync
-      this.prepareForSync();
+      // Sync player to transport for beat-aligned playback
+      this.player.sync();
+      
+      // Mark as ready for beat-aligned sync
+      this.prepareForBeatSync();
       
       console.log(`✅ Track loaded: ${url} (${this.trackDuration.toFixed(2)}s, ${this.originalBPM} BPM → ${this.globalBPM} BPM)`);
       return true;
@@ -132,23 +136,30 @@ export class DeckAudioEngine {
   }
 
   /**
-   * 🎯 SIMPLIFIED SYNC PREPARATION: Mark as ready for beat-aligned play
+   * 🎯 BEAT-ALIGNED SYNC PREPARATION: Calculate next bar start time
    */
-  private prepareForSync(): void {
+  private prepareForBeatSync(): void {
     if (!this.player || !this.isLoaded) return;
 
     try {
-      // Sync player to transport for beat-aligned playback
-      this.player.sync();
+      // Calculate next bar boundary (4 beats = 1 bar)
+      const currentTime = Tone.Transport.seconds;
+      const beatsPerBar = 4;
+      const beatDuration = 60 / this.globalBPM; // seconds per beat
+      const barDuration = beatDuration * beatsPerBar; // seconds per bar
       
-      // Mark as ready for sync
+      // Find current position in bars
+      const currentBar = Math.floor(currentTime / barDuration);
+      const nextBarTime = (currentBar + 1) * barDuration;
+      
+      this.nextBeatTime = nextBarTime;
       this.isQueued = true;
       this.isGridAligned = true;
       
-      console.log(`🎯 Track prepared for beat-sync play`);
+      console.log(`🎯 Track queued for next bar at ${nextBarTime.toFixed(3)}s (current: ${currentTime.toFixed(3)}s)`);
       
     } catch (error) {
-      console.error('Failed to prepare sync:', error);
+      console.error('Failed to prepare beat sync:', error);
       this.isGridAligned = false;
       this.isQueued = false;
     }
@@ -166,7 +177,7 @@ export class DeckAudioEngine {
     }
     
     // Re-prepare for sync
-    this.prepareForSync();
+    this.prepareForBeatSync();
     console.log('🔄 Track re-prepared for beat sync');
   }
 
@@ -179,7 +190,8 @@ export class DeckAudioEngine {
     }
 
     const currentTime = Tone.Transport.seconds;
-    const currentBeat = Math.floor(currentTime / this.beatInterval);
+    const beatDuration = 60 / this.globalBPM;
+    const currentBeat = Math.floor(currentTime / beatDuration);
     const bar = Math.floor(currentBeat / 4) + 1;
     const beat = (currentBeat % 4) + 1;
     
@@ -203,7 +215,7 @@ export class DeckAudioEngine {
     
     // Re-prepare for sync with new BPM
     if (this.isLoaded) {
-      this.prepareForSync();
+      this.prepareForBeatSync();
     }
     
     console.log(`🎯 Global BPM Sync: ${originalBPM} → ${globalBPM} BPM (rate: ${this.basePlaybackRate.toFixed(3)}x)`);
@@ -228,7 +240,7 @@ export class DeckAudioEngine {
   }
 
   /**
-   * ⚡ SIMPLIFIED INSTANT PLAY: Start immediately with beat alignment
+   * ⚡ BEAT-ALIGNED INSTANT PLAY: Start at next bar boundary for perfect sync
    */
   play(fromCue: boolean = false) {
     if (this.player && this.isLoaded && !this.isPlaying) {
@@ -236,18 +248,22 @@ export class DeckAudioEngine {
       this.updatePlaybackRate();
       
       if (this.isQueued && this.isGridAligned && !fromCue) {
-        // 🎯 BEAT-ALIGNED INSTANT PLAY
-        // Calculate next beat boundary for immediate sync
+        // 🎯 BEAT-ALIGNED BAR SYNC PLAY
         const currentTime = Tone.Transport.seconds;
-        const currentBeat = currentTime / this.beatInterval;
-        const nextBeat = Math.ceil(currentBeat);
-        const nextBeatTime = nextBeat * this.beatInterval;
+        const beatsPerBar = 4;
+        const beatDuration = 60 / this.globalBPM;
+        const barDuration = beatDuration * beatsPerBar;
         
-        // Start at next beat (very small delay for perfect sync)
-        this.player.start(nextBeatTime, this.pausedAt);
-        this.startTime = nextBeatTime - this.pausedAt;
+        // Calculate next bar boundary
+        const currentBar = Math.floor(currentTime / barDuration);
+        const nextBarTime = (currentBar + 1) * barDuration;
         
-        console.log(`⚡ Beat-sync play at next beat: ${nextBeatTime.toFixed(3)}s`);
+        // Schedule start at next bar
+        this.scheduledStartTime = nextBarTime;
+        this.player.start(nextBarTime, this.pausedAt);
+        this.startTime = nextBarTime - this.pausedAt;
+        
+        console.log(`⚡ Beat-sync play scheduled for next bar: ${nextBarTime.toFixed(3)}s (in ${(nextBarTime - currentTime).toFixed(3)}s)`);
         
         this.isQueued = false;
         this.isPlaying = true;

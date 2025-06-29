@@ -396,9 +396,9 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     if (!deckState.track) return 'No Track Loaded';
     
     if (gridPosition.isQueued && gridPosition.isAligned) {
-      return '🎯 READY - Beat Snapped';
+      return '🎯 READY - Will start at next bar';
     } else if (gridPosition.isQueued) {
-      return '⏳ Queued - Aligning...';
+      return '⏳ Queued - Waiting for next bar...';
     } else if (isPlaying) {
       return '▶️ Playing';
     } else {
@@ -413,7 +413,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         {isTransportRunning && (
           <div className="text-xs text-green-400 flex items-center justify-center gap-1 mt-1">
             <Activity className="w-3 h-3" />
-            Master Grid @ 128 BPM • Bar {masterGridPosition.bar}, Beat {masterGridPosition.beat}
+            Backend Metronome @ 128 BPM • Bar {masterGridPosition.bar}, Beat {masterGridPosition.beat}
           </div>
         )}
       </div>
@@ -467,13 +467,13 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
 
           {gridPosition.isQueued && gridPosition.isAligned && (
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-600 text-white text-xs px-2 py-1 rounded-full pointer-events-none animate-pulse">
-              🎯 READY
+              🎯 NEXT BAR
             </div>
           )}
 
           {gridPosition.isQueued && !gridPosition.isAligned && (
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-orange-600 text-white text-xs px-2 py-1 rounded-full pointer-events-none animate-pulse">
-              ⏳ ALIGNING
+              ⏳ WAITING
             </div>
           )}
 
@@ -530,7 +530,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         {deckState.track?.originalBPM && (
           <div className="text-xs text-green-400 mt-1 space-y-1">
             <div className="flex items-center justify-center gap-1">
-              <span>🎯 Auto-synced to 128 BPM</span>
+              <span>🎯 Auto-synced to Backend Metronome</span>
             </div>
             <div className="text-blue-400">
               Original: {deckState.track.originalBPM} BPM → Rate: {getPlaybackRate().toFixed(3)}x
@@ -617,7 +617,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="p-3 rounded-full bg-blue-600 text-white hover:bg-blue-500 transition-all"
-              title="Sync to master grid"
+              title="Sync to backend metronome"
               disabled={!deckState.track}
             >
               <Zap className="w-6 h-6" />
@@ -664,19 +664,19 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           
           {gridPosition.isQueued && gridPosition.isAligned && (
             <div className="text-xs text-green-400 animate-pulse">
-              🎯 Beat-Snapped • Ready for Instant Sync Play
+              🎯 Ready for Next Bar • Press Play for Perfect Sync
             </div>
           )}
 
           {gridPosition.isQueued && !gridPosition.isAligned && (
             <div className="text-xs text-orange-400 animate-pulse">
-              ⏳ Aligning to Beat Grid...
+              ⏳ Waiting for Next Bar...
             </div>
           )}
 
           {deckState.track?.originalBPM && (
             <div className="text-xs text-green-400">
-              🎯 Auto-synced to 128 BPM
+              🎯 Auto-synced to Backend Metronome @ 128 BPM
             </div>
           )}
         </div>
@@ -686,9 +686,9 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
           <div>🎛️ Drag clockwise to fast-forward, counter-clockwise to rewind</div>
           <div>Double-click jogwheel for backspin • Scroll to bend tempo</div>
           <div>🎯 Target button to re-snap to grid</div>
-          {deckState.track?.originalBPM && <div>🎯 Auto-sync to 128 BPM Active</div>}
-          {isTransportRunning && <div>🎵 Master Grid @ 128 BPM</div>}
-          {gridPosition.isQueued && <div>⚡ Ready for instant sync play</div>}
+          {deckState.track?.originalBPM && <div>🎯 Auto-sync to Backend Metronome Active</div>}
+          {isTransportRunning && <div>🎵 Backend Metronome @ 128 BPM</div>}
+          {gridPosition.isQueued && <div>⚡ Will start at next bar for perfect sync</div>}
         </div>
       </div>
     </div>
