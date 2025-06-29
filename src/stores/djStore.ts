@@ -129,10 +129,8 @@ export const useDJStore = create<DJState>((set, get) => ({
       const deckA = new DeckAudioEngine();
       const deckB = new DeckAudioEngine();
       
-      // Initialize metronome click sound
-      const metronomeClick = new Tone.Player({
-        url: "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT"
-      }).toDestination();
+      // Initialize metronome without click sound to avoid base64 errors
+      const metronomeClick = null;
       
       // 🎯 Initialize backend metronome at 128 BPM with precise timing
       Tone.Transport.bpm.value = 128;
@@ -151,12 +149,10 @@ export const useDJStore = create<DJState>((set, get) => ({
         
         set({ masterGridPosition: { bar: currentBar, beat: currentBeat } });
         
-        // Play metronome click if enabled
-        if (state.metronomeClickEnabled && state.metronomeClick) {
-          const volume = beat === 0 ? -10 : -20; // Accent on beat 1
-          state.metronomeClick.volume.value = volume;
-          state.metronomeClick.start(time);
-        }
+        // Play metronome click if enabled (disabled for now to fix base64 errors)
+        // if (state.metronomeClickEnabled && state.metronomeClick) {
+        //   // Metronome click functionality removed
+        // }
         
         console.log(`🎯 Backend Metronome: Bar ${currentBar}, Beat ${currentBeat}`);
       }, [0, 1, 2, 3], "4n");

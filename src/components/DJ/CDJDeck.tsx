@@ -22,7 +22,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   const [backspinCooldown, setBackspinCooldown] = useState(false);
   const [scrubIndicator, setScrubIndicator] = useState({ active: false, direction: 0 });
   const [tempoBend, setTempoBend] = useState({ active: false, direction: 0 });
-  const [toggle, setToggle] = useState(false);
 
   const {
     deckAState,
@@ -44,6 +43,11 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   const deckState = side === 'A' ? deckAState : deckBState;
   const isPlaying = deckState.isPlaying;
   const gridPosition = deckState.gridPosition || { bar: 1, beat: 1, isAligned: false, isQueued: false };
+
+  // Monitor isPlaying state changes for debugging
+  useEffect(() => {
+    console.log(`🎧 Deck ${side} - isPlaying state changed to: ${isPlaying}`);
+  }, [isPlaying, side]);
 
   // Handle user gesture for audio initialization
   useEffect(() => {
@@ -241,14 +245,15 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
 
   const handlePlayPause = () => {
     console.log(`🎧 Deck ${side} - Current state: ${isPlaying ? 'Playing' : 'Stopped'}`);
+    console.log(`🎧 Deck ${side} - Track loaded: ${!!deckState.track}`);
+    console.log(`🎧 Deck ${side} - Audio unlocked: ${audioUnlocked}`);
+    
     if (isPlaying) {
       console.log(`⏸️ Pausing Deck ${side}`);
       pauseDeck(side);
-      setTimeout(() => setToggle(t => !t), 50); // Force UI update
     } else {
       console.log(`▶️ Playing Deck ${side}`);
       playDeck(side);
-      setTimeout(() => setToggle(t => !t), 50); // Force UI update
     }
   };
 

@@ -9,7 +9,7 @@ export class DeckAudioEngine {
   private reverb: Tone.Reverb;
   private delay: Tone.FeedbackDelay;
   private pitchShift: Tone.PitchShift;
-  private backspinPlayer: Tone.Player;
+  private backspinPlayer: Tone.Player | null = null;
   public isLoaded: boolean = false;
   public isPlaying: boolean = false;
   private currentBPM: number = 128;
@@ -59,7 +59,8 @@ export class DeckAudioEngine {
     });
     this.delay = new Tone.FeedbackDelay('8n', 0.3);
     this.pitchShift = new Tone.PitchShift();
-    this.backspinPlayer = new Tone.Player('/backspin.mp3').toDestination();
+    // Initialize backspin player as null to avoid file loading errors
+    this.backspinPlayer = null;
 
     // Connect audio chain with optimized routing
     this.eq.low.chain(
@@ -77,8 +78,7 @@ export class DeckAudioEngine {
     this.reverb.wet.value = 0;
     this.delay.wet.value = 0;
 
-    // Load backspin effect
-    this.backspinPlayer.load('/backspin.mp3').catch(console.warn);
+    // Note: Backspin effect disabled to avoid file loading errors
   }
 
   async loadTrack(url: string, userDefinedBPM: number): Promise<boolean> {
@@ -625,7 +625,7 @@ export class DeckAudioEngine {
       const currentTime = this.getCurrentTime();
       this.pause();
       
-      if (this.backspinPlayer.loaded) {
+      if (this.backspinPlayer && this.backspinPlayer.loaded) {
         this.backspinPlayer.start();
       }
       
@@ -635,7 +635,7 @@ export class DeckAudioEngine {
         this.play();
       }, 600);
     } else {
-      if (this.backspinPlayer.loaded) {
+      if (this.backspinPlayer && this.backspinPlayer.loaded) {
         this.backspinPlayer.start();
       }
     }
@@ -690,7 +690,9 @@ export class DeckAudioEngine {
     if (this.player) {
       this.player.dispose();
     }
-    this.backspinPlayer.dispose();
+    if (this.backspinPlayer) {
+      this.backspinPlayer.dispose();
+    }
     this.gain.dispose();
     this.eq.low.dispose();
     this.eq.mid.dispose();
