@@ -27,6 +27,8 @@ const Producer = () => {
   // FX state
   const [reverbAmount, setReverbAmount] = useState(0);
   const [delayAmount, setDelayAmount] = useState(0);
+  const [distortionAmount, setDistortionAmount] = useState(0);
+  const [filterAmount, setFilterAmount] = useState(50);
 
   // Export state
   const [hasGeneratedContent, setHasGeneratedContent] = useState(false);
@@ -50,7 +52,14 @@ const Producer = () => {
   // FX refs for proper audio routing
   const reverbRef = useRef<Tone.Reverb | null>(null);
   const delayRef = useRef<Tone.FeedbackDelay | null>(null);
+  const distortionRef = useRef<Tone.Distortion | null>(null);
+  const filterRef = useRef<Tone.Filter | null>(null);
   const masterGainRef = useRef<Tone.Gain | null>(null);
+
+  // Individual track gain refs for mixer control
+  const drumGainRef = useRef<Tone.Gain | null>(null);
+  const melodyGainRef = useRef<Tone.Gain | null>(null);
+  const fxGainRef = useRef<Tone.Gain | null>(null);
 
   // Sequencer refs
   const sequencerRef = useRef<Tone.Sequence | null>(null);
@@ -73,56 +82,125 @@ const Producer = () => {
     setHasGeneratedContent(hasDrums || hasMelody);
   }, [drumPattern, melodyNotes]);
 
+  // Mixer Volume Controls - Apply volume changes in real-time
+  useEffect(() => {
+    if (drumGainRef.current && audioUnlocked) {
+      drumGainRef.current.gain.rampTo(drumsVolume / 100, 0.1);
+      console.log(`🎚️ Drums volume: ${drumsVolume}%`);
+    }
+  }, [drumsVolume, audioUnlocked]);
+
+  useEffect(() => {
+    if (melodyGainRef.current && audioUnlocked) {
+      melodyGainRef.current.gain.rampTo(melodyVolume / 100, 0.1);
+      console.log(`🎚️ Melody volume: ${melodyVolume}%`);
+    }
+  }, [melodyVolume, audioUnlocked]);
+
+  useEffect(() => {
+    if (fxGainRef.current && audioUnlocked) {
+      fxGainRef.current.gain.rampTo(fxVolume / 100, 0.1);
+      console.log(`🎚️ FX volume: ${fxVolume}%`);
+    }
+  }, [fxVolume, audioUnlocked]);
+
+  useEffect(() => {
+    if (masterGainRef.current && audioUnlocked) {
+      masterGainRef.current.gain.rampTo(masterVolume / 100, 0.1);
+      console.log(`🎚️ Master volume: ${masterVolume}%`);
+    }
+  }, [masterVolume, audioUnlocked]);
+
   // FX Control Effects - Apply FX changes in real-time
   useEffect(() => {
     if (reverbRef.current && audioUnlocked) {
       reverbRef.current.wet.rampTo(reverbAmount, 0.1);
-      console.log(`🎛️ Reverb updated: ${Math.round(reverbAmount * 100)}%`);
+      console.log(`🎛️ Reverb: ${Math.round(reverbAmount * 100)}%`);
     }
   }, [reverbAmount, audioUnlocked]);
 
   useEffect(() => {
     if (delayRef.current && audioUnlocked) {
       delayRef.current.wet.rampTo(delayAmount, 0.1);
-      console.log(`🎛️ Delay updated: ${Math.round(delayAmount * 100)}%`);
+      console.log(`🎛️ Delay: ${Math.round(delayAmount * 100)}%`);
     }
   }, [delayAmount, audioUnlocked]);
 
   useEffect(() => {
-    if (masterGainRef.current && audioUnlocked) {
-      masterGainRef.current.gain.rampTo(masterVolume / 100, 0.1);
+    if (distortionRef.current && audioUnlocked) {
+      distortionRef.current.wet.rampTo(distortionAmount / 100, 0.1);
+      distortionRef.current.distortion = Math.max(0.01, distortionAmount / 100);
+      console.log(`🎛️ Distortion: ${distortionAmount}%`);
     }
-  }, [masterVolume, audioUnlocked]);
+  }, [distortionAmount, audioUnlocked]);
+
+  useEffect(() => {
+    if (filterRef.current && audioUnlocked) {
+      // Filter sweep: 0-50 = low-pass sweep, 50-100 = high-pass sweep
+      if (filterAmount <= 50) {
+        // Low-pass filter: 20Hz to 20kHz
+        const frequency = 20 + ((filterAmount / 50) * 19980);
+        filterRef.current.type = 'lowpass';
+        filterRef.current.frequency.rampTo(frequency, 0.1);
+      } else {
+        // High-pass filter: 20Hz to 5kHz
+        const frequency = 20 + (((filterAmount - 50) / 50) * 4980);
+        filterRef.current.type = 'highpass';
+        filterRef.current.frequency.rampTo(frequency, 0.1);
+      }
+      console.log(`🎛️ Filter: ${filterAmount}% (${filterRef.current.type})`);
+    }
+  }, [filterAmount, audioUnlocked]);
 
   // Initialize all synths and FX chain once
   useEffect(() => {
     const initializeSynths = () => {
       try {
-        // Initialize FX chain first
-        masterGainRef.current = new Tone.Gain(0.75);
+        // Initialize individual track gains for mixer control
+        drumGainRef.current = new Tone.Gain(0.8);
+        melodyGainRef.current = new Tone.Gain(0.7);
+        fxGainRef.current = new Tone.Gain(0.5);
+
+        // Initialize FX chain
         reverbRef.current = new Tone.Reverb(2);
         delayRef.current = new Tone.FeedbackDelay('8n', 0.3);
+        distortionRef.current = new Tone.Distortion(0.4);
+        filterRef.current = new Tone.Filter(20000, 'lowpass');
+        masterGainRef.current = new Tone.Gain(0.75);
 
-        // Connect FX chain: Reverb -> Delay -> Master Gain -> Output
-        reverbRef.current.chain(delayRef.current, masterGainRef.current);
+        // Connect FX chain: Individual Gains -> Filter -> Distortion -> Reverb -> Delay -> Master Gain -> Output
+        const fxChain = new Tone.Gain(1);
+        drumGainRef.current.connect(fxChain);
+        melodyGainRef.current.connect(fxChain);
+        
+        fxChain.chain(
+          filterRef.current,
+          distortionRef.current,
+          reverbRef.current,
+          delayRef.current,
+          fxGainRef.current,
+          masterGainRef.current
+        );
+        
         masterGainRef.current.toDestination();
 
         // Set initial FX values
         reverbRef.current.wet.value = 0;
         delayRef.current.wet.value = 0;
+        distortionRef.current.wet.value = 0;
 
-        // Initialize drum synths and connect to FX chain
+        // Initialize drum synths and connect to drum gain
         kickSynthRef.current = new Tone.MembraneSynth({
           pitchDecay: 0.05,
           octaves: 10,
           oscillator: { type: 'sine' },
           envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4 }
-        }).connect(reverbRef.current);
+        }).connect(drumGainRef.current);
 
         snareSynthRef.current = new Tone.NoiseSynth({
           noise: { type: 'white' },
           envelope: { attack: 0.005, decay: 0.1, sustain: 0.0, release: 0.4 }
-        }).connect(reverbRef.current);
+        }).connect(drumGainRef.current);
 
         hihatSynthRef.current = new Tone.MetalSynth({
           envelope: { attack: 0.001, decay: 0.1, sustain: 0.0, release: 0.01 },
@@ -130,7 +208,7 @@ const Producer = () => {
           modulationIndex: 32,
           resonance: 4000,
           octaves: 1.5
-        }).connect(reverbRef.current);
+        }).connect(drumGainRef.current);
 
         crashSynthRef.current = new Tone.MetalSynth({
           envelope: { attack: 0.001, decay: 0.4, sustain: 0.0, release: 0.8 },
@@ -138,16 +216,16 @@ const Producer = () => {
           modulationIndex: 32,
           resonance: 4000,
           octaves: 1.5
-        }).connect(reverbRef.current);
+        }).connect(drumGainRef.current);
 
-        // Initialize melody synth and connect to FX chain
+        // Initialize melody synth and connect to melody gain
         melodySynthRef.current = new Tone.PolySynth(Tone.Synth, {
           oscillator: { type: 'triangle' },
           envelope: { attack: 0.1, decay: 0.2, sustain: 0.3, release: 0.8 }
-        }).connect(reverbRef.current);
+        }).connect(melodyGainRef.current);
 
         console.log('✅ All synths and FX chain initialized successfully');
-        console.log('🎛️ Audio routing: Synths → Reverb → Delay → Master Gain → Output');
+        console.log('🎛️ Audio routing: Drums/Melody → Individual Gains → Filter → Distortion → Reverb → Delay → FX Gain → Master Gain → Output');
       } catch (error) {
         console.error('Failed to initialize synths and FX:', error);
         setAudioError('Failed to initialize audio synths and effects');
@@ -163,8 +241,13 @@ const Producer = () => {
       if (hihatSynthRef.current) hihatSynthRef.current.dispose();
       if (crashSynthRef.current) crashSynthRef.current.dispose();
       if (melodySynthRef.current) melodySynthRef.current.dispose();
+      if (drumGainRef.current) drumGainRef.current.dispose();
+      if (melodyGainRef.current) melodyGainRef.current.dispose();
+      if (fxGainRef.current) fxGainRef.current.dispose();
       if (reverbRef.current) reverbRef.current.dispose();
       if (delayRef.current) delayRef.current.dispose();
+      if (distortionRef.current) distortionRef.current.dispose();
+      if (filterRef.current) filterRef.current.dispose();
       if (masterGainRef.current) masterGainRef.current.dispose();
     };
   }, []);
@@ -434,6 +517,8 @@ const Producer = () => {
     const fxActive = [];
     if (reverbAmount > 0.1) fxActive.push('REV');
     if (delayAmount > 0.1) fxActive.push('DLY');
+    if (distortionAmount > 10) fxActive.push('DIST');
+    if (filterAmount !== 50) fxActive.push('FILT');
     return fxActive.join(' + ');
   };
 
@@ -496,8 +581,12 @@ const Producer = () => {
           <FXSection
             reverbAmount={reverbAmount}
             delayAmount={delayAmount}
+            distortionAmount={distortionAmount}
+            filterAmount={filterAmount}
             onReverbChange={setReverbAmount}
             onDelayChange={setDelayAmount}
+            onDistortionChange={setDistortionAmount}
+            onFilterChange={setFilterAmount}
           />
         );
       case 'export':
