@@ -25,7 +25,7 @@ export class DeckAudioEngine {
   // Enhanced beat snapping properties
   private isQueued: boolean = false;
   private isGridAligned: boolean = false;
-  private nextBeatTime: number = 0;
+  private nextBarTime: number = 0;
   private beatInterval: number = 0;
   private gridUpdateInterval: NodeJS.Timeout | null = null;
   private audioBuffer: AudioBuffer | null = null;
@@ -38,6 +38,10 @@ export class DeckAudioEngine {
   private scrubStartTime: number = 0;
   private scrubStartPosition: number = 0;
   private wasPlayingBeforeScrub: boolean = false;
+
+  // Beat sync state
+  private beatSyncSequence: Tone.Sequence | null = null;
+  private isWaitingForBar: boolean = false;
 
   constructor() {
     // Initialize audio chain
@@ -144,33 +148,60 @@ export class DeckAudioEngine {
   }
 
   /**
-   * 🎯 BEAT-ALIGNED SYNC PREPARATION: Calculate next bar start time
+   * 🎯 ENHANCED BEAT-ALIGNED SYNC: Calculate next bar start time with precise timing
    */
   private prepareForBeatSync(): void {
     if (!this.player || !this.isLoaded) return;
 
     try {
-      // Calculate next bar boundary (4 beats = 1 bar)
+      // Get current transport time with high precision
       const currentTime = Tone.Transport.seconds;
       const beatsPerBar = 4;
       const beatDuration = 60 / this.globalBPM; // seconds per beat
       const barDuration = beatDuration * beatsPerBar; // seconds per bar
       
-      // Find current position in bars
+      // Find current position in bars with precise calculation
       const currentBar = Math.floor(currentTime / barDuration);
       const nextBarTime = (currentBar + 1) * barDuration;
       
-      this.nextBeatTime = nextBarTime;
+      // Ensure we have enough time to schedule (minimum 100ms ahead)
+      const minScheduleTime = currentTime + 0.1;
+      this.nextBarTime = Math.max(nextBarTime, minScheduleTime);
+      
       this.isQueued = true;
       this.isGridAligned = true;
+      this.isWaitingForBar = true;
       
-      console.log(`🎯 Track queued for next bar at ${nextBarTime.toFixed(3)}s (current: ${currentTime.toFixed(3)}s)`);
+      console.log(`🎯 Track queued for next bar at ${this.nextBarTime.toFixed(3)}s (current: ${currentTime.toFixed(3)}s)`);
+      
+      // Create a sequence to monitor bar boundaries
+      this.createBeatSyncSequence();
       
     } catch (error) {
       console.error('Failed to prepare beat sync:', error);
       this.isGridAligned = false;
       this.isQueued = false;
+      this.isWaitingForBar = false;
     }
+  }
+
+  /**
+   * Create a sequence to monitor beat boundaries for precise sync
+   */
+  private createBeatSyncSequence(): void {
+    if (this.beatSyncSequence) {
+      this.beatSyncSequence.dispose();
+    }
+
+    // Create a sequence that fires on every beat to monitor sync
+    this.beatSyncSequence = new Tone.Sequence((time, beat) => {
+      if (this.isWaitingForBar && beat === 0) {
+        // This is the start of a new bar - perfect time to start
+        console.log(`🎯 Bar boundary detected at ${time.toFixed(3)}s - ready for sync`);
+      }
+    }, [0, 1, 2, 3], "4n");
+
+    this.beatSyncSequence.start(0);
   }
 
   /**
@@ -248,7 +279,7 @@ export class DeckAudioEngine {
   }
 
   /**
-   * ⚡ BEAT-ALIGNED INSTANT PLAY: Start at next bar boundary for perfect sync
+   * ⚡ ENHANCED BEAT-ALIGNED INSTANT PLAY: Start at next bar boundary for perfect sync
    */
   play(fromCue: boolean = false) {
     if (this.player && this.isLoaded && !this.isPlaying) {
@@ -256,29 +287,37 @@ export class DeckAudioEngine {
       this.updatePlaybackRate();
       
       if (this.isQueued && this.isGridAligned && !fromCue) {
-        // 🎯 BEAT-ALIGNED BAR SYNC PLAY
+        // 🎯 ENHANCED BEAT-ALIGNED BAR SYNC PLAY
         const currentTime = Tone.Transport.seconds;
         const beatsPerBar = 4;
         const beatDuration = 60 / this.globalBPM;
         const barDuration = beatDuration * beatsPerBar;
         
-        // Calculate next bar boundary
+        // Calculate next bar boundary with high precision
         const currentBar = Math.floor(currentTime / barDuration);
         const nextBarTime = (currentBar + 1) * barDuration;
         
-        // Ensure the scheduled time is in the future
-        const minStartTime = Tone.Transport.now() + 0.01; // Add small buffer
+        // Ensure the scheduled time is in the future with adequate buffer
+        const minStartTime = Tone.Transport.now() + 0.05; // Increased buffer for stability
         const scheduledTime = Math.max(nextBarTime, minStartTime);
         
-        // Schedule start at next bar or immediately if time has passed
+        // Schedule start at next bar
         this.scheduledStartTime = scheduledTime;
         this.scheduledOffset = this.pausedAt;
-        this.player.start(scheduledTime, this.pausedAt);
-        this.startTime = scheduledTime - this.pausedAt;
+        
+        // Use Tone.Transport.schedule for precise timing
+        Tone.Transport.schedule((time) => {
+          if (this.player && this.isQueued) {
+            this.player.start(time, this.pausedAt);
+            this.startTime = time - this.pausedAt;
+            this.isQueued = false;
+            this.isWaitingForBar = false;
+            console.log(`⚡ Beat-sync play executed at: ${time.toFixed(3)}s`);
+          }
+        }, scheduledTime);
         
         console.log(`⚡ Beat-sync play scheduled for: ${scheduledTime.toFixed(3)}s (transport: ${Tone.Transport.now().toFixed(3)}s)`);
         
-        this.isQueued = false;
         this.isPlaying = true;
         
       } else {
@@ -291,6 +330,8 @@ export class DeckAudioEngine {
         this.player.start(startTime, startPosition);
         this.isPlaying = true;
         this.isGridAligned = false; // No longer grid-aligned after manual play
+        this.isQueued = false;
+        this.isWaitingForBar = false;
         
         console.log(`▶️ Manual play from ${startPosition.toFixed(2)}s at transport time ${startTime.toFixed(3)}s`);
       }
@@ -307,6 +348,11 @@ export class DeckAudioEngine {
       this.isPlaying = false;
       this.isQueued = false;
       this.isGridAligned = false; // Lose grid alignment when paused manually
+      this.isWaitingForBar = false;
+      
+      // Cancel any scheduled starts
+      Tone.Transport.cancel();
+      
       console.log(`⏸️ Track paused at ${this.pausedAt.toFixed(2)}s`);
     }
   }
@@ -323,6 +369,7 @@ export class DeckAudioEngine {
       this.pausedAt = clampedPosition;
       this.isGridAligned = false; // Lose grid alignment when seeking
       this.isQueued = false;
+      this.isWaitingForBar = false;
       
       if (wasPlaying) {
         this.play();
@@ -333,7 +380,7 @@ export class DeckAudioEngine {
   }
 
   /**
-   * 🎛️ FIXED SCRUBBING: Proper directional scrubbing with temporary playback rate changes
+   * 🎛️ ENHANCED SCRUBBING: Proper directional scrubbing with temporary playback rate changes
    */
   scrub(velocity: number) {
     if (!this.player || !this.isLoaded) return;
@@ -373,6 +420,7 @@ export class DeckAudioEngine {
     // Reset grid alignment during scrubbing
     this.isGridAligned = false;
     this.isQueued = false;
+    this.isWaitingForBar = false;
 
     // Auto-stop scrubbing after a short delay
     if (this.tempoBendTimeout) {
@@ -575,6 +623,10 @@ export class DeckAudioEngine {
     
     if (this.gridUpdateInterval) {
       clearInterval(this.gridUpdateInterval);
+    }
+    
+    if (this.beatSyncSequence) {
+      this.beatSyncSequence.dispose();
     }
     
     if (this.player) {

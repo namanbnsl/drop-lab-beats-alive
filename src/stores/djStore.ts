@@ -23,6 +23,13 @@ interface DeckState {
   gridPosition?: { bar: number; beat: number; isAligned: boolean; isQueued: boolean };
 }
 
+interface FXState {
+  filter: number;
+  reverb: number;
+  delay: number;
+  assignedTo: 'A' | 'B' | 'BOTH';
+}
+
 interface DJState {
   // Audio engines
   deckA: DeckAudioEngine | null;
@@ -35,6 +42,9 @@ interface DJState {
   // Mixer
   crossfader: number;
   
+  // Global FX
+  fx: FXState;
+  
   // Global BPM Control (Backend Metronome)
   globalBPM: number;
   bpmSyncEnabled: boolean;
@@ -42,6 +52,10 @@ interface DJState {
   // Transport for sync (Backend Metronome at 128 BPM)
   isTransportRunning: boolean;
   masterGridPosition: { bar: number; beat: number };
+  metronomeClickEnabled: boolean;
+  
+  // Metronome audio
+  metronomeClick: Tone.Player | null;
   
   // Actions
   initializeAudio: () => Promise<void>;
@@ -52,6 +66,7 @@ interface DJState {
   setEQ: (deck: 'A' | 'B', eq: { low: number; mid: number; high: number }) => void;
   setVolume: (deck: 'A' | 'B', value: number) => void;
   setCrossfader: (value: number) => void;
+  setFX: (fx: Partial<FXState>) => void;
   setDeckFX: (deck: 'A' | 'B', fx: Partial<{ filter: number; reverb: number; delay: number }>) => void;
   scrubTrack: (deck: 'A' | 'B', velocity: number) => void;
   triggerBackspin: (deck: 'A' | 'B') => void;
@@ -59,6 +74,7 @@ interface DJState {
   syncDecks: () => void;
   reSnapToGrid: (deck: 'A' | 'B') => void;
   updateGridPositions: () => void;
+  toggleMetronomeClick: () => void;
   cleanup: () => void;
 }
 
@@ -81,10 +97,13 @@ export const useDJStore = create<DJState>((set, get) => ({
   deckBState: defaultDeckState,
   
   crossfader: 50,
+  fx: { filter: 50, reverb: 0, delay: 0, assignedTo: 'BOTH' },
   globalBPM: 128, // Backend metronome fixed at 128 BPM
   bpmSyncEnabled: true,
   isTransportRunning: false,
   masterGridPosition: { bar: 1, beat: 1 },
+  metronomeClickEnabled: false,
+  metronomeClick: null,
 
   initializeAudio: async () => {
     try {
@@ -97,10 +116,39 @@ export const useDJStore = create<DJState>((set, get) => ({
       const deckA = new DeckAudioEngine();
       const deckB = new DeckAudioEngine();
       
+      // Initialize metronome click sound
+      const metronomeClick = new Tone.Player({
+        url: "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT"
+      }).toDestination();
+      
       // 🎯 Initialize backend metronome at 128 BPM with precise timing
       Tone.Transport.bpm.value = 128;
       Tone.Transport.position = 0; // Reset position to bar 1, beat 1
       Tone.Transport.loop = false; // Continuous running
+      Tone.Transport.loopStart = 0;
+      Tone.Transport.loopEnd = "1m"; // Loop every measure for consistent timing
+      
+      // Create metronome sequence for visual feedback and optional click
+      const metronomeSequence = new Tone.Sequence((time, beat) => {
+        const state = get();
+        
+        // Update master grid position
+        const currentBar = Math.floor(Tone.Transport.position.split(':')[0]) + 1;
+        const currentBeat = beat + 1;
+        
+        set({ masterGridPosition: { bar: currentBar, beat: currentBeat } });
+        
+        // Play metronome click if enabled
+        if (state.metronomeClickEnabled && state.metronomeClick) {
+          const volume = beat === 0 ? -10 : -20; // Accent on beat 1
+          state.metronomeClick.volume.value = volume;
+          state.metronomeClick.start(time);
+        }
+        
+        console.log(`🎯 Backend Metronome: Bar ${currentBar}, Beat ${currentBeat}`);
+      }, [0, 1, 2, 3], "4n");
+      
+      metronomeSequence.start(0);
       
       // Start transport immediately for backend metronome
       if (Tone.Transport.state !== 'started') {
@@ -110,7 +158,8 @@ export const useDJStore = create<DJState>((set, get) => ({
       set({ 
         deckA, 
         deckB, 
-        isTransportRunning: true 
+        isTransportRunning: true,
+        metronomeClick
       });
       
       // Start grid position updates with high frequency for smooth feedback
@@ -119,6 +168,7 @@ export const useDJStore = create<DJState>((set, get) => ({
       console.log('🎧 DJ Audio System Initialized');
       console.log('🎯 Backend Metronome @ 128 BPM - All tracks will sync to this grid');
       console.log(`⏰ Transport State: ${Tone.Transport.state}, BPM: ${Tone.Transport.bpm.value}`);
+      console.log('🔄 Metronome sequence started for continuous sync');
     } catch (error) {
       console.error('Failed to initialize audio:', error);
     }
@@ -373,6 +423,20 @@ export const useDJStore = create<DJState>((set, get) => ({
     get().setVolume('B', state.deckBState.volume);
   },
 
+  setFX: (fx) => {
+    const state = get();
+    const newFX = { ...state.fx, ...fx };
+    set({ fx: newFX });
+    
+    // Apply FX to the appropriate decks
+    if (newFX.assignedTo === 'A' || newFX.assignedTo === 'BOTH') {
+      get().setDeckFX('A', newFX);
+    }
+    if (newFX.assignedTo === 'B' || newFX.assignedTo === 'BOTH') {
+      get().setDeckFX('B', newFX);
+    }
+  },
+
   setDeckFX: (deck, fx) => {
     const state = get();
     const deckState = deck === 'A' ? 'deckAState' : 'deckBState';
@@ -450,10 +514,17 @@ export const useDJStore = create<DJState>((set, get) => ({
     }
   },
 
+  toggleMetronomeClick: () => {
+    const state = get();
+    set({ metronomeClickEnabled: !state.metronomeClickEnabled });
+    console.log(`🎵 Metronome click ${!state.metronomeClickEnabled ? 'enabled' : 'disabled'}`);
+  },
+
   cleanup: () => {
     const state = get();
     state.deckA?.dispose();
     state.deckB?.dispose();
+    state.metronomeClick?.dispose();
     if (Tone.Transport.state === 'started') {
       Tone.Transport.stop();
       Tone.Transport.cancel();
