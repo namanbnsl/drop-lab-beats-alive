@@ -145,18 +145,12 @@ const WaveformDisplay = () => {
 
   return (
     <div className="bg-black rounded-lg p-4 border border-purple-500/30">
-      <div className="text-xs text-purple-400 mb-2 text-center">
-        Enhanced Waveform Display • Beat Grid @ 128 BPM
-      </div>
       <canvas
         ref={canvasRef}
         width={400}
         height={120}
         className="w-full h-full"
       />
-      <div className="text-xs text-gray-400 mt-2 text-center">
-        🎯 Green bars = Beat-snapped tracks ready for sync
-      </div>
     </div>
   );
 };

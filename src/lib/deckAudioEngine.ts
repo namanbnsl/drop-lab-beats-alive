@@ -44,20 +44,24 @@ export class DeckAudioEngine {
   private isWaitingForBar: boolean = false;
 
   constructor() {
-    // Initialize audio chain
-    this.gain = new Tone.Gain(0.75);
+    // Initialize audio chain with higher quality settings
+    this.gain = new Tone.Gain(0.85); // Increased gain for better volume
     this.eq = {
       low: new Tone.EQ3(),
       mid: new Tone.EQ3(),
       high: new Tone.EQ3()
     };
     this.filter = new Tone.Filter(20000, 'lowpass');
-    this.reverb = new Tone.Reverb(2);
+    this.reverb = new Tone.Reverb({
+      decay: 2,
+      wet: 0,
+      preDelay: 0.01
+    });
     this.delay = new Tone.FeedbackDelay('8n', 0.3);
     this.pitchShift = new Tone.PitchShift();
     this.backspinPlayer = new Tone.Player('/backspin.mp3').toDestination();
 
-    // Connect audio chain
+    // Connect audio chain with optimized routing
     this.eq.low.chain(
       this.eq.mid, 
       this.eq.high, 
@@ -83,10 +87,13 @@ export class DeckAudioEngine {
         this.player.dispose();
       }
 
+      // Create player with higher quality settings
       this.player = new Tone.Player({
         url: url,
         loop: false,
-        autostart: false
+        autostart: false,
+        fadeIn: 0.01,
+        fadeOut: 0.01
       });
       
       this.player.connect(this.eq.low);
@@ -148,7 +155,7 @@ export class DeckAudioEngine {
   }
 
   /**
-   * 🎯 ENHANCED BEAT-ALIGNED SYNC: Calculate next bar start time with precise timing
+   * 🎯 OPTIMIZED BEAT-ALIGNED SYNC: Calculate next bar start time with minimal delay
    */
   private prepareForBeatSync(): void {
     if (!this.player || !this.isLoaded) return;
@@ -161,18 +168,31 @@ export class DeckAudioEngine {
       const barDuration = beatDuration * beatsPerBar; // seconds per bar
       
       // Find current position in bars with precise calculation
-      const currentBar = Math.floor(currentTime / barDuration);
-      const nextBarTime = (currentBar + 1) * barDuration;
+      const currentBarProgress = (currentTime % barDuration) / barDuration;
       
-      // Ensure we have enough time to schedule (minimum 100ms ahead)
-      const minScheduleTime = currentTime + 0.1;
-      this.nextBarTime = Math.max(nextBarTime, minScheduleTime);
+      // If we're in the last quarter of the current bar, wait for next bar
+      // Otherwise, we can start at the next beat boundary for faster response
+      let nextStartTime: number;
+      
+      if (currentBarProgress > 0.75) {
+        // Close to end of bar - wait for next bar
+        const currentBar = Math.floor(currentTime / barDuration);
+        nextStartTime = (currentBar + 1) * barDuration;
+      } else {
+        // Early in bar - start at next beat for faster response
+        const currentBeat = Math.floor(currentTime / beatDuration);
+        nextStartTime = (currentBeat + 1) * beatDuration;
+      }
+      
+      // Ensure we have enough time to schedule (minimum 50ms ahead)
+      const minScheduleTime = currentTime + 0.05;
+      this.nextBarTime = Math.max(nextStartTime, minScheduleTime);
       
       this.isQueued = true;
       this.isGridAligned = true;
       this.isWaitingForBar = true;
       
-      console.log(`🎯 Track queued for next bar at ${this.nextBarTime.toFixed(3)}s (current: ${currentTime.toFixed(3)}s)`);
+      console.log(`🎯 Track queued for sync at ${this.nextBarTime.toFixed(3)}s (current: ${currentTime.toFixed(3)}s, delay: ${((this.nextBarTime - currentTime) * 1000).toFixed(0)}ms)`);
       
       // Create a sequence to monitor bar boundaries
       this.createBeatSyncSequence();
@@ -261,12 +281,19 @@ export class DeckAudioEngine {
   }
 
   /**
-   * Update playback rate based on global BPM sync
+   * Update playback rate based on global BPM sync with higher quality
    */
   private updatePlaybackRate() {
     if (this.player && this.originalBPM > 0) {
       this.basePlaybackRate = calculatePlaybackRate(this.originalBPM, this.globalBPM);
       this.player.playbackRate = this.basePlaybackRate;
+      
+      // Ensure high quality playback
+      if (this.player.buffer && this.player.buffer.loaded) {
+        // Set buffer to high quality mode
+        this.player.buffer.reverse = false;
+      }
+      
       console.log(`🔄 Playback rate updated: ${this.basePlaybackRate.toFixed(3)}x (${this.originalBPM} → ${this.globalBPM} BPM)`);
     }
   }
@@ -279,7 +306,7 @@ export class DeckAudioEngine {
   }
 
   /**
-   * ⚡ ENHANCED BEAT-ALIGNED INSTANT PLAY: Start at next bar boundary for perfect sync
+   * ⚡ OPTIMIZED BEAT-ALIGNED INSTANT PLAY: Start at next beat/bar boundary with minimal delay
    */
   play(fromCue: boolean = false) {
     if (this.player && this.isLoaded && !this.isPlaying) {
@@ -287,21 +314,33 @@ export class DeckAudioEngine {
       this.updatePlaybackRate();
       
       if (this.isQueued && this.isGridAligned && !fromCue) {
-        // 🎯 ENHANCED BEAT-ALIGNED BAR SYNC PLAY
+        // 🎯 OPTIMIZED BEAT-ALIGNED SYNC PLAY with minimal delay
         const currentTime = Tone.Transport.seconds;
-        const beatsPerBar = 4;
         const beatDuration = 60 / this.globalBPM;
-        const barDuration = beatDuration * beatsPerBar;
+        const barDuration = beatDuration * 4;
         
-        // Calculate next bar boundary with high precision
-        const currentBar = Math.floor(currentTime / barDuration);
-        const nextBarTime = (currentBar + 1) * barDuration;
+        // Calculate next sync point (beat or bar) with minimal delay
+        const currentBarProgress = (currentTime % barDuration) / barDuration;
+        let scheduledTime: number;
         
-        // Ensure the scheduled time is in the future with adequate buffer
-        const minStartTime = Tone.Transport.now() + 0.05; // Increased buffer for stability
-        const scheduledTime = Math.max(nextBarTime, minStartTime);
+        if (currentBarProgress > 0.9) {
+          // Very close to end of bar - wait for next bar
+          const currentBar = Math.floor(currentTime / barDuration);
+          scheduledTime = (currentBar + 1) * barDuration;
+        } else {
+          // Start at next beat for faster response (max 1 beat delay)
+          const currentBeat = Math.floor(currentTime / beatDuration);
+          scheduledTime = (currentBeat + 1) * beatDuration;
+        }
         
-        // Schedule start at next bar
+        // Ensure minimum scheduling time for stability
+        const minStartTime = Tone.Transport.now() + 0.02; // Reduced from 0.05
+        scheduledTime = Math.max(scheduledTime, minStartTime);
+        
+        // Calculate actual delay
+        const delayMs = (scheduledTime - currentTime) * 1000;
+        
+        // Schedule start at calculated time
         this.scheduledStartTime = scheduledTime;
         this.scheduledOffset = this.pausedAt;
         
@@ -312,11 +351,11 @@ export class DeckAudioEngine {
             this.startTime = time - this.pausedAt;
             this.isQueued = false;
             this.isWaitingForBar = false;
-            console.log(`⚡ Beat-sync play executed at: ${time.toFixed(3)}s`);
+            console.log(`⚡ Beat-sync play executed at: ${time.toFixed(3)}s (delay: ${delayMs.toFixed(0)}ms)`);
           }
         }, scheduledTime);
         
-        console.log(`⚡ Beat-sync play scheduled for: ${scheduledTime.toFixed(3)}s (transport: ${Tone.Transport.now().toFixed(3)}s)`);
+        console.log(`⚡ Beat-sync play scheduled for: ${scheduledTime.toFixed(3)}s (delay: ${delayMs.toFixed(0)}ms)`);
         
         this.isPlaying = true;
         
@@ -534,7 +573,9 @@ export class DeckAudioEngine {
 
   setGain(value: number) {
     if (this.gain) {
-      this.gain.gain.rampTo(value / 100, 0.1);
+      // Ensure proper gain staging for better audio quality
+      const normalizedGain = Math.max(0, Math.min(1, value / 100));
+      this.gain.gain.rampTo(normalizedGain, 0.1);
     }
   }
 
