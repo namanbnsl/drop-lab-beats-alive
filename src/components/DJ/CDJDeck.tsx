@@ -44,17 +44,17 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
 
   const deckState = side === 'A' ? deckAState : deckBState;
   const engine = side === 'A' ? deckA : deckB;
-  
+
   // FIXED: Get isPlaying directly from the engine for accurate state
-  const isPlaying = engine?.isPlaying || false;
+  const isPlaying = engine?.playing || false;
   const gridPosition = deckState.gridPosition || { bar: 1, beat: 1, isAligned: false, isQueued: false };
 
   // Monitor engine state changes for debugging
   useEffect(() => {
     if (engine) {
-      console.log(`🎧 Deck ${side} - Engine isPlaying: ${engine.isPlaying}, UI isPlaying: ${deckState.isPlaying}`);
+      console.log(`🎧 Deck ${side} - Engine isPlaying: ${engine.playing}, UI isPlaying: ${deckState.isPlaying}`);
     }
-  }, [engine?.isPlaying, deckState.isPlaying, side]);
+  }, [engine?.playing, deckState.isPlaying, side]);
 
   // Handle user gesture for audio initialization
   useEffect(() => {
@@ -252,14 +252,14 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
 
   // FIXED: Simplified play/pause logic that directly uses engine state
   const handlePlayPause = () => {
-    if (!engine || !engine.isLoaded || !audioUnlocked) {
-      console.log(`❌ Cannot play/pause Deck ${side} - Engine: ${!!engine}, Loaded: ${engine?.isLoaded}, Audio: ${audioUnlocked}`);
+    if (!engine || !engine.loaded || !audioUnlocked) {
+      console.log(`❌ Cannot play/pause Deck ${side} - Engine: ${!!engine}, Loaded: ${engine?.loaded}, Audio: ${audioUnlocked}`);
       return;
     }
 
-    console.log(`🎵 Play/Pause clicked for Deck ${side} - Current engine state: ${engine.isPlaying}`);
+    console.log(`🎵 Play/Pause clicked for Deck ${side} - Current engine state: ${engine.playing}`);
 
-    if (engine.isPlaying) {
+    if (engine.playing) {
       console.log(`⏸️ Pausing Deck ${side}`);
       pauseDeck(side);
     } else {
@@ -279,22 +279,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
     const deltaX = e.clientX - centerX;
     const deltaY = e.clientY - centerY;
     return Math.atan2(deltaY, deltaX);
-  };
-
-  // Double-click detection for backspin
-  const handlePlatterClick = (e: React.MouseEvent) => {
-    const now = Date.now();
-    const timeSinceLastClick = now - lastClickRef.current;
-
-    if (timeSinceLastClick < 300 && !backspinCooldown) {
-      // Double-click detected - trigger backspin
-      e.preventDefault();
-      triggerBackspin(side);
-      setBackspinCooldown(true);
-      setTimeout(() => setBackspinCooldown(false), 1000);
-    }
-
-    lastClickRef.current = now;
   };
 
   const handlePlatterMouseDown = (e: React.MouseEvent) => {
@@ -413,9 +397,9 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
   }, [isDragging, lastAngleRef.current]);
 
   return (
-    <div className="rounded-xl p-6 border border-blue-500/30 bg-transparent">
+    <div className="rounded-xl p-6 border-gray-700 border bg-transparent">
       <div className="text-center mb-4">
-        <h3 className="text-lg font-bold text-blue-400">Deck {side}</h3>
+        <h3 className="text-lg font-bold text-white">Deck {side}</h3>
       </div>
 
       {/* Platter */}
@@ -427,7 +411,6 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             height={200}
             className="rounded-full shadow-lg cursor-pointer select-none bg-transparent"
             onMouseDown={handlePlatterMouseDown}
-            onClick={handlePlatterClick}
             onWheel={handlePlatterWheel}
           />
 
@@ -472,7 +455,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
 
       {/* Track Info */}
       <div className="bg-black rounded-lg p-3 mb-4 text-center">
-        <div className="text-blue-400 font-semibold truncate">
+        <div className="text-white font-semibold truncate">
           {deckState.track?.name || 'No Track'}
         </div>
         <div className="text-sm text-gray-400 flex justify-between mt-1">
@@ -495,16 +478,16 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
         <div className="flex justify-center gap-3">
           <motion.button
             onClick={handlePlayPause}
-            disabled={!engine?.isLoaded || !audioUnlocked}
-            whileHover={{ scale: (!engine?.isLoaded || !audioUnlocked) ? 1 : 1.05 }}
-            whileTap={{ scale: (!engine?.isLoaded || !audioUnlocked) ? 1 : 0.95 }}
-            className={`p-3 rounded-full transition-all ${(!engine?.isLoaded || !audioUnlocked)
-                ? 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50'
-                : isPlaying
-                  ? 'bg-green-600 text-white shadow-lg shadow-green-500/25'
-                  : gridPosition.isQueued && gridPosition.isAligned
-                    ? 'bg-green-600 text-white shadow-lg shadow-green-500/25 animate-pulse'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            disabled={!engine?.loaded || !audioUnlocked}
+            whileHover={{ scale: (!engine?.loaded || !audioUnlocked) ? 1 : 1.05 }}
+            whileTap={{ scale: (!engine?.loaded || !audioUnlocked) ? 1 : 0.95 }}
+            className={`p-3 rounded-full transition-all ${(!engine?.loaded || !audioUnlocked)
+              ? 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50'
+              : isPlaying
+                ? 'bg-green-600 text-white shadow-lg shadow-green-500/25'
+                : gridPosition.isQueued && gridPosition.isAligned
+                  ? 'bg-green-600 text-white shadow-lg shadow-green-500/25 animate-pulse'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
           >
             {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
@@ -518,10 +501,10 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`p-3 rounded-full transition-all font-bold text-sm ${isCuePressed
-                ? 'bg-green-600 text-white shadow-lg shadow-green-500/25'
-                : deckState.track
-                  ? 'bg-gray-700 text-green-400 hover:bg-gray-600 border border-green-500/30'
-                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+              ? 'bg-green-600 text-white shadow-lg shadow-green-500/25'
+              : deckState.track
+                ? 'bg-gray-700 text-green-400 hover:bg-gray-600 border border-green-500/30'
+                : 'bg-gray-800 text-gray-500 cursor-not-allowed'
               }`}
             disabled={!deckState.track}
           >
@@ -541,7 +524,7 @@ const CDJDeck: React.FC<CDJDeckProps> = ({ side }) => {
               max="25"
               value={deckState.pitch}
               onChange={handlePitchChange}
-              className="w-32 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer pitch-slider"
+              className="w-32 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer "
             />
           </div>
         </div>

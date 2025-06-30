@@ -93,7 +93,7 @@ const Index = () => {
             transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
           >
             <div className="absolute inset-0 bg-orange-500 rounded-full transform rotate-3"></div>
-            <div className="absolute inset-0 bg-pink-500 rounded-full transform -rotate-2 flex items-center justify-center">
+            <div className="absolute inset-0 bg-blue-500 rounded-full transform -rotate-2 flex items-center justify-center">
               <Disc3 className="w-10 h-10 sm:w-12 sm:h-12 text-white transform rotate-12" />
             </div>
           </motion.div>
@@ -240,7 +240,7 @@ const Index = () => {
           >
             <motion.button
               onClick={() => navigate('/producer')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 hover:scale-105 touch-manipulation transform -rotate-1 hover:rotate-0 hover:bg-gray-700"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all btn-fun duration-300 hover:scale-105 touch-manipulation transform -rotate-1 hover:rotate-0"
               whileHover={{ scale: 1.05, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -249,7 +249,7 @@ const Index = () => {
 
             <motion.button
               onClick={() => navigate('/dj')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 hover:scale-105 touch-manipulation transform rotate-1 hover:rotate-0 hover:bg-gray-700"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all btn-fun duration-300 hover:scale-105 touch-manipulation transform rotate-1 hover:rotate-0"
               whileHover={{ scale: 1.05, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -441,7 +441,7 @@ const Index = () => {
             </motion.div>
             <button
               onClick={() => navigate('/dj')}
-              className="mt-56 px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-full shadow-lg transition-all duration-200 text-lg font-handwritten"
+              className="mt-64 px-6 py-2 btn-fun text-white font-bold rounded-full shadow-lg transition-all duration-200 text-lg font-handwritten"
               style={{ pointerEvents: 'auto' }}
             >
               Check this gear out
@@ -538,7 +538,7 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mb-8 sm:mb-12">
             <motion.button
               onClick={() => navigate('/producer')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 touch-manipulation font-handwritten transform -rotate-2 hover:rotate-0 hover:bg-gray-700 border-gray-700"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 btn-fun touch-manipulation font-handwritten transform -rotate-2 hover:rotate-0  border-gray-700"
               whileHover={{ scale: 1.05, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -547,7 +547,7 @@ const Index = () => {
 
             <motion.button
               onClick={() => navigate('/dj')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 touch-manipulation font-handwritten transform rotate-2 hover:rotate-0 hover:bg-gray-700 border-gray-700"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 btn-fun touch-manipulation font-handwritten transform rotate-2 hover:rotate-0  border-gray-700"
               whileHover={{ scale: 1.05, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
             >

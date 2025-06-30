@@ -81,7 +81,7 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-black/90 backdrop-blur-md rounded-xl border border-blue-500/30 p-6 max-w-md w-full">
+            <div className="bg-black/90 backdrop-blur-md rounded-xl border border-gray-700 p-6 max-w-md w-full">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
@@ -148,7 +148,7 @@ const FirstTimeOverlay: React.FC<FirstTimeOverlayProps> = ({ isOpen, onClose }) 
                     onClick={handleNext}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-1 px-4 py-2 bg-blue-600 btn-fun text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
                     {currentStep < steps.length - 1 && <ChevronRight className="w-4 h-4" />}

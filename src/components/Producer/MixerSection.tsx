@@ -159,7 +159,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               volume={masterVolume}
               onVolumeChange={onMasterVolumeChange}
               onMuteChange={onMasterMuteChange}
-              onSoloChange={() => {}} // Master doesn't have solo
+              onSoloChange={() => { }} // Master doesn't have solo
               isMuted={masterMuted}
               isSolo={false}
               showSolo={false}
@@ -167,7 +167,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
           </motion.div>
         </div>
 
-        {/* Balance Faders */}
+        {/* Balance Faders
         <motion.div
           className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-blue-500/30 max-w-4xl mx-auto"
           initial={{ opacity: 0, scale: 0.9 }}
@@ -233,7 +233,7 @@ const MixerSection: React.FC<MixerSectionProps> = ({
               />
             </div>
           </div>
-        </motion.div>
+        </motion.div> */}
 
         {/* Mixer Status Display */}
         {(anySolo || drumsMuted || melodyMuted || fxMuted || masterMuted) && (

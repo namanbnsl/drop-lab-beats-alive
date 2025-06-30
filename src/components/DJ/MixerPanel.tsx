@@ -21,7 +21,7 @@ const MixerPanel = () => {
   };
 
   return (
-    <div className="rounded-xl p-6 border border-blue-500/30 bg-transparent">
+    <div className="rounded-xl p-6 border-gray-700 border bg-transparent">
       <div className="text-center mb-6">
         <h3 className="text-lg font-bold text-white">Mixer</h3>
       </div>
