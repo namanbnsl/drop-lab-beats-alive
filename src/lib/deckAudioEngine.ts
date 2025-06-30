@@ -54,14 +54,18 @@ export class DeckAudioEngine {
 
   private initializeAudioChain(): void {
     try {
-      // Create audio processing chain
+      // Create audio processing chain with better settings to prevent distortion
       this.pitchShift = new Tone.PitchShift(0);
       this.eq3 = new Tone.EQ3();
       this.filter = new Tone.Filter(20000, "lowpass");
-      this.reverb = new Tone.Reverb(1.5);
+      this.reverb = new Tone.Reverb({
+        roomSize: 0.7,
+        dampening: 3000,
+        wet: 0 // Start with no reverb
+      });
       this.delay = new Tone.FeedbackDelay("8n", 0.2);
       this.panner = new Tone.Panner(0);
-      this.gain = new Tone.Gain(0.75);
+      this.gain = new Tone.Gain(0.6); // Reduced from 0.75 to prevent distortion
       
       // Connect the chain: Player -> PitchShift -> EQ -> Filter -> Reverb -> Delay -> Panner -> Gain -> Destination
       this.pitchShift.chain(this.eq3, this.filter, this.reverb, this.delay, this.panner, this.gain, Tone.Destination);
@@ -218,15 +222,15 @@ export class DeckAudioEngine {
 
   setReverb(value: number): void {
     if (this.reverb) {
-      // Convert 0-100 to wet signal (0 to 1)
-      this.reverb.wet.value = value / 100;
+      // Convert 0-100 to wet signal (0 to 0.8) - more conservative to prevent distortion
+      this.reverb.wet.value = (value / 100) * 0.8;
     }
   }
 
   setDelay(value: number): void {
     if (this.delay) {
-      // Convert 0-100 to wet signal (0 to 1)
-      this.delay.wet.value = value / 100;
+      // Convert 0-100 to wet signal (0 to 0.6) - more conservative to prevent distortion
+      this.delay.wet.value = (value / 100) * 0.6;
     }
   }
 

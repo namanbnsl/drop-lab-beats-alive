@@ -140,11 +140,11 @@ const FXSection: React.FC<FXSectionProps> = ({
 
   // Convert 0-100 range to 0-1 for Tone.js
   const handleReverbChange = (value: number) => {
-    onReverbChange(reverbBypass ? 0 : value / 100);
+    onReverbChange(reverbBypass ? 0 : value);
   };
 
   const handleDelayChange = (value: number) => {
-    onDelayChange(delayBypass ? 0 : value / 100);
+    onDelayChange(delayBypass ? 0 : value);
   };
 
   const handleDistortionChange = (value: number) => {
@@ -210,7 +210,7 @@ const FXSection: React.FC<FXSectionProps> = ({
             <div className="space-y-4 sm:space-y-6">
               <Knob
                 label="Amount"
-                value={Math.round(delayAmount * 100)}
+                value={delayAmount}
                 onChange={handleDelayChange}
                 color="purple"
               />
@@ -247,7 +247,7 @@ const FXSection: React.FC<FXSectionProps> = ({
             <div className="space-y-4 sm:space-y-6">
               <Knob
                 label="Amount"
-                value={Math.round(reverbAmount * 100)}
+                value={reverbAmount}
                 onChange={handleReverbChange}
                 color="green"
               />
@@ -342,13 +342,13 @@ const FXSection: React.FC<FXSectionProps> = ({
             <div className="text-center">
               <p className="text-white font-medium">Delay</p>
               <p className={`text-xs ${delayBypass ? 'text-gray-500' : 'text-white'}`}>
-                {delayBypass ? 'Bypassed' : `${Math.round(delayAmount * 100)}%`}
+                {delayBypass ? 'Bypassed' : `${delayAmount}%`}
               </p>
             </div>
             <div className="text-center">
               <p className="text-white font-medium">Reverb</p>
               <p className={`text-xs ${reverbBypass ? 'text-gray-500' : 'text-white'}`}>
-                {reverbBypass ? 'Bypassed' : `${Math.round(reverbAmount * 100)}%`}
+                {reverbBypass ? 'Bypassed' : `${reverbAmount}%`}
               </p>
             </div>
             <div className="text-center">

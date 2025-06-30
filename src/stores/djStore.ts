@@ -88,7 +88,7 @@ const defaultDeckState: DeckState = {
   track: null,
   pitch: 0,
   eq: { low: 50, mid: 50, high: 50 },
-  volume: 75,
+  volume: 60,
   fx: { filter: 50, reverb: 0, delay: 0 },
   isSyncing: false,
   gridPosition: { bar: 1, beat: 1, isAligned: false, isQueued: false },
@@ -425,7 +425,9 @@ export const useDJStore = create<DJState>((set, get) => ({
         finalVolume *= Math.cos((1 - crossfaderNormalized) * 0.5 * Math.PI);
       }
       
-      engine.setGain(finalVolume * 100);
+      // Convert to 0-100 range for setGain method and apply additional scaling to prevent distortion
+      const gainValue = Math.min(100, finalVolume * 100 * 0.8); // Scale down by 0.8 to prevent distortion
+      engine.setGain(gainValue);
       
       set({
         [deckState]: {

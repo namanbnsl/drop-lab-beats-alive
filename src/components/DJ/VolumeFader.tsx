@@ -14,25 +14,25 @@ const VolumeFader = ({ deck, value, onChange }: VolumeFaderProps) => {
   return (
     <div className="flex flex-col items-center space-y-2">
       <div className="text-xs text-white font-semibold">VOL {deck}</div>
-      <div className="h-32 w-6 bg-gray-700 rounded-full relative flex items-center justify-center">
+      <div className="h-32 w-6 bg-gray-700 rounded-full flex items-center justify-center relative">
         <input
           type="range"
           min="0"
           max="100"
           value={value}
           onChange={handleChange}
-          className="h-32 w-6 appearance-none bg-transparent cursor-pointer transform -rotate-90 origin-center"
+          className="h-32 w-6 appearance-none bg-transparent cursor-pointer transform -rotate-90 origin-center volume-fader"
           style={{
             width: '128px',
             height: '24px',
-            marginTop: '52px',
-            marginLeft: '-61px'
+            padding: 0,
+            margin: 0,
+            display: 'block',
           }}
           title={`Controls deck ${deck} volume`}
         />
-        <div className="absolute left-1/2 top-1/2 w-6 h-6 bg-blue-500 rounded-full shadow-lg pointer-events-none transform -translate-x-1/2 -translate-y-1/2" />
       </div>
-      <div className="text-xs text-white">{value}%</div>
+      <div className="text-xs text-white font-bold">{value}%</div>
     </div>
   );
 };

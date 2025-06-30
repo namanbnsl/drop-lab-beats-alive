@@ -518,6 +518,91 @@
   /* WebKit */
 }
 
+/* Volume Fader specific styles */
+.volume-fader {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.volume-fader::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2.2rem;
+  width: 2.2rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #60a5fa 70%, #2563eb 100%);
+  cursor: pointer;
+  border: 3px solid #fff;
+  box-shadow: 0 0 16px 4px #3b82f6, 0 2px 8px rgba(0,0,0,0.25);
+  transition: box-shadow 0.2s, border 0.2s;
+}
+
+.volume-fader:focus::-webkit-slider-thumb,
+.volume-fader:hover::-webkit-slider-thumb {
+  box-shadow: 0 0 32px 8px #60a5fa, 0 2px 12px rgba(0,0,0,0.35);
+  border: 3px solid #60a5fa;
+}
+
+.volume-fader::-webkit-slider-track {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #cbd5e1;
+  border-radius: 999px;
+  height: 1.2rem;
+}
+
+.volume-fader::-moz-range-thumb {
+  height: 2.2rem;
+  width: 2.2rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #60a5fa 70%, #2563eb 100%);
+  cursor: pointer;
+  border: 3px solid #fff;
+  box-shadow: 0 0 16px 4px #3b82f6, 0 2px 8px rgba(0,0,0,0.25);
+  transition: box-shadow 0.2s, border 0.2s;
+}
+
+.volume-fader:focus::-moz-range-thumb,
+.volume-fader:hover::-moz-range-thumb {
+  box-shadow: 0 0 32px 8px #60a5fa, 0 2px 12px rgba(0,0,0,0.35);
+  border: 3px solid #60a5fa;
+}
+
+.volume-fader::-moz-range-track {
+  background: #cbd5e1;
+  border-radius: 999px;
+  height: 1.2rem;
+}
+
+.volume-fader::-ms-thumb {
+  height: 2.2rem;
+  width: 2.2rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #60a5fa 70%, #2563eb 100%);
+  cursor: pointer;
+  border: 3px solid #fff;
+  box-shadow: 0 0 16px 4px #3b82f6, 0 2px 8px rgba(0,0,0,0.25);
+  transition: box-shadow 0.2s, border 0.2s;
+}
+
+.volume-fader:focus::-ms-thumb,
+.volume-fader:hover::-ms-thumb {
+  box-shadow: 0 0 32px 8px #60a5fa, 0 2px 12px rgba(0,0,0,0.35);
+  border: 3px solid #60a5fa;
+}
+
+.volume-fader::-ms-fill-lower,
+.volume-fader::-ms-fill-upper {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.volume-fader:focus {
+  outline: none;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 0.5rem;
 }

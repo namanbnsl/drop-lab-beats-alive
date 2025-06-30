@@ -81,12 +81,6 @@ const EQKnob = ({ label, value, onChange, color = 'purple' }: EQKnobProps) => {
     <div className="flex flex-col items-center space-y-1">
       <motion.div
         className="relative w-12 h-12 sm:w-16 sm:h-16 cursor-pointer knob-vibe"
-        whileHover={{ scale: 1.08 }}
-        animate={{
-          boxShadow: isDragging
-            ? `0 0 20px 4px rgba(59,130,246,0.5)`
-            : '0 0 8px 2px rgba(59,130,246,0.15)'
-        }}
         onMouseDown={handleMouseDown}
         onWheel={handleWheel}
         title={`EQ control for ${label}`}
@@ -99,7 +93,8 @@ const EQKnob = ({ label, value, onChange, color = 'purple' }: EQKnobProps) => {
             style={{ transform: `translateX(-50%) rotate(${rotation}deg)` }}
           />
           {/* Center dot */}
-          <div className={`absolute top-1/2 left-1/2 w-2 h-2 rounded-full transform -translate-x-1/2 -translate-y-1/2 bg-blue-400/80 shadow-md`} />
+          <div className={`absolute top-1/2 left-1/2 w-2 h-2 rounded-full transform -translate-x-1/2 -translate-y-1/2 
+            ${color === 'red' ? 'bg-red-400/80' : color === 'green' ? 'bg-green-400/80' : color === 'blue' ? 'bg-blue-400/80' : 'bg-blue-400/80'} shadow-md`} />
         </div>
       </motion.div>
 

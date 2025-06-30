@@ -72,7 +72,6 @@ const Producer = () => {
 
   // FIXED: Effects bus for both drums and melody
   const effectsBusRef = useRef<Tone.Gain | null>(null);
-  const dryBusRef = useRef<Tone.Gain | null>(null);
 
   // Sequencer refs
   const sequencerRef = useRef<Tone.Sequence | null>(null);
@@ -128,17 +127,12 @@ const Producer = () => {
 
   // FIXED: FX volume now controls the master dry/wet for all effects
   useEffect(() => {
-    if (effectsBusRef.current && dryBusRef.current && audioUnlocked) {
-      // FX volume controls the balance between dry and wet signals
-      const wetAmount = effectiveFxVolume / 100;
-      const dryAmount = 1 - wetAmount;
-      
+    if (effectsBusRef.current && audioUnlocked) {
+      const wetAmount = fxVolume / 100;
       effectsBusRef.current.gain.rampTo(wetAmount, 0.1);
-      dryBusRef.current.gain.rampTo(dryAmount, 0.1);
-      
-      console.log(`🎛️ Master FX Dry/Wet: ${effectiveFxVolume}% wet, ${Math.round((1 - wetAmount) * 100)}% dry`);
+      console.log(`🎛️ FX Gain: ${fxVolume}%`);
     }
-  }, [effectiveFxVolume, fxMuted, fxSolo, audioUnlocked]);
+  }, [fxVolume, fxMuted, fxSolo, audioUnlocked]);
 
   useEffect(() => {
     if (masterGainRef.current && audioUnlocked) {
@@ -151,19 +145,19 @@ const Producer = () => {
   // FIXED: FX Control Effects - Apply FX changes in real-time with WORKING effects
   useEffect(() => {
     if (reverbRef.current && audioUnlocked) {
-      // Convert 0-100 to 0-1 for wet amount - BOOSTED for audibility
-      const wetAmount = Math.min(1, (reverbAmount / 100) * 2);
+      // Match DJ: Convert 0-100 to wet (0 to 0.8)
+      const wetAmount = (reverbAmount / 100) * 0.8;
       reverbRef.current.wet.rampTo(wetAmount, 0.1);
-      console.log(`🎛️ Reverb: ${reverbAmount}% (wet: ${wetAmount.toFixed(2)} - BOOSTED)`);
+      console.log(`🎛️ Reverb: ${reverbAmount}% (wet: ${wetAmount.toFixed(2)})`);
     }
   }, [reverbAmount, audioUnlocked]);
 
   useEffect(() => {
     if (delayRef.current && audioUnlocked) {
-      // Convert 0-100 to 0-1 for wet amount - BOOSTED for audibility
-      const wetAmount = Math.min(1, (delayAmount / 100) * 2);
+      // Match DJ: Convert 0-100 to wet (0 to 0.6)
+      const wetAmount = (delayAmount / 100) * 0.6;
       delayRef.current.wet.rampTo(wetAmount, 0.1);
-      console.log(`🎛️ Delay: ${delayAmount}% (wet: ${wetAmount.toFixed(2)} - BOOSTED)`);
+      console.log(`🎛️ Delay: ${delayAmount}% (wet: ${wetAmount.toFixed(2)})`);
     }
   }, [delayAmount, audioUnlocked]);
 
@@ -199,69 +193,51 @@ const Producer = () => {
 
   // FIXED: Initialize audio system with WORKING effects for both drums and melody
   const initializeSynths = () => {
-    console.log("🎵 Initializing audio system with working effects...");
+    console.log("🎵 Initializing audio system with DJ-style effects chain...");
     
     // Create master gain for overall volume control
     masterGainRef.current = new Tone.Gain(0.75).toDestination();
 
-    // FIXED: Create dry and wet buses for proper effects routing
-    dryBusRef.current = new Tone.Gain(1).connect(masterGainRef.current);
-    effectsBusRef.current = new Tone.Gain(0.5).connect(masterGainRef.current);
+    // Create FX gain for all effects
+    const fxGain = new Tone.Gain(fxVolume / 100);
+    // Store reference for FX volume control
+    effectsBusRef.current = fxGain;
 
-    // Create individual track gains for mixer control
-    drumGainRef.current = new Tone.Gain(0.8);
-    melodyGainRef.current = new Tone.Gain(0.7);
+    // Create filter, reverb, delay
+    filterRef.current = new Tone.Filter({
+      frequency: 20000,
+      type: "lowpass",
+      rolloff: -24
+    });
+    reverbRef.current = new Tone.Reverb({
+      roomSize: 0.8,
+      dampening: 3000,
+      wet: 0
+    });
+    delayRef.current = new Tone.FeedbackDelay({
+      delayTime: "8n",
+      feedback: 0.4,
+      wet: 0
+    });
+    distortionRef.current = new Tone.Distortion({
+      distortion: 0.4,
+      wet: 0
+    });
 
-    // FIXED: Create WORKING effects chain with proper initialization
-    try {
-      // Initialize reverb with proper settings
-      reverbRef.current = new Tone.Reverb({
-        roomSize: 0.8,
-        dampening: 3000,
-        wet: 0
-      });
-      
-      // Initialize delay with proper settings
-      delayRef.current = new Tone.FeedbackDelay({
-        delayTime: "8n",
-        feedback: 0.4,
-        wet: 0
-      });
-      
-      // Initialize distortion with proper settings
-      distortionRef.current = new Tone.Distortion({
-        distortion: 0.4,
-        wet: 0
-      });
-      
-      // Initialize filter with proper settings
-      filterRef.current = new Tone.Filter({
-        frequency: 20000,
-        type: "lowpass",
-        rolloff: -24
-      });
+    // Connect FX chain: Filter -> Distortion -> Reverb -> Delay -> FX Gain -> Master Gain
+    filterRef.current.chain(distortionRef.current, reverbRef.current, delayRef.current, fxGain, masterGainRef.current);
 
-      // FIXED: Connect effects chain properly: Filter -> Distortion -> Delay -> Reverb -> Effects Bus
-      filterRef.current.chain(distortionRef.current, delayRef.current, reverbRef.current, effectsBusRef.current);
-      
-      console.log("✅ Effects chain created: Filter → Distortion → Delay → Reverb → Effects Bus");
-    } catch (error) {
-      console.error("❌ Failed to create effects chain:", error);
-    }
-
-    // FIXED: Create drum synths and connect to BOTH dry and wet paths
+    // Create drum synths and connect to filter
     kickSynthRef.current = new Tone.MembraneSynth({
       pitchDecay: 0.05,
       octaves: 10,
       oscillator: { type: "sine" },
       envelope: { decay: 0.2, sustain: 0.2, release: 1.2 }
     });
-
     snareSynthRef.current = new Tone.NoiseSynth({
       noise: { type: "white" },
       envelope: { decay: 0.1, sustain: 0.1, release: 0.2 }
     });
-
     hihatSynthRef.current = new Tone.MetalSynth({
       envelope: { attack: 0.001, decay: 0.08, release: 0.08 },
       harmonicity: 5.1,
@@ -269,7 +245,6 @@ const Producer = () => {
       resonance: 1200,
       octaves: 1.5
     });
-
     crashSynthRef.current = new Tone.MetalSynth({
       envelope: { attack: 0.001, decay: 0.25, release: 0.18 },
       harmonicity: 5.1,
@@ -278,39 +253,22 @@ const Producer = () => {
       octaves: 2
     });
 
-    // FIXED: Connect drums to BOTH dry and effects paths
-    kickSynthRef.current.connect(drumGainRef.current);
+    // Connect all drum synths to filter
     kickSynthRef.current.connect(filterRef.current);
-    
-    snareSynthRef.current.connect(drumGainRef.current);
     snareSynthRef.current.connect(filterRef.current);
-    
-    hihatSynthRef.current.connect(drumGainRef.current);
     hihatSynthRef.current.connect(filterRef.current);
-    
-    crashSynthRef.current.connect(drumGainRef.current);
     crashSynthRef.current.connect(filterRef.current);
 
-    // Connect drum gain to dry bus
-    drumGainRef.current.connect(dryBusRef.current);
-
-    // FIXED: Create melody synth and connect to BOTH dry and effects paths
+    // Create melody synth and connect to filter
     melodySynthRef.current = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: "triangle" },
       envelope: { attack: 0.02, decay: 0.1, sustain: 0.3, release: 1 }
     });
-
-    // Connect melody to BOTH dry and effects paths
-    melodySynthRef.current.connect(melodyGainRef.current);
     melodySynthRef.current.connect(filterRef.current);
 
-    // Connect melody gain to dry bus
-    melodyGainRef.current.connect(dryBusRef.current);
-
-    console.log("🎵 Audio system initialized with WORKING effects for both drums and melody!");
-    console.log("🎛️ Effects order: Input → Filter → Distortion → Delay → Reverb → Effects Bus");
-    console.log("🔊 Both drums and melody are routed through effects!");
-    console.log("🎚️ FX slider controls dry/wet balance for all effects");
+    // No dry bus, all audio goes through FX chain
+    console.log("🎵 Audio system initialized with DJ-style effects chain!");
+    console.log("🎛️ Effects order: Input → Filter → Distortion → Reverb → Delay → FX Gain → Master Gain");
   };
 
   // Unlock audio context

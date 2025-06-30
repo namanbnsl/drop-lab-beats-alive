@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Music, Zap, Settings, Disc3, Sliders, Grid3X3, Monitor, PlayCircle, Brain, BookOpen } from 'lucide-react';
+import CDJDeck from '../components/DJ/CDJDeck';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -420,24 +421,31 @@ const Index = () => {
           </motion.svg>
 
           <p className="text-lg sm:text-xl text-white mb-8 sm:mb-12 leading-relaxed font-handwritten">
-            DropLab is built to teach as you play. With interactive tooltips and a step-by-step walkthrough, anyone can
-            go from beginner to beat master.
+            We have online gear similar to real life, but not a 100% copy—just enough to get you started!
           </p>
 
           <motion.div
-            className="relative inline-block transform rotate-2"
-            whileHover={{ scale: 1.05, rotate: 0 }}
+            className="flex flex-col items-center"
+            whileHover={{ scale: 1.07, rotate: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="w-48 h-32 sm:w-64 sm:h-40 bg-gray-900 border-2 border-cyan-500 rounded-xl flex items-center justify-center relative overflow-hidden">
-              <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 text-cyan-400 transform -rotate-3" />
-              <div className="absolute top-2 right-2 bg-yellow-400 text-gray-900 text-xs px-2 py-1 rounded-full font-bold animate-bounce transform rotate-12">
-                Learn!
+            <motion.div
+              className="block mx-auto drop-shadow-2xl pointer-events-none select-none"
+              style={{ width: 180, height: 180 }}
+              animate={{ y: [0, -16, 0] }}
+              transition={{ duration: 2.2, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
+            >
+              <div style={{ transform: 'scale(0.7) rotate(-8deg)', width: 260, height: 260 }}>
+                <CDJDeck side="A" />
               </div>
-              <div className="absolute bottom-2 left-2 bg-pink-400 text-gray-900 text-xs px-2 py-1 rounded-full transform -rotate-6">
-                Tip: Try this!
-              </div>
-            </div>
+            </motion.div>
+            <button
+              onClick={() => navigate('/dj')}
+              className="mt-56 px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-full shadow-lg transition-all duration-200 text-lg font-handwritten"
+              style={{ pointerEvents: 'auto' }}
+            >
+              Check this gear out
+            </button>
           </motion.div>
         </motion.div>
       </section>

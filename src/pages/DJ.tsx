@@ -36,7 +36,7 @@ const DJ = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-handwritten overflow-hidden relative grid-bg text-white">
+    <div className="min-h-screen bg-black text-white font-handwritten overflow-hidden relative grid-bg">
       {/* Scattered decorative elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="scattered-icon top-10 left-10">🎵</div>
