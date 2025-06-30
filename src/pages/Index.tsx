@@ -430,8 +430,8 @@ const Index = () => {
             transition={{ duration: 0.3 }}
           >
             <motion.div
-              className="block mx-auto drop-shadow-2xl pointer-events-none select-none"
-              style={{ width: 180, height: 180 }}
+              className="drop-shadow-2xl pointer-events-none select-none"
+              style={{ width: 180, height: 180, marginLeft: '20rem', marginRight: 'auto' }}
               animate={{ y: [0, -16, 0] }}
               transition={{ duration: 2.2, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
             >
