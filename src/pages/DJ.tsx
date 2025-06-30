@@ -140,7 +140,7 @@ const DJ = () => {
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/80" onClick={() => setShowLibrary(false)} />
           {/* Modal Content */}
-          <div className="relative z-10 max-w-3xl w-full mx-auto">
+          <div className="relative z-10 max-w-3xl w-full mx-auto bg-black/60 backdrop-blur-md rounded-xl p-2">
             <div className="absolute top-4 right-4">
               <button onClick={() => setShowLibrary(false)} className="p-2 rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors">
                 <X className="w-6 h-6" />

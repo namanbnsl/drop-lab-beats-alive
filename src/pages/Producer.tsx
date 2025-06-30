@@ -83,7 +83,7 @@ const Producer = () => {
   const sections = [
     { id: 'drums', name: 'Drums', icon: '🥁' },
     { id: 'melody', name: 'Melody', icon: '🎼' },
-    { id: 'fx', name: 'Effects', icon: '🎛️' },
+    { id: 'fx', name: 'Effects/FX', icon: '🎛️' },
     { id: 'mixer', name: 'Mixer', icon: '🎚️' },
     { id: 'export', name: 'Export', icon: '💾' }
   ];
@@ -166,7 +166,7 @@ const Producer = () => {
       // Convert 0-100 to 0-1 for distortion amount
       const distAmount = Math.max(0.01, distortionAmount / 100);
       const wetAmount = distortionAmount > 0 ? 1 : 0;
-      
+
       distortionRef.current.distortion = distAmount;
       distortionRef.current.wet.rampTo(wetAmount, 0.1);
       console.log(`🎛️ Distortion: ${distortionAmount}% (amount: ${distAmount.toFixed(2)})`);
@@ -194,7 +194,7 @@ const Producer = () => {
   // FIXED: Initialize audio system with WORKING effects for both drums and melody
   const initializeSynths = () => {
     console.log("🎵 Initializing audio system with DJ-style effects chain...");
-    
+
     // Create master gain for overall volume control
     masterGainRef.current = new Tone.Gain(0.75).toDestination();
 
@@ -744,7 +744,7 @@ const Producer = () => {
                 key={section.id}
                 onClick={() => setCurrentSection(section.id)}
                 className={`px-4 py-3 rounded-xl text-sm font-display font-semibold transition-all duration-300 touch-manipulation btn-glow ${currentSection === section.id
-                  ? 'text-white shadow-lg scale-105 btn-glow-blue'
+                  ? 'text-white shadow-lg scale-105 btn-fun'
                   : 'text-white/70 hover:text-white hover:bg-white/10 hover:scale-105'
                   }`}
               >

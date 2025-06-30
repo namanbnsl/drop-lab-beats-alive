@@ -240,7 +240,7 @@ const Index = () => {
           >
             <motion.button
               onClick={() => navigate('/producer')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 hover:scale-105 touch-manipulation transform -rotate-1 hover:rotate-0 hover:bg-gray-700"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all btn-fun duration-300 hover:scale-105 touch-manipulation transform -rotate-1 hover:rotate-0"
               whileHover={{ scale: 1.05, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -249,7 +249,7 @@ const Index = () => {
 
             <motion.button
               onClick={() => navigate('/dj')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 hover:scale-105 touch-manipulation transform rotate-1 hover:rotate-0 hover:bg-gray-700"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 border-gray-700 rounded-lg font-bold text-base sm:text-lg text-white transition-all btn-fun duration-300 hover:scale-105 touch-manipulation transform rotate-1 hover:rotate-0"
               whileHover={{ scale: 1.05, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -538,7 +538,7 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mb-8 sm:mb-12">
             <motion.button
               onClick={() => navigate('/producer')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 touch-manipulation font-handwritten transform -rotate-2 hover:rotate-0 hover:bg-gray-700 border-gray-700"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 btn-fun touch-manipulation font-handwritten transform -rotate-2 hover:rotate-0  border-gray-700"
               whileHover={{ scale: 1.05, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -547,7 +547,7 @@ const Index = () => {
 
             <motion.button
               onClick={() => navigate('/dj')}
-              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 touch-manipulation font-handwritten transform rotate-2 hover:rotate-0 hover:bg-gray-700 border-gray-700"
+              className="group relative px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 border-2 rounded-lg font-bold text-base sm:text-lg text-white transition-all duration-300 btn-fun touch-manipulation font-handwritten transform rotate-2 hover:rotate-0  border-gray-700"
               whileHover={{ scale: 1.05, rotate: 0 }}
               whileTap={{ scale: 0.95 }}
             >
