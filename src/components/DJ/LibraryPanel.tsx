@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, Music, X, Link } from 'lucide-react';
 import { useDJStore } from '../../stores/djStore';
@@ -15,30 +15,6 @@ const LibraryPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [googleDriveLink, setGoogleDriveLink] = useState('');
   const { loadTrack } = useDJStore();
-
-  // Pre-loaded Google Drive demo tracks
-  const demoTracks = [
-    {
-      id: 'demo1',
-      name: 'House Track 1',
-      url: 'https://drive.google.com/uc?export=download&id=1YourFileId1'
-    },
-    {
-      id: 'demo2',
-      name: 'Tech House Mix',
-      url: 'https://drive.google.com/uc?export=download&id=1YourFileId2'
-    },
-    {
-      id: 'demo3',
-      name: 'Deep House Vibe',
-      url: 'https://drive.google.com/uc?export=download&id=1YourFileId3'
-    }
-  ];
-
-  useEffect(() => {
-    // Initialize with demo tracks
-    setTracks(demoTracks);
-  }, []);
 
   const convertGoogleDriveLink = (driveLink: string) => {
     const match = driveLink.match(/\/d\/(.*?)\//);
