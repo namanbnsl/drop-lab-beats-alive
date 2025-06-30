@@ -38,7 +38,7 @@ const Producer = () => {
   const [reverbAmount, setReverbAmount] = useState(0);
   const [delayAmount, setDelayAmount] = useState(0);
   const [distortionAmount, setDistortionAmount] = useState(0);
-  const [filterAmount, setFilterAmount] = useState(50);
+  const [filterAmount, setFilterAmount] = useState(51);
 
   // Export state
   const [hasGeneratedContent, setHasGeneratedContent] = useState(false);
