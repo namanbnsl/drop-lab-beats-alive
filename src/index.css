@@ -535,13 +535,13 @@
   background: radial-gradient(circle at 30% 30%, #60a5fa 70%, #2563eb 100%);
   cursor: pointer;
   border: 3px solid #fff;
-  box-shadow: 0 0 16px 4px #3b82f6, 0 2px 8px rgba(0,0,0,0.25);
+  box-shadow: 0 0 16px 4px #3b82f6, 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: box-shadow 0.2s, border 0.2s;
 }
 
 .volume-fader:focus::-webkit-slider-thumb,
 .volume-fader:hover::-webkit-slider-thumb {
-  box-shadow: 0 0 32px 8px #60a5fa, 0 2px 12px rgba(0,0,0,0.35);
+  box-shadow: 0 0 32px 8px #60a5fa, 0 2px 12px rgba(0, 0, 0, 0.35);
   border: 3px solid #60a5fa;
 }
 
@@ -560,13 +560,13 @@
   background: radial-gradient(circle at 30% 30%, #60a5fa 70%, #2563eb 100%);
   cursor: pointer;
   border: 3px solid #fff;
-  box-shadow: 0 0 16px 4px #3b82f6, 0 2px 8px rgba(0,0,0,0.25);
+  box-shadow: 0 0 16px 4px #3b82f6, 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: box-shadow 0.2s, border 0.2s;
 }
 
 .volume-fader:focus::-moz-range-thumb,
 .volume-fader:hover::-moz-range-thumb {
-  box-shadow: 0 0 32px 8px #60a5fa, 0 2px 12px rgba(0,0,0,0.35);
+  box-shadow: 0 0 32px 8px #60a5fa, 0 2px 12px rgba(0, 0, 0, 0.35);
   border: 3px solid #60a5fa;
 }
 
@@ -583,13 +583,13 @@
   background: radial-gradient(circle at 30% 30%, #60a5fa 70%, #2563eb 100%);
   cursor: pointer;
   border: 3px solid #fff;
-  box-shadow: 0 0 16px 4px #3b82f6, 0 2px 8px rgba(0,0,0,0.25);
+  box-shadow: 0 0 16px 4px #3b82f6, 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: box-shadow 0.2s, border 0.2s;
 }
 
 .volume-fader:focus::-ms-thumb,
 .volume-fader:hover::-ms-thumb {
-  box-shadow: 0 0 32px 8px #60a5fa, 0 2px 12px rgba(0,0,0,0.35);
+  box-shadow: 0 0 32px 8px #60a5fa, 0 2px 12px rgba(0, 0, 0, 0.35);
   border: 3px solid #60a5fa;
 }
 
@@ -832,7 +832,7 @@ html {
 
 .scattered-icon {
   position: absolute;
-  font-size: 1.5rem;
+  font-size: 2.2rem;
   opacity: 0.3;
   animation: float 8s ease-in-out infinite;
 }
