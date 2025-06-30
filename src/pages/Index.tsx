@@ -441,7 +441,7 @@ const Index = () => {
             </motion.div>
             <button
               onClick={() => navigate('/dj')}
-              className="mt-56 px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-full shadow-lg transition-all duration-200 text-lg font-handwritten"
+              className="mt-64 px-6 py-2 btn-fun text-white font-bold rounded-full shadow-lg transition-all duration-200 text-lg font-handwritten"
               style={{ pointerEvents: 'auto' }}
             >
               Check this gear out
