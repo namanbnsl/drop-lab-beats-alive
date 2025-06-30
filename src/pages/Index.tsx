@@ -93,7 +93,7 @@ const Index = () => {
             transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
           >
             <div className="absolute inset-0 bg-orange-500 rounded-full transform rotate-3"></div>
-            <div className="absolute inset-0 bg-pink-500 rounded-full transform -rotate-2 flex items-center justify-center">
+            <div className="absolute inset-0 bg-blue-500 rounded-full transform -rotate-2 flex items-center justify-center">
               <Disc3 className="w-10 h-10 sm:w-12 sm:h-12 text-white transform rotate-12" />
             </div>
           </motion.div>

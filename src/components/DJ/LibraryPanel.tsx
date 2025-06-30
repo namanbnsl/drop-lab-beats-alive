@@ -90,7 +90,7 @@ const LibraryPanel = () => {
         initial={{ x: '100%' }}
         animate={{ x: isOpen ? 0 : '100%' }}
         transition={{ duration: 0.3 }}
-        className="fixed top-0 right-0 h-full w-80 bg-gray-900 border-l border-blue-500/30 z-40 p-6 overflow-y-auto"
+        className="fixed top-0 right-0 h-full w-80 bg-gray-900 border-l border-gray-700 z-40 p-6 overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-bold text-blue-400">Music Library</h3>

@@ -9,10 +9,9 @@ interface ProducerNavbarProps {
 
 const ProducerNavbar: React.FC<ProducerNavbarProps> = ({ activeSection, onNavigateHome }) => {
   const navItems = [
-    { id: 'studio', label: 'Studio', icon: Music },
+    { id: 'studio', label: 'Drums', icon: Music },
     { id: 'sequencer', label: 'Sequencer', icon: Grid3X3 },
     { id: 'mixer', label: 'Mixer', icon: Volume2 },
-    { id: 'ai', label: 'AI Assistant', icon: Brain },
     { id: 'export', label: 'Export', icon: Download },
   ];
 
@@ -51,8 +50,8 @@ const ProducerNavbar: React.FC<ProducerNavbarProps> = ({ activeSection, onNaviga
               key={item.id}
               onClick={() => scrollToSection(item.id)}
               className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${isActive
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
-                  : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 hover:text-white'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 hover:text-white'
                 }`}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}

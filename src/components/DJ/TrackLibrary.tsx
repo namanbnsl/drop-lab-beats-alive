@@ -205,7 +205,7 @@ const TrackLibrary = () => {
   }, [previewAudio, uploadedTracks]);
 
   return (
-    <div className="bg-black/90 backdrop-blur-md rounded-xl p-6 border border-blue-500/30">
+    <div className="bg-black/90 backdrop-blur-md rounded-xl p-6 border border-gray-700">
       <div className="text-center mb-6">
         <h3 className="text-lg font-bold text-white flex items-center justify-center gap-2">
           <Music className="w-5 h-5" />
