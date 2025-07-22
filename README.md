@@ -1,5 +1,6 @@
 # DropLab Beats - Music Production App
 
+## Watch The Dem
 [![Watch the Demo](https://img.youtube.com/vi/rYw23eTEpd8/0.jpg)](https://www.youtube.com/watch?v=rYw23eTEpd8)
 
 A modern human-powered music production app with real-time composition and mixing capabilities.
